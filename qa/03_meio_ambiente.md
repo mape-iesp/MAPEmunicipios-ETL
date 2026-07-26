@@ -1,6 +1,6 @@
 # QA — 03_meio_ambiente
 
-Gerado em 2026-07-26 16:34:40.
+Gerado em 2026-07-26 18:54:13.
 
 ## Resumo
 
@@ -16,7 +16,7 @@ Checagens executadas: 18.
 |---|---|---|---|
 | schema | aviso | snis_extensao_rede_agua_km: 5 valor(es) fora do domínio [0,30000] (observado: 0 a 4883600) | problema da variável snis_extensao_rede_agua_km: DEFEITO ABERTO (auditoria 26/07/2026, achado 52): parte das celulas esta em METROS e nao em quilometros. O maximo publicado e 4.883.646 km, e a maior rede do pais e da ordem de 25.000 km; 47 celulas passam de 10.000 km. O fator e de 1.000 e afeta blocos identificaveis (Roraima em 1998, Parana em 1996, Fortaleza em 1998, casos avulsos de esgoto). O dominio_valido foi estreitado para que a validacao DISPARE — ele estava [0,Inf], que e estruturalmente incapaz de flagrar qualquer coisa. Corrigir exige dividir as celulas identificadas por 1.000 na camada de FONTE e reivindicar a divergencia em qa/paridade_esperada.csv antes de rodar; muda valor publicado e depende do responsavel. |
 | schema | aviso | snis_extensao_rede_esgoto_km: 12 valor(es) fora do domínio [0,30000] (observado: 0 a 1791800) | problema da variável snis_extensao_rede_esgoto_km: DEFEITO ABERTO (auditoria 26/07/2026, achado 52): parte das celulas esta em METROS e nao em quilometros. O maximo publicado e 1.791.797 km, e a maior rede do pais e da ordem de 25.000 km; 40 celulas passam de 10.000 km. O fator e de 1.000 e afeta blocos identificaveis (Roraima em 1998, Parana em 1996, Fortaleza em 1998, casos avulsos de esgoto). O dominio_valido foi estreitado para que a validacao DISPARE — ele estava [0,Inf], que e estruturalmente incapaz de flagrar qualquer coisa. Corrigir exige dividir as celulas identificadas por 1.000 na camada de FONTE e reivindicar a divergencia em qa/paridade_esperada.csv antes de rodar; muda valor publicado e depende do responsavel. |
-| schema | informativo | (tabela): 25 de 67 coluna(s) numérica(s) sem `dominio_valido` declarado (37%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| schema | informativo | (tabela): 15 de 67 coluna(s) numérica(s) sem `dominio_valido` declarado (22%): a checagem de faixa não olhou essas. | — sem justificativa — |
 | zero_inflacao | aviso | s2id_pessoas_afetadas_desastre_i: 6 ano(s) com 99% ou mais de zeros exatos (1991, 1992, 1993, 1994, 1996, 1999), enquanto 17 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável s2id_pessoas_afetadas_desastre_i: Idem; nao diz que e afetadas POR DESASTRE |
 | zero_inflacao | aviso | s2id_danos_materiais_brl2023: 8 ano(s) com 99% ou mais de zeros exatos (1991, 1992, 1993, 1994, 1995, 1996, 1997, 1999), enquanto 15 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável s2id_danos_materiais_brl2023: Valor monetario sem unidade e sem indicacao de deflacao |
 | zero_inflacao | aviso | s2id_prejuizos_publicos_brl2023: 9 ano(s) com 99% ou mais de zeros exatos (1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, ...), enquanto 19 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável s2id_prejuizos_publicos_brl2023: Valor monetario sem unidade e sem indicacao de deflacao |

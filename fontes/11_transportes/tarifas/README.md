@@ -18,7 +18,7 @@ Valor da tarifa de ônibus urbano, deflacionado para dezembro de 2023, e o peso 
 | Fonte da extração | compilacao manual |
 | Link | não informado |
 | Método de acesso | `download_manual` |
-| Licença | a verificar |
+| Licença | Levantamento proprio do MAPE a partir de decretos municipais, que sao atos publicos. A compilacao e do projeto e e publicada sob CC BY 4.0. |
 | Periodicidade da fonte | eventual |
 | Script de ingestão | não informado |
 
@@ -31,9 +31,9 @@ Valor da tarifa de ônibus urbano, deflacionado para dezembro de 2023, e o peso 
 | Municípios distintos | 27 de 5.570 (0.5%) |
 | Chave primária | `id_municipio, ano` |
 | Granularidade | municipio x ano com tarifa levantada |
-| Cobertura declarada pela fonte | 2018-2024 |
+| Cobertura declarada pela fonte | 2005-2017 |
 | **Cobertura observada na tabela** | **2005-2017** |
-| Células vazias | 7.7% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 7.69% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -42,7 +42,7 @@ Valor da tarifa de ônibus urbano, deflacionado para dezembro de 2023, e o peso 
 |---|---|---|---|---|
 | `comprometimento_tarifa_sobre_renda_domesticas_negras_prop` | double | proporcao | Comprometimento da renda para trabalhadoras domésticas negras | 23.1% |
 | `comprometimento_tarifa_sobre_salario_minimo_prop` | double | proporcao | Comprometimento da renda de um salário mínimo | 0.0% |
-| `tarifa_onibus_urbano_brl2023` | double | R$ | Tarifa de transporte público para 26 capitais e Distrito Federal | 0.0% |
+| `tarifa_onibus_urbano_brl2023` | double | BRL de dezembro de 2023 | Tarifa de transporte público para 26 capitais e Distrito Federal | 0.0% |
 
 ## Ressalvas
 
@@ -63,5 +63,5 @@ x <- mape_ler("11_transportes/tarifas")
 x <- mape_ler("11_transportes/tarifas", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

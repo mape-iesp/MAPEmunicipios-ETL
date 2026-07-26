@@ -1,5 +1,14 @@
 # 10. O que vai para o git e o que não vai
 
+
+> **Errata de 26/07/2026 (auditoria, achados 23 e 31).** Este documento fala em
+> "doze checagens". O código nunca executou doze: a bateria tinha dez rótulos
+> distintos, a checagem 11 (releitura da exportação) era vazia e a 12 (descrições
+> repetidas) nunca foi escrita. As duas foram implementadas na rodada de correção,
+> junto com outras seis, e o número deixou de ser digitado — `mape_validar_tabela()`
+> conta quantas de fato rodaram e o relatório imprime essa contagem.
+
+
 ## 10.1 O precedente que já existe
 
 O commit `20a3b11` já colocou sob controle de versão os dez arquivos `.txt` do CadÚnico (31 MB,

@@ -18,7 +18,7 @@
 | Fonte da extração | portal AdaptaBrasil (selecao manual de filtros) |
 | Link | <https://adaptabrasil.mcti.gov.br/> |
 | Método de acesso | `download_manual` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. AdaptaBrasil MCTI. |
 | Periodicidade da fonte | eventual |
 | Script de ingestão | não informado |
 
@@ -33,7 +33,7 @@
 | Granularidade | municipio (retrato unico de 2015) |
 | Cobertura declarada pela fonte | 2015 |
 | **Cobertura observada na tabela** | **2015-2015** |
-| Células vazias | 0% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 0% |
 | Regra de preenchimento temporal | `valor_unico_replicado` |
 
 ## Variáveis
@@ -75,5 +75,5 @@ x <- mape_ler("03_meio_ambiente/adaptabrasil")
 x <- mape_ler("03_meio_ambiente/adaptabrasil", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

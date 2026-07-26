@@ -18,7 +18,7 @@ Contagem de famílias inscritas no Cadastro Único com dados atualizados, por fa
 | Fonte da extração | SAGI — indicador IN004 e Taxa de Atualização Cadastral |
 | Link | <https://wiki-sagi.mds.gov.br/home/DS/Cad/I/IN004> |
 | Método de acesso | `download_manual` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | mensal |
 | Script de ingestão | `fontes/01_assistencia_social_dh/cadunico/R/tratar_cadunico.R` |
 
@@ -31,9 +31,9 @@ Contagem de famílias inscritas no Cadastro Único com dados atualizados, por fa
 | Municípios distintos | 5.570 de 5.570 (100%) |
 | Chave primária | `id_municipio, ano` |
 | Granularidade | municipio x ano (snapshot de dezembro de cada ano) |
-| Cobertura declarada pela fonte | 2015-2024 (mensal) |
+| Cobertura declarada pela fonte | 2015-2023 (snapshot de dezembro de cada ano) |
 | **Cobertura observada na tabela** | **2015-2023** |
-| Células vazias | 25% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 25% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -62,5 +62,5 @@ x <- mape_ler("01_assistencia_social_dh/cadunico")
 x <- mape_ler("01_assistencia_social_dh/cadunico", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

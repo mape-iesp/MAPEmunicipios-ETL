@@ -1,6 +1,6 @@
 # QA — 16_eleicoes
 
-Gerado em 2026-07-26 16:35:08.
+Gerado em 2026-07-26 18:54:43.
 
 ## Resumo
 
@@ -14,8 +14,8 @@ Checagens executadas: 18.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
-| schema | informativo | (tabela): 7 de 25 coluna(s) numérica(s) sem `dominio_valido` declarado (28%): a checagem de faixa não olhou essas. | — sem justificativa — |
-| invariancia_temporal | aviso | turno_i: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável turno_i: Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada. |
+| schema | informativo | (tabela): 5 de 25 coluna(s) numérica(s) sem `dominio_valido` declarado (20%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| invariancia_temporal | aviso | turno_i: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável turno_i: Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada. CORRIGIDO PARCIALMENTE em 26/07/2026 (auditoria, achado 102): o tipo era `double` apesar do sufixo _i de contagem inteira, e passou a `integer`. A coluna continua CONSTANTE igual a 1 em todas as linhas e continua marcada acao = remover — remover coluna de tabela publicada depende do responsavel. |
 
 ## Defeitos declarados no dicionário
 
@@ -25,7 +25,7 @@ Estes 18 defeito(s) estão declarados no dicionário e **não** são detectados 
 - (comparecimento_prefeito_pct) Prefixo 'proporcao' com escala 0-100 (16,56 a 99,37) e sufixo de cargo divergente. E uma das colunas consumidas por scripts/artigo
 - (tse_votos_brancos_prefeito_pct) CORRIGIDO em 26/07/2026 (auditoria, achado 30): o DADO e o NOME sempre estiveram certos (brancos com mediana 1,26%, nulos com 4,46%); o que estava trocado era o campo descricao, que descrevia esta coluna como 'Proporcao Votos Nulos Prefeitura' e a irma como brancos. O legado gravava o conteudo trocado, por um rename() que passava o mesmo argumento de origem duas vezes, e a migracao consertou o conteudo mas herdou o texto antigo — que passou a descrever um defeito ja resolvido como se fosse o vivo, enquanto o defeito vivo (a descricao invertida) ficava sem registro.
 - (tse_votos_nulos_prefeito_pct) CORRIGIDO em 26/07/2026 (auditoria, achado 30): ver o campo problema de tse_votos_brancos_prefeito_pct. A descricao das duas colunas estava trocada entre si no dicionario; o dado nao estava.
-- (turno_i) Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada.
+- (turno_i) Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada. CORRIGIDO PARCIALMENTE em 26/07/2026 (auditoria, achado 102): o tipo era `double` apesar do sufixo _i de contagem inteira, e passou a `integer`. A coluna continua CONSTANTE igual a 1 em todas as linhas e continua marcada acao = remover — remover coluna de tabela publicada depende do responsavel.
 - (comparecimento_camara_pct) Mesma inconsistencia de escala (0-100 sob prefixo 'proporcao'). E uma das colunas consumidas por scripts/artigo
 - (tse_votos_brancos_camara_pct) Chamada de proporção e medida em percentual: chega a 19,45.
 - (tse_votos_nulos_camara_pct) Chamada de proporção e medida em percentual: chega a 55,41.

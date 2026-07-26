@@ -282,7 +282,7 @@ em vez de devolver `NA` em silêncio.
 
 ### As checagens de qualidade
 
-`mape_validar_tabela()` roda doze checagens sobre cada tabela publicada. A regra
+`mape_validar_tabela()` roda um conjunto de checagens sobre cada tabela publicada — o relatório em `qa/<slug>.md` imprime **quantas de fato rodaram**, porque duas delas dependem de o diretório de municípios poder ser lido. A regra
 geral: **erro impede a publicação, aviso exige justificativa registrada** no campo
 `observacoes` da tabela ou `problema` da variável. Aviso sem justificativa vira
 erro — sem isso, aviso vira paisagem.

@@ -18,7 +18,7 @@ Vínculos da administração direta e indireta municipal por tipo (estatutários
 | Fonte da extração | arquivos .xlsx da MUNIC, por edição |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | bienal |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,7 +33,7 @@ Vínculos da administração direta e indireta municipal por tipo (estatutários
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 2009-2023, faltando 2010, 2016 e 2022 |
 | **Cobertura observada na tabela** | **2009-2023** |
-| Células vazias | 37% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 36.96% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -83,5 +83,5 @@ x <- mape_ler("07_recursos_humanos")
 x <- mape_ler("07_recursos_humanos", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

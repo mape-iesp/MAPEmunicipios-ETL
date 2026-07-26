@@ -1,6 +1,6 @@
 # QA — 09_educacao/censup
 
-Gerado em 2026-07-26 16:35:00.
+Gerado em 2026-07-26 18:54:35.
 
 ## Resumo
 

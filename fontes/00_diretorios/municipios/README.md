@@ -18,7 +18,7 @@ Tabela de referência com os 5.570 municípios brasileiros: equivalências entre
 | Fonte da extração | Base dos Dados |
 | Link | <https://basedosdados.org/dataset/br-bd-diretorios-brasil> |
 | Método de acesso | `bigquery` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | eventual |
 | Script de ingestão | `fontes/00_diretorios/municipios/R/extrair_municipios.R` |
 
@@ -33,7 +33,7 @@ Tabela de referência com os 5.570 municípios brasileiros: equivalências entre
 | Granularidade | municipio (transversal, sem dimensão temporal) |
 | Cobertura declarada pela fonte | atemporal |
 | **Cobertura observada na tabela** | **sem dimensão temporal** |
-| Células vazias | 5.7% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 5.71% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -87,5 +87,5 @@ x <- mape_ler("00_diretorios/municipios")
 x <- mape_ler("00_diretorios/municipios", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

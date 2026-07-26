@@ -18,7 +18,7 @@ Notas do IDEB e do SAEB e metas projetadas, agregadas por município e abertas p
 | Fonte da extração | basedosdados.br_inep_ideb |
 | Link | <https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/ideb> |
 | Método de acesso | `bigquery` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | bienal |
 | Script de ingestão | não informado |
 
@@ -33,7 +33,7 @@ Notas do IDEB e do SAEB e metas projetadas, agregadas por município e abertas p
 | Granularidade | municipio x ano de divulgacao (bienal, anos impares) |
 | Cobertura declarada pela fonte | 2005-2023 |
 | **Cobertura observada na tabela** | **2005-2023** |
-| Células vazias | 32.8% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 32.82% |
 | Regra de preenchimento temporal | `carry_forward` |
 
 ## Variáveis
@@ -43,27 +43,27 @@ Notas do IDEB e do SAEB e metas projetadas, agregadas por município e abertas p
 | `ideb_nota_municipio_idx` | double | escore de 0 a 10 | Média IDEB município | 1.4% |
 | `saeb_nota_padronizada_municipio_idx` | double | escore padronizado | Média SAEB município | 1.4% |
 | `ideb_meta_projetada_municipio_idx` | double | escore de 0 a 10 | Média Projeção IDEB município | 30.4% |
-| `ideb_nota_fundamental_idx` | double | escore de 0 a 10 | — | 1.5% |
-| `ideb_nota_medio_idx` | double | escore de 0 a 10 | — | 66.7% |
-| `saeb_nota_fundamental_idx` | double | escore de 0 a 10 | — | 1.5% |
-| `saeb_nota_medio_idx` | double | escore de 0 a 10 | — | 66.7% |
-| `ideb_meta_projetada_fundamental_idx` | double | escore de 0 a 10 | — | 30.4% |
-| `ideb_meta_projetada_medio_idx` | double | escore de 0 a 10 | — | 90.5% |
-| `ideb_nota_ef_anos_finais_idx` | double | escore de 0 a 10 | — | 4.5% |
-| `ideb_nota_ef_anos_iniciais_idx` | double | escore de 0 a 10 | — | 4.3% |
-| `saeb_nota_anos_finais_idx` | double | escore de 0 a 10 | — | 4.5% |
-| `saeb_nota_anos_iniciais_idx` | double | escore de 0 a 10 | — | 4.3% |
-| `ideb_meta_projetada_anos_finais_idx` | double | escore de 0 a 10 | — | 30.9% |
-| `ideb_meta_projetada_anos_iniciais_idx` | double | escore de 0 a 10 | — | 31.4% |
-| `ideb_nota_rede_estadual_idx` | double | escore de 0 a 10 | — | 14.8% |
-| `ideb_nota_rede_municipal_idx` | double | escore de 0 a 10 | — | 9.3% |
-| `ideb_nota_rede_federal_idx` | double | escore de 0 a 10 | — | 98.7% |
-| `saeb_nota_rede_estadual_idx` | double | escore de 0 a 10 | — | 14.8% |
-| `saeb_nota_rede_municipal_idx` | double | escore de 0 a 10 | — | 9.3% |
-| `saeb_nota_rede_federal_idx` | double | escore de 0 a 10 | — | 98.7% |
-| `ideb_meta_projetada_rede_estadual_idx` | double | escore de 0 a 10 | — | 37.4% |
-| `ideb_meta_projetada_rede_municipal_idx` | double | escore de 0 a 10 | — | 35.3% |
-| `ideb_meta_projetada_rede_federal_idx` | double | escore de 0 a 10 | — | 99.3% |
+| `ideb_nota_fundamental_idx` | double | escore de 0 a 10 | Nota do IDEB do municipio no ensino fundamental completo (1o ao 9o ano), rede publica, em escore de 0 a 10. O IDEB combina a nota padronizada do SAEB com a taxa de aprovacao; e indicador OBSERVADO, nao meta. | 1.5% |
+| `ideb_nota_medio_idx` | double | escore de 0 a 10 | Nota do IDEB do municipio no ensino medio, rede publica, em escore de 0 a 10. Indicador observado. A cobertura municipal do ensino medio e menor que a do fundamental, porque a rede estadual concentra a oferta. | 66.7% |
+| `saeb_nota_fundamental_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB no ensino fundamental completo, rede publica, na escala de 0 a 10 usada na composicao do IDEB. E o componente de PROFICIENCIA do IDEB, sem o fator de aprovacao — por isso difere de ideb_nota_fundamental_idx. | 1.5% |
+| `saeb_nota_medio_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB no ensino medio, rede publica, na escala de 0 a 10 usada na composicao do IDEB. Componente de proficiencia, sem o fator de aprovacao. | 66.7% |
+| `ideb_meta_projetada_fundamental_idx` | double | escore de 0 a 10 | Meta do IDEB PROJETADA pelo INEP para o municipio no ensino fundamental completo naquele ano, em escore de 0 a 10. E valor projetado, nao medido: compare com ideb_nota_fundamental_idx para saber se a meta foi atingida. | 30.4% |
+| `ideb_meta_projetada_medio_idx` | double | escore de 0 a 10 | Meta do IDEB projetada pelo INEP para o ensino medio naquele ano, em escore de 0 a 10. Valor projetado, nao medido. | 90.5% |
+| `ideb_nota_ef_anos_finais_idx` | double | escore de 0 a 10 | Nota do IDEB nos anos finais do ensino fundamental (6o ao 9o ano), rede publica, em escore de 0 a 10. Indicador observado. | 4.5% |
+| `ideb_nota_ef_anos_iniciais_idx` | double | escore de 0 a 10 | Nota do IDEB nos anos iniciais do ensino fundamental (1o ao 5o ano), rede publica, em escore de 0 a 10. Indicador observado. E a etapa com melhor cobertura municipal da serie. | 4.3% |
+| `saeb_nota_anos_finais_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB nos anos finais do ensino fundamental (6o ao 9o ano), na escala de 0 a 10 do IDEB. Componente de proficiencia, sem o fator de aprovacao. | 4.5% |
+| `saeb_nota_anos_iniciais_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB nos anos iniciais do ensino fundamental (1o ao 5o ano), na escala de 0 a 10 do IDEB. Componente de proficiencia, sem o fator de aprovacao. | 4.3% |
+| `ideb_meta_projetada_anos_finais_idx` | double | escore de 0 a 10 | Meta do IDEB projetada pelo INEP para os anos finais do ensino fundamental naquele ano, em escore de 0 a 10. Valor projetado, nao medido. | 30.9% |
+| `ideb_meta_projetada_anos_iniciais_idx` | double | escore de 0 a 10 | Meta do IDEB projetada pelo INEP para os anos iniciais do ensino fundamental naquele ano, em escore de 0 a 10. Valor projetado, nao medido. | 31.4% |
+| `ideb_nota_rede_estadual_idx` | double | escore de 0 a 10 | Nota do IDEB das escolas da rede ESTADUAL localizadas no municipio, em escore de 0 a 10. Recorte por rede, nao por etapa: agrega as etapas avaliadas naquela rede. | 14.8% |
+| `ideb_nota_rede_municipal_idx` | double | escore de 0 a 10 | Nota do IDEB das escolas da rede MUNICIPAL do municipio, em escore de 0 a 10. E o recorte mais proximo da gestao municipal, e por isso o mais usado em analise de politica educacional local. | 9.3% |
+| `ideb_nota_rede_federal_idx` | double | escore de 0 a 10 | Nota do IDEB das escolas da rede FEDERAL localizadas no municipio, em escore de 0 a 10. Cobertura muito baixa: so os municipios que sediam institutos federais e colegios de aplicacao tem valor. | 98.7% |
+| `saeb_nota_rede_estadual_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB das escolas da rede estadual localizadas no municipio, na escala de 0 a 10 do IDEB. Componente de proficiencia. | 14.8% |
+| `saeb_nota_rede_municipal_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB das escolas da rede municipal, na escala de 0 a 10 do IDEB. Componente de proficiencia. | 9.3% |
+| `saeb_nota_rede_federal_idx` | double | escore de 0 a 10 | Nota media padronizada do SAEB das escolas da rede federal localizadas no municipio, na escala de 0 a 10 do IDEB. Componente de proficiencia, com a mesma cobertura baixa de ideb_nota_rede_federal_idx. | 98.7% |
+| `ideb_meta_projetada_rede_estadual_idx` | double | escore de 0 a 10 | Meta do IDEB projetada pelo INEP para a rede estadual no municipio naquele ano, em escore de 0 a 10. Valor projetado, nao medido. | 37.4% |
+| `ideb_meta_projetada_rede_municipal_idx` | double | escore de 0 a 10 | Meta do IDEB projetada pelo INEP para a rede municipal naquele ano, em escore de 0 a 10. Valor projetado, nao medido. | 35.3% |
+| `ideb_meta_projetada_rede_federal_idx` | double | escore de 0 a 10 | Meta do IDEB projetada pelo INEP para a rede federal no municipio naquele ano, em escore de 0 a 10. Valor projetado, nao medido. | 99.3% |
 
 ## Ressalvas
 
@@ -88,5 +88,5 @@ x <- mape_ler("09_educacao/ideb")
 x <- mape_ler("09_educacao/ideb", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

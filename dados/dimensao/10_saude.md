@@ -18,7 +18,7 @@ Cobertura vacinal por imunobiológico (SI-PNI), cobertura da atenção básica e
 | Fonte da extração | Base dos Dados e IEPS Data |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | A VERIFICAR — mistura fonte publica federal (SI-PNI e e-Gestor do Ministerio da Saude, uso livre com citacao) com o IEPS Data, do Instituto de Estudos para Politicas de Saude, que e organizacao privada sem fins lucrativos e nao declara licenca aberta explicita. As tres colunas do IEPS (ieps_*) precisam de verificacao antes de qualquer publicacao formal. |
 | Periodicidade da fonte | anual |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,59 +33,59 @@ Cobertura vacinal por imunobiológico (SI-PNI), cobertura da atenção básica e
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 1994-2021 |
 | **Cobertura observada na tabela** | **1994-2021** |
-| Células vazias | 68.1% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 68.13% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
 
 | variável | tipo | unidade | descrição | vazios |
 |---|---|---|---|---|
-| `pni_cobertura_vacinal_agregada_pct` | double | % | Percentual da cobertura total de vacinação da população alvo da política | 0.0% |
-| `pni_cobertura_bcg_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política BCG | 0.0% |
-| `pni_cobertura_dtp_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política DTP | 18.7% |
-| `pni_cobertura_dtpa_gestante_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política DTPA Gestante | 70.1% |
-| `pni_cobertura_febre_amarela_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Febre Amarela | 0.0% |
-| `pni_cobertura_haemophilus_influenzae_b_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Influenza B | 68.6% |
-| `pni_cobertura_hepatite_a_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Hepatite A | 70.1% |
-| `pni_cobertura_hepatite_b_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Hepatite B | 0.0% |
-| `pni_cobertura_penta_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Penta | 62.7% |
-| `pni_cobertura_poliomielite_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Poliomelite | 0.0% |
-| `pni_cobertura_poliomielite_reforco_4a_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Poliomielite 4 Anos | 81.3% |
-| `pni_cobertura_sarampo_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Sarampo | 67.2% |
-| `pni_cobertura_tetra_viral_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Tetra Viral | 66.4% |
-| `pni_cobertura_triplice_bacteriana_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Tríplice Bacteriana | 66.4% |
-| `pni_cobertura_triplice_viral_dose1_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Tríplice Viral D1 | 14.3% |
-| `pni_cobertura_triplice_viral_d2_pct` | double | % | Percentual da cobertura de vacinação da população alvo da política Tríplice Viral D2 | 66.4% |
+| `pni_cobertura_vacinal_agregada_pct` | double | percentual | Percentual da cobertura total de vacinação da população alvo da política | 0.0% |
+| `pni_cobertura_bcg_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política BCG | 0.0% |
+| `pni_cobertura_dtp_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política DTP | 18.7% |
+| `pni_cobertura_dtpa_gestante_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política DTPA Gestante | 70.1% |
+| `pni_cobertura_febre_amarela_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Febre Amarela | 0.0% |
+| `pni_cobertura_haemophilus_influenzae_b_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Influenza B | 68.6% |
+| `pni_cobertura_hepatite_a_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Hepatite A | 70.1% |
+| `pni_cobertura_hepatite_b_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Hepatite B | 0.0% |
+| `pni_cobertura_penta_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Penta | 62.7% |
+| `pni_cobertura_poliomielite_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Poliomelite | 0.0% |
+| `pni_cobertura_poliomielite_reforco_4a_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Poliomielite 4 Anos | 81.3% |
+| `pni_cobertura_sarampo_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Sarampo | 67.2% |
+| `pni_cobertura_tetra_viral_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Tetra Viral | 66.4% |
+| `pni_cobertura_triplice_bacteriana_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Tríplice Bacteriana | 66.4% |
+| `pni_cobertura_triplice_viral_dose1_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Tríplice Viral D1 | 14.3% |
+| `pni_cobertura_triplice_viral_d2_pct` | double | percentual | Percentual da cobertura de vacinação da população alvo da política Tríplice Viral D2 | 66.4% |
 | `cobertura_esf_pct` | double | percentual | Proporção da população coberta pela Estratégia Saúde da Família | 47.7% |
 | `cobertura_atencao_basica_pct` | double | percentual | Proporção da população coberta pela atenção básica | 47.7% |
 | `ieps_cobertura_atencao_basica_pct` | double | percentual | Cobertura da Atenção Básica (%) | 77.6% |
 | `ieps_cobertura_acs_pct` | double | percentual | Cobertura de Agentes Comunitários de Saúde (%) | 77.6% |
 | `ieps_cobertura_esf_pct` | double | percentual | Cobertura de Estratégia de Saúde da Família (%) | 77.6% |
-| `ieps_cobertura_vacinal_bcg_pct` | double | % | Cobertura Vacinal de BCG (%) | 77.6% |
-| `ieps_cobertura_vacinal_rotavirus_pct` | double | % | Cobertura Vacinal de Rotavírus Humano (%) | 77.6% |
-| `ieps_cobertura_vacinal_meningococo_c_pct` | double | % | Cobertura Vacinal de Meningococo C (%) | 77.6% |
-| `ieps_cobertura_vacinal_pneumococica_pct` | double | % | Cobertura Vacinal de Pneumocócica (%) | 77.6% |
-| `ieps_cobertura_vacinal_poliomielite_pct` | double | % | Cobertura Vacinal de Poliomielite (%) | 77.6% |
-| `ieps_cobertura_vacinal_triplice_viral_dose1_pct` | double | % | Cobertura Vacinal de Tríplice Viral (1ª Dose) (%) | 77.6% |
-| `ieps_cobertura_vacinal_pentavalente_pct` | double | % | Cobertura Vacinal de Pentavalente (%) | 81.3% |
+| `ieps_cobertura_vacinal_bcg_pct` | double | percentual | Cobertura Vacinal de BCG (%) | 77.6% |
+| `ieps_cobertura_vacinal_rotavirus_pct` | double | percentual | Cobertura Vacinal de Rotavírus Humano (%) | 77.6% |
+| `ieps_cobertura_vacinal_meningococo_c_pct` | double | percentual | Cobertura Vacinal de Meningococo C (%) | 77.6% |
+| `ieps_cobertura_vacinal_pneumococica_pct` | double | percentual | Cobertura Vacinal de Pneumocócica (%) | 77.6% |
+| `ieps_cobertura_vacinal_poliomielite_pct` | double | percentual | Cobertura Vacinal de Poliomielite (%) | 77.6% |
+| `ieps_cobertura_vacinal_triplice_viral_dose1_pct` | double | percentual | Cobertura Vacinal de Tríplice Viral (1ª Dose) (%) | 77.6% |
+| `ieps_cobertura_vacinal_pentavalente_pct` | double | percentual | Cobertura Vacinal de Pentavalente (%) | 81.3% |
 | `ieps_cobertura_hepatite_b_ate_30d_pct` | double | percentual | Cobertura Vacinal de Hepatite B em crianças até 30 dias (%) | 85.1% |
-| `ieps_cobertura_vacinal_hepatite_a_pct` | double | % | Cobertura Vacinal de Hepatite A (%) | 85.1% |
-| `ieps_prenatal_adequado_pct` | double | % | Nascidos Vivos com Pré-Natal Adequado (%) | 86.9% |
-| `ieps_prenatal_nenhuma_consulta_pct` | double | % | Nascidos Vivos com Nenhuma Consulta Pré-Natal (%) | 79.4% |
-| `ieps_prenatal_1_a_6_consultas_pct` | double | % | Nascidos Vivos com 1 a 6 Consultas Pré-Natal (%) | 79.4% |
-| `ieps_prenatal_7_ou_mais_consultas_pct` | double | % | Nascidos Vivos com 7 ou Mais Consultas Pré-Natal (%) | 79.4% |
-| `ieps_taxa_mortalidade_p100k` | double | por 100 mil hab. | Mortalidade Bruta (por 100.000 Hab.) | 79.4% |
-| `ieps_taxa_mortalidade_csap_p100k` | double | por 100 mil hab. | Mortalidade Bruta por Condições Sensíveis a Atenção Primária (por 100.000 Hab.) | 79.4% |
-| `ieps_taxa_mortalidade_evitavel_p100k` | double | por 100 mil hab. | Mortalidade Bruta por Causas Evitáveis (por 100.000 Hab.) | 79.4% |
+| `ieps_cobertura_vacinal_hepatite_a_pct` | double | percentual | Cobertura Vacinal de Hepatite A (%) | 85.1% |
+| `ieps_prenatal_adequado_pct` | double | percentual | Nascidos Vivos com Pré-Natal Adequado (%) | 86.9% |
+| `ieps_prenatal_nenhuma_consulta_pct` | double | percentual | Nascidos Vivos com Nenhuma Consulta Pré-Natal (%) | 79.4% |
+| `ieps_prenatal_1_a_6_consultas_pct` | double | percentual | Nascidos Vivos com 1 a 6 Consultas Pré-Natal (%) | 79.4% |
+| `ieps_prenatal_7_ou_mais_consultas_pct` | double | percentual | Nascidos Vivos com 7 ou Mais Consultas Pré-Natal (%) | 79.4% |
+| `ieps_taxa_mortalidade_p100k` | double | por 100 mil habitantes | Mortalidade Bruta (por 100.000 Hab.) | 79.4% |
+| `ieps_taxa_mortalidade_csap_p100k` | double | por 100 mil habitantes | Mortalidade Bruta por Condições Sensíveis a Atenção Primária (por 100.000 Hab.) | 79.4% |
+| `ieps_taxa_mortalidade_evitavel_p100k` | double | por 100 mil habitantes | Mortalidade Bruta por Causas Evitáveis (por 100.000 Hab.) | 79.4% |
 | `ieps_obitos_causas_mal_definidas_pct` | double | percentual | Mortalidade Bruta por Causas Mal Definidas (%) | 79.4% |
 | `ieps_taxa_mortalidade_padronizada_oms_p100k` | double | por 100 mil habitantes | Mortalidade Ajustada (OMS, por 100.000 Hab.) | 79.4% |
 | `ieps_taxa_mortalidade_csap_padronizada_oms_p100k` | double | por 100 mil habitantes | Mortalidade Ajustada por Condições Sensíveis à Atenção Primária (OMS, por 100.000 Hab.) | 79.4% |
 | `ieps_taxa_mortalidade_evitavel_padronizada_oms_p100k` | double | por 100 mil habitantes | Mortalidade Ajustada por Causas Evitáveis (OMS, por 100.000 Hab.) | 79.4% |
 | `ieps_taxa_mortalidade_padronizada_censo_p100k` | double | por 100 mil habitantes | Mortalidade Ajustada (Censo 2010, por 100.000 Hab.) | 79.4% |
-| `ieps_taxa_mortalidade_csap_padronizada_censo_p100k` | double | por 100 mil hab. | Mortalidade Ajustada por Condições Sensíveis à Atenção Primária (Censo, por 100.000 Hab.) | 79.4% |
+| `ieps_taxa_mortalidade_csap_padronizada_censo_p100k` | double | por 100 mil habitantes | Mortalidade Ajustada por Condições Sensíveis à Atenção Primária (Censo, por 100.000 Hab.) | 79.4% |
 | `ieps_taxa_mortalidade_evitavel_padronizada_censo_p100k` | double | por 100 mil habitantes | Mortalidade Ajustada por Causas Evitáveis (Censo, por 100.000 Hab.) | 79.4% |
-| `ieps_taxa_hospitalizacao_p100k` | double | por 100 mil hab. | Hospitalizações (por 100.000 Hab.) | 77.6% |
-| `ieps_taxa_hospitalizacao_csap_p100k` | double | por 100 mil hab. | Hospitalizações por Condições Sensíveis à Atenção Primária (por 100.000 Hab.) | 77.6% |
+| `ieps_taxa_hospitalizacao_p100k` | double | por 100 mil habitantes | Hospitalizações (por 100.000 Hab.) | 77.6% |
+| `ieps_taxa_hospitalizacao_csap_p100k` | double | por 100 mil habitantes | Hospitalizações por Condições Sensíveis à Atenção Primária (por 100.000 Hab.) | 77.6% |
 | `ieps_leitos_sus_p100k` | double | por 100 mil habitantes | Leitos SUS (por 100.000 Hab.) | 77.6% |
 | `ieps_leitos_uti_sus_p100k` | double | por 100 mil habitantes | Leitos de UTI SUS (por 100.000 Hab.) | 77.6% |
 | `ieps_medicos_p1k` | double | por mil habitantes | Médicos (por 1.000 Hab.) | 77.6% |
@@ -100,13 +100,13 @@ Cobertura vacinal por imunobiológico (SI-PNI), cobertura da atenção básica e
 | `ieps_despesa_saude_sobre_receita_propria_pct` | double | percentual | Participação da Receita Própria Municipal Aplicada em Saúde - EC 29 (%) | 77.7% |
 | `ieps_despesa_saude_total_per_capita_brl_nominal` | double | BRL correntes do ano | Despesa Total com Saúde Sob Responsabilidade do Município (por Hab., R$) | 77.7% |
 | `ieps_despesa_saude_recursos_proprios_per_capita_brl_nominal` | double | BRL correntes do ano | Despesa em Saúde Utilizando Recursos Próprios do Município (por Hab., R$) | 77.7% |
-| `ieps_despesa_saude_total_per_capita_brl2023` | double | BRL de dezembro de 2023 | Despesa Total com Saúde Sob Responsabilidade do Município (por Hab., R$ de 2021) | 77.7% |
-| `ieps_despesa_saude_recursos_proprios_per_capita_brl2023` | double | BRL de dezembro de 2023 | Despesa em Saúde Utilizando Recursos Próprios do Município (por Hab., R$ de 2021) | 77.7% |
-| `gasto_bolsa_familia_per_capita_brl2023` | double | R$ | Gasto com o Programa Bolsa Família (por Hab., R$ de 2021) | 77.6% |
+| `ieps_despesa_saude_total_per_capita_brl2021` | double | BRL de dezembro de 2021 | Despesa Total com Saúde Sob Responsabilidade do Município (por Hab., R$ de 2021) | 77.7% |
+| `ieps_despesa_saude_recursos_proprios_per_capita_brl2021` | double | BRL de dezembro de 2021 | Despesa em Saúde Utilizando Recursos Próprios do Município (por Hab., R$ de 2021) | 77.7% |
+| `gasto_bolsa_familia_per_capita_brl2021` | double | BRL de dezembro de 2021 | Gasto com o Programa Bolsa Família (por Hab., R$ de 2021) | 77.6% |
 
 ## Ressalvas
 
-OITO CONCEITOS MEDIDOS DUAS VEZES, por SI-PNI e por IEPS. As duas séries são mantidas, porque não são versões concorrentes do mesmo número: o IEPS trunca em 100 e o SI-PNI não. E no caso da hepatite B elas medem populações DIFERENTES — o IEPS cobre só crianças até 30 dias —, com correlação de 0,061 entre as duas. A cobertura do SI-PNI chega a 13.050% por erro de denominador na população-alvo; os valores são mantidos e o domínio declarado. PERDA CONHECIDA: o arquivo do IEPS consumido tem 33.420 linhas contra 66.840 do bruto — metade da fonte se perde antes de chegar aqui. As fontes SIA, SIM e SINAN têm script e nenhuma saída; ver pendencias/.
+OITO CONCEITOS MEDIDOS DUAS VEZES, por SI-PNI e por IEPS. As duas séries são mantidas, porque não são versões concorrentes do mesmo número: o IEPS trunca em 100 e o SI-PNI não. E no caso da hepatite B elas medem populações DIFERENTES — o IEPS cobre só crianças até 30 dias —, com correlação de 0,061 entre as duas. A cobertura do SI-PNI chega a 51.175% em pni_cobertura_vacinal_agregada_pct (13.050% e o maximo de pni_cobertura_bcg_pct, e era esse o numero que circulava) por erro de denominador na população-alvo; os valores são mantidos e o domínio declarado. PERDA CONHECIDA: o arquivo do IEPS consumido tem 33.420 linhas contra 66.840 do bruto — metade da fonte se perde antes de chegar aqui. As fontes SIA, SIM e SINAN têm script e nenhuma saída; ver pendencias/. DEFEITO ABERTO (auditoria 26/07/2026, achado 27): as colunas pni_cobertura_* publicam 0% onde a vacina AINDA NAO EXISTIA no calendario nacional e onde o dado simplesmente falta. O valor correto para 'nao-aplicavel' e ausencia, nao zero. Atinge ao menos Hib (antes de 1999), hepatite B (antes de 1998), triplice viral dose 1 (1999), dTpa gestante (antes de 2014), penta (antes de 2012) e tetra viral (antes de 2013). Alem disso, 2003 e uma extracao truncada: tres colunas colapsam a zero naquele ano e se recuperam em 2004, com o Distrito Federal ileso. NAO calcule media historica de cobertura vacinal sem recortar a janela de vigencia de cada vacina. MAGNITUDE MEDIDA em 26/07/2026 (auditoria, achado 53), porque os textos do projeto a subestimavam citando so o maximo: sao 445.721 de 1.413.239 celulas das 16 colunas pni_ acima de 100 — 31,5% —, presentes em 109.451 das linhas da tabela (73,4%). Dos excedentes, 87,6% ficam entre 100 e 150, o que e compativel com denominador de populacao-alvo subestimado; a cauda acima de 1.000 e que exige explicacao propria. ACHADO 71: as colunas ieps_cobertura_vacinal_* NAO sao fonte independente das pni_cobertura_*. Elas coincidem com min(pni_cobertura_*, 100) em cerca de 94% das linhas — sao a mesma medida truncada em 100 — e nao acrescentam nenhuma observacao municipio-ano ao painel. Ficam publicadas por rastreabilidade da fonte. A UNICA excecao e o par da hepatite B, que e genuinamente independente porque mede populacao diferente.
 
 **`pni_cobertura_vacinal_agregada_pct`** — A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 51175%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem.
 
@@ -150,7 +150,23 @@ OITO CONCEITOS MEDIDOS DUAS VEZES, por SI-PNI e por IEPS. As duas séries são m
 
 **`ieps_cobertura_esf_pct`** — Abreviacao criptica; redundante com proporcao_cobertura_estrategia_saude_familia (correlacao 0,940)
 
+**`ieps_cobertura_vacinal_bcg_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
+**`ieps_cobertura_vacinal_rotavirus_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
+**`ieps_cobertura_vacinal_meningococo_c_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
+**`ieps_cobertura_vacinal_pneumococica_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
+**`ieps_cobertura_vacinal_poliomielite_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
+**`ieps_cobertura_vacinal_triplice_viral_dose1_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
+**`ieps_cobertura_vacinal_pentavalente_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+
 **`ieps_cobertura_hepatite_b_ate_30d_pct`** — O nome sugere hepatite B em geral, mas o codebook define 'cobertura em criancas ate 30 dias'; correlacao 0,061 com cobertura_hepatite_b
+
+**`ieps_cobertura_vacinal_hepatite_a_pct`** — Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
 
 **`ieps_taxa_mortalidade_p100k`** — Prefixo tx_ sem unidade no nome (e por 100 mil hab.); compete com total_mortalidade da dim 14
 
@@ -178,7 +194,11 @@ OITO CONCEITOS MEDIDOS DUAS VEZES, por SI-PNI e por IEPS. As duas séries são m
 
 **`ieps_despesa_saude_sobre_receita_propria_pct`** — Tres abreviacoes empilhadas ('desp', 'recp' = receita propria, 'mun'); colide conceitualmente com a dimensao 6 (SICONFI)
 
-**`gasto_bolsa_familia_per_capita_brl2023`** — Conceitualmente pertence a assistencia social e nao a saude; '_def' esconde a base de deflacao; sigla PBF nao expandida. E uma das colunas consumidas por scripts/artigo
+**`ieps_despesa_saude_total_per_capita_brl2021`** — CORRIGIDO em 26/07/2026 (auditoria, achado 8): publicada com sufixo _brl2023 e unidade 'BRL de dezembro de 2023' sobre dado em reais de dezembro de 2021. O indice implicito vale exatamente 1,0000 em 2021 nas 2.744 linhas e reproduz o IPCA oficial ano a ano para tras. ATENCAO ao comparar com as demais colunas _brl2023 do repositorio: as bases sao diferentes, e somar ou dividir uma pela outra mistura duas moedas.
+
+**`ieps_despesa_saude_recursos_proprios_per_capita_brl2021`** — CORRIGIDO em 26/07/2026 (auditoria, achado 8): publicada com sufixo _brl2023 e unidade 'BRL de dezembro de 2023' sobre dado em reais de dezembro de 2021. O indice implicito vale exatamente 1,0000 em 2021 nas 2.744 linhas e reproduz o IPCA oficial ano a ano para tras. ATENCAO ao comparar com as demais colunas _brl2023 do repositorio: as bases sao diferentes, e somar ou dividir uma pela outra mistura duas moedas.
+
+**`gasto_bolsa_familia_per_capita_brl2021`** — CORRIGIDO em 26/07/2026 (auditoria, achado 8): publicada com sufixo _brl2023 e unidade 'BRL de dezembro de 2023' sobre dado em reais de dezembro de 2021. O indice implicito vale exatamente 1,0000 em 2021 nas 2.744 linhas e reproduz o IPCA oficial ano a ano para tras. ATENCAO ao comparar com as demais colunas _brl2023 do repositorio: as bases sao diferentes, e somar ou dividir uma pela outra mistura duas moedas.
 
 ## Como ler esta tabela
 
@@ -189,5 +209,5 @@ x <- mape_ler("10_saude")
 x <- mape_ler("10_saude", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

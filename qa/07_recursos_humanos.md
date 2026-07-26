@@ -1,6 +1,6 @@
 # QA — 07_recursos_humanos
 
-Gerado em 2026-07-26 16:34:58.
+Gerado em 2026-07-26 18:54:33.
 
 ## Resumo
 
@@ -10,11 +10,7 @@ Gerado em 2026-07-26 16:34:58.
 
 ## Checagens
 
-Checagens executadas: 18.
-
-| checagem | gravidade | descrição | justificativa |
-|---|---|---|---|
-| schema | informativo | (tabela): 8 de 14 coluna(s) numérica(s) sem `dominio_valido` declarado (57%): a checagem de faixa não olhou essas. | — sem justificativa — |
+Nenhum problema automático: as 18 checagens executadas passaram.
 
 ## Defeitos declarados no dicionário
 

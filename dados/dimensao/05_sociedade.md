@@ -18,7 +18,7 @@
 | Fonte da extração | Base dos Dados |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. O Atlas da Vulnerabilidade Social e do Ipea, fundacao publica federal. |
 | Periodicidade da fonte | censitária |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,7 +33,7 @@
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 2000 e 2010 |
 | **Cobertura observada na tabela** | **1996-2015** |
-| Células vazias | 0% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 0.01% |
 | Regra de preenchimento temporal | `valor_unico_replicado` |
 
 ## Variáveis
@@ -41,12 +41,27 @@
 | variável | tipo | unidade | descrição | vazios |
 |---|---|---|---|---|
 | `ano_ref_ivs` | double | codigo | Ano de realização do Atlas | 0.0% |
+| `ivs_idx` | double | indice de 0 a 1 | Índice de Vulnerabilidade Social | 0.0% |
+| `ivs_infraestrutura_urbana_idx` | double | indice de 0 a 1 | Índice de Vulnerabilidade Social - Dimensão Infraestrutura Urbana | 0.0% |
+| `ivs_capital_humano_idx` | double | indice de 0 a 1 | Índice de Vulnerabilidade Social - Dimensão Capital Humano | 0.0% |
+| `ivs_renda_trabalho_idx` | double | indice de 0 a 1 | Índice de Vulnerabilidade Social - Dimensão Renda e Trabalho | 0.0% |
+| `idhm_idx` | double | indice de 0 a 1 | Índice de Desenvolvimento Humano Municipal | 0.0% |
+| `vulnerabilidade_socioeconomica_pct` | double | percentual | Proporção das pessoas com renda per capita inferior a meio salario mínimo e gastam mais de uma hora até o trabalho | 0.0% |
+| `prosperidade_social_cat` | character | classe | Prosperidade Social | 0.1% |
 
 ## Ressalvas
 
 São DUAS observações reais por município, dos censos de 2000 e 2010, replicadas sobre 1996-2015. A coluna ano_avs registra o ano da medição e é a única forma de distinguir o dado medido do replicado. Ao adotar o armazenamento por observação (decisão 3.3 do plano), esta tabela cai de 111.300 para cerca de 11.140 linhas.
 
 **`ano_ref_ivs`** — Sigla opaca (AVS = Atlas da Vulnerabilidade Social); e o ano censitario 2000/2010 replicado sobre 1996-2015 em sociedade.R
+
+**`ivs_idx`** — Sigla sem expansao e sem escala; e uma das colunas consumidas pelo artigo
+
+**`ivs_infraestrutura_urbana_idx`** — Subindice sem escala no nome
+
+**`vulnerabilidade_socioeconomica_pct`** — Prefixo proporcao_ sem sufixo de escala; escala real 0-100
+
+**`prosperidade_social_cat`** — Nome sugere indice numerico, mas o tipo e character (classe categorica)
 
 ## Como ler esta tabela
 
@@ -57,5 +72,5 @@ x <- mape_ler("05_sociedade")
 x <- mape_ler("05_sociedade", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

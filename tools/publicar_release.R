@@ -27,6 +27,39 @@ args <- commandArgs(trailingOnly = TRUE)
 versao <- if (length(args)) args[1] else
   paste0("v0.0.0-", format(Sys.Date(), "%Y%m%d"))
 
+# PORTAO DE PUBLICACAO — achado 22, item 5 da auditoria de 26/07/2026.
+#
+# "Erro impede a publicacao, sem excecao" era falso em todos os caminhos de
+# escrita, e tambem aqui: este script empacotava qualquer coisa que estivesse em
+# dados/, sem olhar a validacao. Um release e a saida mais publica do
+# repositorio; e o ultimo lugar onde faz sentido nao conferir.
+#
+# Erro reivindicado em qa/erros_aceitos.csv nao bloqueia — e para isso que o
+# arquivo existe. Erro nao reivindicado bloqueia.
+message("Conferindo a validacao das tabelas antes de empacotar...")
+.tabs <- mape_tabelas_publicadas()
+.bloqueios <- list()
+for (.i in seq_len(nrow(.tabs))) {
+  .x <- as.data.frame(mape_ler_tabela(.tabs$slug[.i], camada = .tabs$camada[.i]))
+  .r <- tryCatch(
+    suppressMessages(suppressWarnings(
+      mape_validar_tabela(.x, .tabs$slug[.i], erro = FALSE, gravar = FALSE))),
+    error = function(e) NULL)
+  if (is.null(.r) || !nrow(.r)) next
+  .e <- .r[.r$gravidade == "erro", , drop = FALSE]
+  if (nrow(.e)) .bloqueios[[length(.bloqueios) + 1]] <- .e
+}
+if (length(.bloqueios)) {
+  .b <- do.call(rbind, .bloqueios)
+  stop("Release BARRADO: ", nrow(.b), " erro(s) de validacao nao reivindicado(s).\n",
+       paste0("  - ", .b$tabela, " / ", .b$checagem, ": ",
+              substr(.b$descricao, 1, 140), collapse = "\n"),
+       "\n\nConserte o dado, ou reivindique o erro em qa/erros_aceitos.csv com ",
+       "justificativa.\nRode `Rscript tools/validar_tudo.R` para o quadro completo.",
+       call. = FALSE)
+}
+message("  ok: nenhum erro nao reivindicado nas ", nrow(.tabs), " tabelas.\n")
+
 dist <- mape_caminho("dist", versao)
 unlink(dist, recursive = TRUE)
 dir.create(file.path(dist, "dados"), recursive = TRUE, showWarnings = FALSE)
@@ -69,6 +102,15 @@ for (arq in list.files(mape_caminho("dicionario"), pattern = "[.](csv|md)$",
                        full.names = TRUE)) {
   file.copy(arq, file.path(dist, "dicionario", basename(arq)), overwrite = TRUE)
 }
+# Achado 45: o release publicava as 26 tabelas como CC BY 4.0 enquanto todas
+# estavam sob `licenca = "a verificar"`, e o LICENSE-DADOS prometido nao existia.
+# Ele embarca aqui, e traz as tres pendencias substantivas por escrito.
+if (file.exists(mape_caminho("LICENSE-DADOS"))) {
+  file.copy(mape_caminho("LICENSE-DADOS"), file.path(dist, "LICENSE-DADOS"),
+            overwrite = TRUE)
+  message("  LICENSE-DADOS embarcado")
+}
+
 
 # --- Inventário e manifesto -------------------------------------------------
 utils::write.csv(inv, file.path(dist, "INVENTARIO.csv"),

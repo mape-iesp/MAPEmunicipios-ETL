@@ -18,7 +18,7 @@
 | Fonte da extração | Base dos Dados |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | A VERIFICAR — mistura o SIM/DATASUS (publico federal, uso livre com citacao) com o Anuario Brasileiro de Seguranca Publica, do Forum Brasileiro de Seguranca Publica, que e associacao privada. O Anuario e publicado sob CC BY-NC-ND em algumas edicoes, o que e INCOMPATIVEL com a redistribuicao sob CC BY 4.0 que o release faz. As colunas fbsp_* precisam de verificacao. |
 | Periodicidade da fonte | anual |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -27,13 +27,13 @@
 | | |
 |---|---|
 | Linhas | 132.907 |
-| Colunas | 65 |
+| Colunas | 66 |
 | Municípios distintos | 5.640 de 5.570 (101.3%) |
 | Chave primária | `id_municipio, ano` |
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 1996-2021 |
 | **Cobertura observada na tabela** | **1996-2021** |
-| Células vazias | 42.8% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 42.18% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -41,12 +41,12 @@
 | variável | tipo | unidade | descrição | vazios |
 |---|---|---|---|---|
 | `sim_obitos_totais_i` | double | contagem | Total mortalidade município | 0.0% |
-| `sim_obitos_homicidio_i` | double | contagem | Total mortalidade município - Foram considerados homicídios os registros cujas causas básicas de morte incluem os códigos dos seguintes intervalos: X85 a X99 e Y00 a Y05 (Cerqueira et al. 2015). | 0.0% |
+| `sim_obitos_homicidio_i` | double | contagem | Total mortalidade município - Foram considerados homicídios os registros cujas causas básicas de morte incluem os códigos dos seguintes intervalos: X85 a X99 e Y00 a Y05 (Cerqueira et al. 2015). RESSALVA (auditoria 26/07/2026, achado 92): a faixa de CID declarada nesta descricao NAO e exatamente a aplicada — X96 nao e contado na implementacao atual. A descricao afirma uma definicao operacional que o codigo nao cumpre. Ver o campo observacoes da tabela. | 0.0% |
 | `sim_obitos_causa_alcool_i` | double | contagem | Total mortalidade município - Causas associadas a álcool F10 (https://iclinic.com.br/cid/f10/)  | 0.0% |
 | `sim_obitos_feminino_i` | double | óbitos | Total mortalidade município - Feminino | 0.0% |
 | `sim_obitos_masculino_i` | double | óbitos | Total mortalidade município - Masculino | 0.0% |
-| `sim_obitos_homicidio_feminino_i` | double | óbitos | Total mortalidade município - Feminino - Foram considerados homicídios os registros cujas causas básicas de morte incluem os códigos dos seguintes intervalos: X85 a X99 e Y00 a Y05 (Cerqueira et al. 2015). | 0.0% |
-| `sim_obitos_homicidio_masculino_i` | double | óbitos | Total mortalidade município - Masculino - Foram considerados homicídios os registros cujas causas básicas de morte incluem os códigos dos seguintes intervalos: X85 a X99 e Y00 a Y05 (Cerqueira et al. 2015). | 0.0% |
+| `sim_obitos_homicidio_feminino_i` | double | óbitos | Total mortalidade município - Feminino - Foram considerados homicídios os registros cujas causas básicas de morte incluem os códigos dos seguintes intervalos: X85 a X99 e Y00 a Y05 (Cerqueira et al. 2015). RESSALVA (auditoria 26/07/2026, achado 92): a faixa de CID declarada nesta descricao NAO e exatamente a aplicada — X96 nao e contado na implementacao atual. A descricao afirma uma definicao operacional que o codigo nao cumpre. Ver o campo observacoes da tabela. | 0.0% |
+| `sim_obitos_homicidio_masculino_i` | double | óbitos | Total mortalidade município - Masculino - Foram considerados homicídios os registros cujas causas básicas de morte incluem os códigos dos seguintes intervalos: X85 a X99 e Y00 a Y05 (Cerqueira et al. 2015). RESSALVA (auditoria 26/07/2026, achado 92): a faixa de CID declarada nesta descricao NAO e exatamente a aplicada — X96 nao e contado na implementacao atual. A descricao afirma uma definicao operacional que o codigo nao cumpre. Ver o campo observacoes da tabela. | 0.0% |
 | `sim_obitos_alcool_feminino_i` | double | óbitos | Total mortalidade município - Feminino - Causas associadas a álcool F10 (https://iclinic.com.br/cid/f10/)  | 0.0% |
 | `sim_obitos_alcool_masculino_i` | double | óbitos | Total mortalidade município - Masculino - Causas associadas a álcool F10 (https://iclinic.com.br/cid/f10/)  | 0.0% |
 | `sim_obitos_branca_i` | double | óbitos | Total mortalidade município - Branca | 0.0% |
@@ -103,10 +103,11 @@
 | `fbsp_posse_e_porte_ilegal_arma_agregado_i` | double | contagem | Quantidade de Ocorrências de Posse Ilegal e Porte Ilegal de Arma de Fogo | 99.9% |
 | `fbsp_grupo_municipio_cat` | character | texto | Grupos segundo qualidade estimada dos registros estatísticos oficiais | 99.9% |
 | `fbsp_homicidio_doloso_i` | double | contagem | Quantidade de Homicídios Dolosos | 99.9% |
+| `flag_codigo_nao_municipal` | integer | indicador | 1 quando a linha tem id_municipio que NAO existe no diretorio de municipios vigentes, 0 caso contrario. Marca as 352 linhas de 70 codigos nao municipais publicados nesta tabela: 27 codigos de UF terminados em 00000 ('municipio ignorado' do SIM), 30 pseudo-codigos 3345xxx do Rio de Janeiro, 11 pseudo-codigos 3580xxx de Sao Paulo e 2 avulsos. Filtre por flag_codigo_nao_municipal == 0 antes de qualquer agregado municipal. | 0.0% |
 
 ## Ressalvas
 
-COBERTURA MUITO DESIGUAL ENTRE AS DUAS FONTES. O SIM cobre os 5.570 municípios de 1996 a 2019. O Anuário do FBSP cobre 27 municípios (as 26 capitais mais Brasília) de 2016 a 2021, ou seja, 162 linhas: as 26 colunas quantidade_* têm dado em 0,09% do painel. DEFEITO NÃO CORRIGIDO: a mortalidade do Rio de Janeiro entre 1996 e 1998 está subestimada em cerca de 97%, porque o SIM codificou os óbitos do município em 30 pseudo-códigos sub-municipais que a junção descarta. DEFEITO NÃO CORRIGIDO: uma quebra de linha dentro da expressão regular de classificação faz com que nenhum óbito com causa X96 seja contado como homicídio. 27 códigos de UF disfarçados de município existem na fonte e não entram nesta tabela; devem ir para uma tabela em nível de UF.
+COBERTURA MUITO DESIGUAL ENTRE AS DUAS FONTES. O SIM cobre os 5.570 municípios de 1996 a 2019. O Anuário do FBSP cobre 27 municípios (as 26 capitais mais Brasília) de 2016 a 2021, ou seja, 162 linhas: as 26 colunas quantidade_* têm dado em 0,09% do painel. DEFEITO NÃO CORRIGIDO: a mortalidade do Rio de Janeiro entre 1996 e 1998 está subestimada em cerca de 97%, porque o SIM codificou os óbitos do município em 30 pseudo-códigos sub-municipais que a junção descarta. DEFEITO NÃO CORRIGIDO: uma quebra de linha dentro da expressão regular de classificação faz com que nenhum óbito com causa X96 seja contado como homicídio. 27 códigos de UF disfarçados de município existem na fonte e não entram nesta tabela; devem ir para uma tabela em nível de UF. CORRECAO DE 26/07/2026 (auditoria, grupos 12 e 13): esta secao continha duas frases FALSAS. Dizia que os 30 pseudo-codigos sub-municipais do Rio eram 'descartados pela juncao' e que os codigos de UF 'nao entram nesta tabela'. Os dois entram: sao 70 codigos nao municipais em 352 linhas, que carregam 18.543 homicidios. Composicao medida: 27 codigos de UF terminados em 00000 ('municipio ignorado' do SIM), 30 pseudo-codigos 3345xxx do Rio, 11 pseudo-codigos 3580xxx de Sao Paulo e 2 avulsos (4314530, 5306006). CONSEQUENCIA MEDIDA: os 30 pseudo-codigos do Rio concentram 6.639 homicidios em 1996-1998, enquanto o proprio municipio do Rio (3304557) tem 269 publicados nesses anos — a serie municipal do Rio em 1996-1998 esta 96,1% subestimada. E a soma nacional de homicidios fica inflada em ate 10,3% em alguns anos, porque as unidades nao municipais somam junto. A partir de 26/07/2026 estas linhas estao marcadas pela coluna flag_codigo_nao_municipal: filtre por flag_codigo_nao_municipal == 0 antes de qualquer agregado municipal, e por == 1 para recuperar o dado do Rio e de Sao Paulo. A reagregacao dos pseudo-codigos nos municipios de destino e a correcao de fundo, e reduz linhas e muda valores publicados, entao depende de decisao do responsavel. ACHADO 47 (auditoria 26/07/2026), escopo restrito a Sao Paulo: sim_obitos_homicidio_i do municipio de Sao Paulo (3550308) descola da serie do FBSP a partir de 2018, com queda na participacao nos homicidios nacionais que nao acompanha a participacao estavel nos obitos totais. Padrao compativel com mudanca na captura de causa a partir de 2018 — cruzar com o defeito ja declarado do X96. A afirmacao original do auditor incluia o Rio de Janeiro, e a verificacao adversarial mostrou que a evidencia estadual NAO sustenta isso; o Rio esta fora do escopo deste achado.
 
 **`sim_obitos_totais_i`** — Prefixo total_ generico; nao indica a fonte (SIM) nem a granularidade (ocorrencia x residencia)
 
@@ -134,6 +135,8 @@ COBERTURA MUITO DESIGUAL ENTRE AS DUAS FONTES. O SIM cobre os 5.570 municípios 
 
 **`fbsp_homicidio_doloso_i`** — Estava como texto na base publicada, por coerção posicional incompleta na origem. O tipo numérico foi recuperado na migração e a declaração do dicionário, que herdara o erro, foi corrigida.
 
+**`flag_codigo_nao_municipal`** — Coluna criada em 26/07/2026 pela rodada de correcao da auditoria (grupos 12 e 13), para tornar visiveis linhas que antes so apareciam num aviso de QA de 0,265% — numero que esconde 18.543 homicidios.
+
 ## Como ler esta tabela
 
 ```r
@@ -143,5 +146,5 @@ x <- mape_ler("13_seguranca")
 x <- mape_ler("13_seguranca", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

@@ -18,7 +18,7 @@ Indicadores históricos de capacidade estatal e geografia, de Kustov e Pardelli 
 | Fonte da extração | pacote de replicação do artigo e planilha de linhagem |
 | Link | <https://doi.org/10.1016/j.worlddev.2024.106625> |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | A VERIFICAR — mesma situacao de 14_corrupcao: compilacao historica de Kustov & Pardelli (2024) sobre dados do IBGE. O dado de base e publico; a compilacao e dos autores. |
 | Periodicidade da fonte | eventual |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,7 +33,7 @@ Indicadores históricos de capacidade estatal e geografia, de Kustov e Pardelli 
 | Granularidade | municipio (transversal, sem ano) |
 | Cobertura declarada pela fonte | 1872-1920 (transversal) |
 | **Cobertura observada na tabela** | **sem dimensão temporal** |
-| Células vazias | 1.3% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 1.35% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -78,5 +78,5 @@ x <- mape_ler("15_dados_historicos")
 x <- mape_ler("15_dados_historicos", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

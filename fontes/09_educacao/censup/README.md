@@ -18,7 +18,7 @@ Contagem de instituições de ensino superior no município, aberta por dependê
 | Fonte da extração | basedosdados.br_inep_censo_educacao_superior |
 | Link | <https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-da-educacao-superior> |
 | Método de acesso | `bigquery` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | anual |
 | Script de ingestão | não informado |
 
@@ -33,7 +33,7 @@ Contagem de instituições de ensino superior no município, aberta por dependê
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 2009-2023 |
 | **Cobertura observada na tabela** | **2009-2023** |
-| Células vazias | 0% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 0% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -68,5 +68,5 @@ x <- mape_ler("09_educacao/censup")
 x <- mape_ler("09_educacao/censup", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

@@ -18,7 +18,7 @@ Densidade de acessos de banda larga fixa e de telefonia móvel, e cobertura de e
 | Fonte da extração | Base dos Dados e arquivos locais |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | anual |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,7 +33,7 @@ Densidade de acessos de banda larga fixa e de telefonia móvel, e cobertura de e
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 2004-2024 |
 | **Cobertura observada na tabela** | **2004-2024** |
-| Células vazias | 50.1% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 50.06% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -48,8 +48,8 @@ Densidade de acessos de banda larga fixa e de telefonia móvel, e cobertura de e
 | `anatel_tm_densidade_sobre_capital_uf_razao` | double | razao | Densidade de acessos de telefonia móvel do município dividida pela densidade da capital da UF. | 70.0% |
 | `lpt_domicilios_atendidos_i` | double | contagem | Domicílios atendidos pelo Luz para Todos | 65.0% |
 | `lpt_domicilios_atendidos_acumulado_i` | double | contagem | Total de domicílios atendidos pelo Luz para Todos desde o início do programa até 2020 | 65.0% |
-| `censo_cobertura_eletricidade_2000_pct` | double | % | % de casas com acesso à eletricidade em 2000 | 65.0% |
-| `censo_cobertura_eletricidade_2010_pct` | double | % | % de casas com acesso à eletricidade em 2010 | 65.0% |
+| `censo_cobertura_eletricidade_2000_pct` | double | percentual | % de casas com acesso à eletricidade em 2000 | 65.0% |
+| `censo_cobertura_eletricidade_2010_pct` | double | percentual | % de casas com acesso à eletricidade em 2010 | 65.0% |
 
 ## Ressalvas
 
@@ -84,5 +84,5 @@ x <- mape_ler("08_energia_internet")
 x <- mape_ler("08_energia_internet", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

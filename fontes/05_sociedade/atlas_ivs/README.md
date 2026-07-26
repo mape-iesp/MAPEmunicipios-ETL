@@ -18,7 +18,7 @@
 | Fonte da extração | ivs.ipea.gov.br |
 | Link | <http://ivs.ipea.gov.br/> |
 | Método de acesso | `download_manual` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. Atlas da Vulnerabilidade Social, Ipea. |
 | Periodicidade da fonte | censitaria |
 | Script de ingestão | não informado |
 
@@ -31,9 +31,9 @@
 | Municípios distintos | 5.565 de 5.570 (99.9%) |
 | Chave primária | `id_municipio, ano` |
 | Granularidade | municipio x ano censitario (2000 e 2010) |
-| Cobertura declarada pela fonte | 2000, 2010 |
+| Cobertura declarada pela fonte | 2000 e 2010 |
 | **Cobertura observada na tabela** | **2000-2010** |
-| Células vazias | 0% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 0.01% |
 | Regra de preenchimento temporal | `valor_unico_replicado` |
 
 ## Variáveis
@@ -69,5 +69,5 @@ x <- mape_ler("05_sociedade/atlas_ivs")
 x <- mape_ler("05_sociedade/atlas_ivs", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

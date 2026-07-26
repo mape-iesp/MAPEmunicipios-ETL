@@ -18,7 +18,7 @@ População residente municipal estimada pelo IBGE e proporção de adeptos por 
 | Fonte da extração | Base dos Dados e censobr |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | anual (população) e censitária (religião) |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,7 +33,7 @@ População residente municipal estimada pelo IBGE e proporção de adeptos por 
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 1991-2023 |
 | **Cobertura observada na tabela** | **1991-2023** |
-| Células vazias | 33% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 33.01% |
 | Regra de preenchimento temporal | `valor_unico_replicado` |
 
 ## Variáveis
@@ -51,7 +51,7 @@ População residente municipal estimada pelo IBGE e proporção de adeptos por 
 
 ## Ressalvas
 
-As cinco colunas de composição religiosa vêm dos censos de 2000 e 2010 e são replicadas sobre 1996-2005 e 2006-2015. A coluna ano_censo é a única pista de que o valor é replicado, e ela sobreviveu por acidente. A população de 2023 vem de um arquivo cujo merge com o diretório foi feito à mão no Excel, sem código — ver a seção 8.5 do plano.
+As cinco colunas de composição religiosa vêm dos censos de 2000 e 2010 e são replicadas sobre 1996-2005 e 2006-2015. A coluna ano_censo é a única pista de que o valor é replicado, e ela sobreviveu por acidente. A população de 2023 vem de um arquivo cujo merge com o diretório foi feito à mão no Excel, sem código — ver a seção 8.5 do plano. DEFEITO ABERTO (auditoria 26/07/2026, achado 28): a serie intercensitaria de nove a dez municipios e FABRICADA por extrapolacao linear, e nao estimada pelo IBGE. O sinal e a rampa perfeitamente reta entre 2013 e 2021, e ha testemunha independente: nesses municipios o numero de eleitores aptos em 2020 EXCEDE a populacao residente publicada. O defeito propaga para pib_per_capita_brl2023 em 04_economia, que usa esta populacao como denominador.
 
 **`ano`** — Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd
 
@@ -78,5 +78,5 @@ x <- mape_ler("02_populacao")
 x <- mape_ler("02_populacao", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

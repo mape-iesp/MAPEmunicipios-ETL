@@ -8,8 +8,8 @@ O painel cobre 5.570 municípios brasileiros, de 1989 a 2024.
 |---|---|
 | Dimensões | 17 |
 | Tabelas publicadas | 26 (16 de dimensão, 10 de fonte) |
-| Variáveis documentadas | 431 |
-| Variáveis pendentes de revisão | 0 |
+| Variáveis documentadas | 432 |
+| Variáveis pendentes de revisão | 24 |
 | Tamanho total em Parquet | 72.5 MB |
 
 ## Tabelas de dimensão
@@ -31,7 +31,7 @@ quer. Cada uma junta as fontes do seu tema.
 | [`10_saude`](../dados/dimensao/10_saude.md) | 149.144 | 65 | 5.570 | 1994-2021 | 10.98 |
 | [`11_transportes`](../dados/dimensao/11_transportes.md) | 183.814 | 7 | 5.570 | 1991-2024 | 0.06 |
 | [`12_habitacao`](../dados/dimensao/12_habitacao.md) | 94.832 | 8 | 5.570 | 2007-2024 | 0.32 |
-| [`13_seguranca`](../dados/dimensao/13_seguranca.md) | 132.907 | 65 | 5.640 | 1996-2021 | 2.53 |
+| [`13_seguranca`](../dados/dimensao/13_seguranca.md) | 132.907 | 66 | 5.640 | 1996-2021 | 2.54 |
 | [`14_corrupcao`](../dados/dimensao/14_corrupcao.md) | 1.516 | 8 | 1.352 | 2006-2018 | 0.04 |
 | [`15_dados_historicos`](../dados/dimensao/15_dados_historicos.md) | 5.646 | 9 | 5.592 | — | 0.33 |
 | [`16_eleicoes`](../dados/dimensao/16_eleicoes.md) | 133.496 | 36 | 5.568 | 2000-2023 | 8.12 |
@@ -65,5 +65,5 @@ linhas de `11_transportes` e as 578 linhas de `11_transportes/tarifa_zero`.
 | `variaveis.csv` | uma linha por variável, com tipo, unidade, escala e domínio |
 | `deprecacao.csv` | de-para dos nomes antigos, para quem tinha código escrito |
 
-_Gerado em 2026-07-26 01:47._
+_Gerado em 2026-07-26 18:49._
 

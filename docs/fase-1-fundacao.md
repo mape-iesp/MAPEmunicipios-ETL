@@ -1,5 +1,14 @@
 # Fase 1 — Fundação
 
+
+> **Errata de 26/07/2026 (auditoria, achados 23 e 31).** Este documento fala em
+> "doze checagens". O código nunca executou doze: a bateria tinha dez rótulos
+> distintos, a checagem 11 (releitura da exportação) era vazia e a 12 (descrições
+> repetidas) nunca foi escrita. As duas foram implementadas na rodada de correção,
+> junto com outras seis, e o número deixou de ser digitado — `mape_validar_tabela()`
+> conta quantas de fato rodaram e o relatório imprime essa contagem.
+
+
 Registro do que foi construído, do que foi decidido durante a construção e do
 que ficou pendente. Escrito para que você consiga validar depois sem precisar
 reconstituir o raciocínio.

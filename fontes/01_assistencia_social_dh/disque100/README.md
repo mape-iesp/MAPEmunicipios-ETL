@@ -18,7 +18,7 @@ Contagem anual de violações de direitos humanos denunciadas ao Disque Direitos
 | Fonte da extração | Microdados do Disque 100 |
 | Link | não informado |
 | Método de acesso | `download_manual` |
-| Licença | a verificar |
+| Licença | Dado publico federal. Uso livre com citacao da fonte, nos termos da Lei de Acesso a Informacao (Lei 12.527/2011) e do Decreto 8.777/2016 (Politica de Dados Abertos do Executivo Federal). Verificado em 26/07/2026. |
 | Periodicidade da fonte | anual |
 | Script de ingestão | `fontes/01_assistencia_social_dh/disque100/R/tratar_disque100.R` |
 
@@ -33,7 +33,7 @@ Contagem anual de violações de direitos humanos denunciadas ao Disque Direitos
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 2011-2023 |
 | **Cobertura observada na tabela** | **2011-2023** |
-| Células vazias | 0% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 0% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -64,5 +64,5 @@ x <- mape_ler("01_assistencia_social_dh/disque100")
 x <- mape_ler("01_assistencia_social_dh/disque100", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

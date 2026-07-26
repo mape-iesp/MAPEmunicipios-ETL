@@ -18,7 +18,7 @@ Ações de fiscalização da Controladoria-Geral da União em municípios sortea
 | Fonte da extração | microdados do Programa de Fiscalização em Entes Federativos |
 | Link | não informado |
 | Método de acesso | `arquivo_local` |
-| Licença | a verificar |
+| Licença | A VERIFICAR — a base deriva de Kustov & Pardelli (2024), material de replicacao academico, construido sobre os sorteios de auditoria da CGU. O dado da CGU e publico federal; a COMPILACAO e dos autores e a licenca de redistribuicao depende do repositorio de replicacao. Precisa de verificacao e da citacao dos autores. |
 | Periodicidade da fonte | eventual |
 | Script de ingestão | `tools/migracao/migrar_dimensoes.R` |
 
@@ -33,7 +33,7 @@ Ações de fiscalização da Controladoria-Geral da União em municípios sortea
 | Granularidade | municipio x ano |
 | Cobertura declarada pela fonte | 2006-2018 |
 | **Cobertura observada na tabela** | **2006-2018** |
-| Células vazias | 0% |
+| Células vazias (colunas de conteúdo, sem as chaves) | 0.01% |
 | Regra de preenchimento temporal | `nenhuma` |
 
 ## Variáveis
@@ -42,8 +42,8 @@ Ações de fiscalização da Controladoria-Geral da União em municípios sortea
 |---|---|---|---|---|
 | `cgu_constatacoes_i` | double | contagem | Total de ações fiscalizadas nos municípios | 0.0% |
 | `cgu_constatacoes_falha_grave_i` | double | contagem | Total de falhas graves nas ações fiscalizadas nos municípios | 0.0% |
-| `cgu_montante_fiscalizado_brl2023` | double | R$ | Montante de recursos fiscalizados (deflacionados para dezembro de 2023) | 0.0% |
-| `cgu_montante_fiscalizado_com_falha_grave_brl2023` | double | R$ | Montante de recursos fiscalizados classificados como falhas graves (deflacionados para dezembro de 2023) | 0.0% |
+| `cgu_montante_fiscalizado_brl2023` | double | BRL de dezembro de 2023 | Montante de recursos fiscalizados (deflacionados para dezembro de 2023) | 0.0% |
+| `cgu_montante_fiscalizado_com_falha_grave_brl2023` | double | BRL de dezembro de 2023 | Montante de recursos fiscalizados classificados como falhas graves (deflacionados para dezembro de 2023) | 0.0% |
 | `cgu_constatacoes_falha_grave_sobre_total_prop` | double | proporcao | Proporção de falhas graves em relação ao total de ações fiscalizadas | 0.0% |
 | `cgu_montante_falha_grave_sobre_fiscalizado_prop` | double | proporcao | Proporção do montante fiscalizado como falha grave em relação ao montante fiscalizado | 0.1% |
 
@@ -72,5 +72,5 @@ x <- mape_ler("14_corrupcao")
 x <- mape_ler("14_corrupcao", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 01:47 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
 

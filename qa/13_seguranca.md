@@ -1,6 +1,6 @@
 # QA — 13_seguranca
 
-Gerado em 2026-07-26 16:35:06.
+Gerado em 2026-07-26 18:54:41.
 
 ## Resumo
 
@@ -15,7 +15,7 @@ Checagens executadas: 18.
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | dominio_chave | aviso | 70 código(s) fora do diretório em 352 linha(s) (0.265%). Exemplos: 1100000, 1200000, 1300000, 1400000, 1500000 | 70 codigos nao municipais em 352 linhas (0,265%), MANTIDOS de proposito e agora MARCADOS pela coluna flag_codigo_nao_municipal. Composicao medida: 27 codigos de UF terminados em 00000 ('municipio ignorado' do SIM), 30 pseudo-codigos 3345xxx do Rio, 11 pseudo-codigos 3580xxx de Sao Paulo e 2 avulsos. Eles carregam 18.543 homicidios, e por isso a metrica de 0,265% das linhas engana: os 30 do Rio concentram 6.639 homicidios em 1996-1998 contra 269 publicados no proprio municipio do Rio, o que deixa a serie municipal carioca 96,1% subestimada naqueles anos. Descartar as linhas apagaria o dado; reagrega-las nos municipios de destino reduz linhas e muda valores publicados, e por isso depende do responsavel. Ate la ficam publicadas e marcadas. Grupos 12 e 13 da auditoria. |
-| schema | informativo | (tabela): 26 de 63 coluna(s) numérica(s) sem `dominio_valido` declarado (41%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| schema | informativo | (tabela): 1 de 63 coluna(s) numérica(s) sem `dominio_valido` declarado (2%): a checagem de faixa não olhou essas. | — sem justificativa — |
 | zero_inflacao | aviso | sim_obitos_homicidio_preta_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 22 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 | zero_inflacao | aviso | sim_obitos_homicidio_parda_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 23 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 | zero_inflacao | aviso | sim_obitos_homicidio_branca_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 20 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
