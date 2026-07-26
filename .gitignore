@@ -48,4 +48,22 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
+# Ignora .Rproj em subpastas, mas versiona o da raiz, que ancora o here()
 *.Rproj
+!/MAPEmunicipios.Rproj
+
+# ---------------------------------------------------------------------------
+# Árvore legada: referência canônica do pipeline antigo, ~18 GB.
+# NUNCA versionar. Ler à vontade, não commitar.
+# ---------------------------------------------------------------------------
+mape_municipios/
+
+# Dados brutos e derivados pesados (ver plano/03-versionamento-qa.md)
+**/raw/
+dados/derivado/
+_targets/
+_targets_user/
+
+# Lixo de sistema
+.DS_Store
+Thumbs.db
