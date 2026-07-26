@@ -94,6 +94,34 @@ mape_consolidar_dimensao <- function(dimensao, tipo = "full", publicar = TRUE,
   resultado
 }
 
+#' Avisa que uma dimensão ficou de fora da base larga, e por quê
+#'
+#' Achado 11: aqui havia dois `next` nus. `15_dados_historicos` era descartada em
+#' silêncio, e por isso a base larga tem 423 colunas e 15 dimensões enquanto o
+#' README, o CLAUDE.md e o `docs/` anunciavam 440 e 16. Quem montava a base não
+#' tinha como saber que faltava uma dimensão inteira.
+#'
+#' @param d Slug da dimensão.
+#' @return Invisivelmente, NULL.
+mape_avisar_fora_da_larga <- function(d) {
+  n <- tryCatch({
+    x <- mape_ler_tabela(d, camada = "dimensao")
+    k <- x$id_municipio
+    sum(duplicated(k))
+  }, error = function(e) NA_integer_)
+
+  message("[", d, "] FORA da base larga: é uma tabela transversal, sem coluna ",
+          "`ano`. Juntá-la por município replicaria os valores em todos os anos ",
+          "do painel, que é o defeito que a base larga existe para não ter.",
+          if (!is.na(n) && n > 0)
+            paste0(" Ela também tem ", n, " chave(s) duplicada(s) por município, ",
+                   "que a guarda de chave desta função não vê justamente porque ",
+                   "a dimensão sai antes.")
+          else "",
+          " Leia-a com mape_ler(\"", d, "\").")
+  invisible(NULL)
+}
+
 #' Reconstrói a base larga a partir das tabelas modulares
 #'
 #' A base larga deixa de ser o produto principal e passa a ser gerada. Ela tem
@@ -128,7 +156,7 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
   if (deduplicar) problematicas <- character(0)
   for (d in if (deduplicar) character(0) else sort(dimensoes)) {
     parte <- mape_ler_tabela(d, camada = "dimensao")
-    if (!"ano" %in% names(parte)) next
+    if (!"ano" %in% names(parte)) { mape_avisar_fora_da_larga(d); next }
     k <- paste(parte$id_municipio, parte$ano)
     if (anyDuplicated(k)) {
       problematicas <- c(problematicas, sprintf(
@@ -142,12 +170,13 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
          "\n\nJuntar assim multiplicaria linhas, que é o defeito do legado. ",
          "Resolva na origem, ou passe deduplicar = TRUE para aceitar a primeira ",
          "ocorrência de cada chave — o que é uma escolha arbitrária e fica ",
-         "registrada no relatório.", call. = FALSE)
+         "registrada no log da execução (achado 98: não existe relatório).",
+         call. = FALSE)
   }
 
   for (d in sort(dimensoes)) {
     parte <- mape_ler_tabela(d, camada = "dimensao")
-    if (!"ano" %in% names(parte)) next
+    if (!"ano" %in% names(parte)) { mape_avisar_fora_da_larga(d); next }
     if (deduplicar) {
       k <- paste(parte$id_municipio, parte$ano)
       if (anyDuplicated(k)) {
@@ -253,6 +282,24 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
       descricao = descricao, stringsAsFactors = FALSE)
   }
 
+  # Achado 67: a paridade comparava valor a valor e NUNCA o conjunto de chaves,
+  # então 33.291 linhas publicadas jamais foram confrontadas com coisa alguma. O
+  # `merge` é inner: linha que só existe de um lado simplesmente não entra na
+  # comparação, e some do relatório junto.
+  k_ant <- paste(chave_antiga$id_municipio, chave_antiga$ano)
+  k_nov <- paste(nova$id_municipio, nova$ano)
+  so_no_novo <- length(setdiff(k_nov, k_ant))
+  so_no_antigo <- length(setdiff(k_ant, k_nov))
+  if (so_no_novo > 0 || so_no_antigo > 0) {
+    reg("(conjunto de chaves)",
+        if (is.na(curinga)) "c_nao_explicada" else "a_correcao_reivindicada",
+        paste0(so_no_novo, " chave(s) só no publicado e ", so_no_antigo,
+               " só na referência, de ", length(unique(k_nov)), " e ",
+               length(unique(k_ant)), ". 'Zero diferenças não explicadas' não ",
+               "cobre linha que não existe dos dois lados.",
+               if (!is.na(curinga)) paste0(" ", curinga) else ""))
+  }
+
   for (col_antiga in cols_antigas) {
     col_nova <- mapa[[col_antiga]]
     if (!col_nova %in% names(nova)) {
@@ -288,6 +335,25 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
     } else {
       difere <- !is.na(a) & !is.na(n) & as.character(a) != as.character(n)
     }
+
+    # Achado 24: a expressão acima exige que os DOIS lados tenham valor, então
+    # uma coluna que virou NA inteira passava como "sem diferença". Ausência
+    # tratada como igualdade é o modo mais silencioso de perder uma coluna.
+    # Os dois sentidos são contados separadamente porque significam coisas
+    # diferentes: valor -> NA é perda, NA -> valor é fabricação.
+    n_valor_para_na <- sum(!is.na(a) & is.na(n))
+    n_na_para_valor <- sum(is.na(a) & !is.na(n))
+    if (n_valor_para_na > 0 || n_na_para_valor > 0) {
+      motivo_na <- if (!is.null(esperadas) && col_antiga %in% esperadas$coluna) {
+        esperadas$motivo[esperadas$coluna == col_antiga][1]
+      } else curinga
+      reg(col_antiga,
+          if (is.na(motivo_na)) "c_nao_explicada" else "a_correcao_reivindicada",
+          paste0(n_valor_para_na, " célula(s) tinham valor e viraram NA, ",
+                 n_na_para_valor, " eram NA e ganharam valor, de ", nrow(m),
+                 if (!is.na(motivo_na)) paste0(": ", motivo_na) else ""))
+    }
+
     n_dif <- sum(difere)
     if (n_dif > 0) {
       motivo <- if (!is.null(esperadas) && col_antiga %in% esperadas$coluna) {
@@ -297,6 +363,21 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
           if (is.na(motivo)) "c_nao_explicada" else "a_correcao_reivindicada",
           paste0(n_dif, " de ", nrow(m), " valores diferem",
                  if (!is.na(motivo)) paste0(": ", motivo) else ""))
+    }
+  }
+
+  # Achado 66: o curinga `*` dava imunidade a 52,5% das colunas comparadas, e
+  # cinco das seis linhas com `*` não absorviam diferença nenhuma. Dispensa
+  # inerte é pior que dispensa nenhuma: ela parece cobertura.
+  if (!is.na(curinga)) {
+    absorveu <- length(achados) > 0 &&
+      any(vapply(achados, function(a) a$classe == "a_correcao_reivindicada", logical(1)))
+    if (!absorveu) {
+      warning("A dimensão '", dimensao, "' tem uma linha curinga (coluna = \"*\") ",
+              "em qa/paridade_esperada.csv que NÃO absorveu diferença nenhuma. ",
+              "Ela dispensa tudo e não dispensa nada — apague-a, ou troque pelos ",
+              "nomes explícitos das colunas que ela deveria cobrir.",
+              call. = FALSE)
     }
   }
 

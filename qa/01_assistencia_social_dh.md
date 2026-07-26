@@ -1,6 +1,6 @@
 # QA — 01_assistencia_social_dh
 
-Gerado em 2026-07-26 15:40:38.
+Gerado em 2026-07-26 15:45:19.
 
 ## Resumo
 

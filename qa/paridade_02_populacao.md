@@ -1,12 +1,13 @@
 # Paridade — 02_populacao
 
-Gerado em 2026-07-26 09:40:37.
+Gerado em 2026-07-26 15:44:10.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 8. Diferenças não explicadas: 0.
 
 | coluna | classe | descrição |
 |---|---|---|
+| `(conjunto de chaves)` | a_correcao_reivindicada | 0 chave(s) só no publicado e 355 só na referência, de 179930 e 180285. 'Zero diferenças não explicadas' não cobre linha que não existe dos dois lados. 42 linhas com id_municipio nulo eliminadas na origem. São linhas fantasma que atravessavam o pipeline e das quais 13 sobreviviam no artefato publicado. |
 | `populacao` | b_renomeacao | renomeada para 'populacao_residente_i' |
 | `prop_catolicos` | b_renomeacao | renomeada para 'censo_catolicos_prop' |
 | `prop_evangelicos_pentecostais` | b_renomeacao | renomeada para 'censo_evangelicos_pentecostais_prop' |

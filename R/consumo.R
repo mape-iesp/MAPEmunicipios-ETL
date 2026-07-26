@@ -312,25 +312,54 @@ mape_cobertura <- function(tabelas = NULL, por_ano = TRUE) {
     dados <- setdiff(names(x), chaves)
     if (!length(dados)) next
 
+    # Achado 21: `flag_*` e `ano_ref_*` são METADADOS, não medição. Uma tabela em
+    # que toda linha tem `flag_imputado` preenchido aparecia com 100% de
+    # cobertura mesmo quando o dado substantivo cobria 27 municípios — foi assim
+    # que 11_transportes reportou 100% sobre 133 municípios reais.
+    substantivas <- grep("^(flag_|ano_ref_)", dados, value = TRUE, invert = TRUE)
+    if (!length(substantivas)) substantivas <- dados
+
     # "Coberto" é ter pelo menos um valor não vazio, e não estar presente na
     # tabela. A distinção é o que separa cobertura de preenchimento.
-    tem <- rowSums(!is.na(x[, dados, drop = FALSE])) > 0
+    tem <- rowSums(!is.na(x[, substantivas, drop = FALSE])) > 0
+
+    # E "coberto de fato" exige valor INFORMATIVO: uma coluna zerada por
+    # preenchimento do painel não é dado. As duas medidas são devolvidas lado a
+    # lado, porque a diferença entre elas é a informação que faltava.
+    num <- substantivas[vapply(x[substantivas], is.numeric, logical(1))]
+    tem_subst <- if (length(num)) {
+      rowSums(!is.na(x[, num, drop = FALSE]) & x[, num, drop = FALSE] != 0) > 0 |
+        (length(setdiff(substantivas, num)) > 0 &
+           rowSums(!is.na(x[, setdiff(substantivas, num), drop = FALSE])) > 0)
+    } else tem
 
     if (por_ano && "ano" %in% names(x)) {
       agg <- tapply(x$id_municipio[tem], x$ano[tem], function(v) length(unique(v)))
+      agg2 <- tapply(x$id_municipio[tem_subst], x$ano[tem_subst],
+                     function(v) length(unique(v)))
       linhas[[length(linhas) + 1]] <- data.frame(
         tabela = t, ano = as.integer(names(agg)), municipios = as.integer(agg),
+        municipios_substantivos = as.integer(agg2[names(agg)]),
         stringsAsFactors = FALSE)
     } else {
       linhas[[length(linhas) + 1]] <- data.frame(
         tabela = t, ano = NA_integer_,
         municipios = length(unique(x$id_municipio[tem])),
+        municipios_substantivos = length(unique(x$id_municipio[tem_subst])),
         stringsAsFactors = FALSE)
     }
   }
 
   res <- do.call(rbind, linhas)
+  res$municipios_substantivos[is.na(res$municipios_substantivos)] <- 0L
   res$cobertura_pct <- round(100 * res$municipios / n_mun, 1)
+  res$cobertura_substantiva_pct <- round(100 * res$municipios_substantivos / n_mun, 1)
+  if (any(res$cobertura_pct > 100)) {
+    warning("mape_cobertura() devolveu cobertura acima de 100% em ",
+            sum(res$cobertura_pct > 100), " linha(s): a tabela tem id_municipio ",
+            "fora do diretório. Ver a coluna flag_codigo_nao_municipal, quando ",
+            "existir.", call. = FALSE)
+  }
   res[order(res$tabela, res$ano), ]
 }
 
