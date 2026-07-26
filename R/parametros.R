@@ -11,7 +11,13 @@
 #' @param ... Componentes do caminho, como em here::here().
 #' @return Caminho absoluto, como character.
 mape_caminho <- function(...) {
-  here::here(...)
+  # A âncora é sobrescrivível para que os testes possam exercitar os caminhos de
+  # ESCRITA sem tocar na árvore publicada. Sem isso, testar mape_escrever_tabela()
+  # significava gravar por cima de dado real — que é justamente a classe de
+  # acidente que a guarda de perda (achado 6) existe para impedir.
+  raiz <- getOption("mape.raiz", NULL)
+  if (is.null(raiz)) return(here::here(...))
+  file.path(raiz, ...)
 }
 
 # O YAML é lido uma vez por sessão e guardado aqui. Sem isso, uma função

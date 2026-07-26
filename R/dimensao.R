@@ -13,9 +13,15 @@
 #'
 #' @param dimensao Slug da dimensão.
 #' @param tipo Tipo de junção entre as fontes.
-#' @param publicar Se TRUE, grava a tabela de dimensão.
+#' @param publicar Se TRUE, grava a tabela de dimensão. A gravação passa pela
+#'   guarda de perda de mape_escrever_tabela(): se a consolidação das fontes
+#'   presentes não reproduzir a dimensão publicada, ela falha em vez de gravar
+#'   por cima (achado 6).
+#' @param permitir_perda Repassado a mape_escrever_tabela().
+#' @param motivo_perda Repassado a mape_escrever_tabela().
 #' @return A tabela consolidada.
-mape_consolidar_dimensao <- function(dimensao, tipo = "full", publicar = TRUE) {
+mape_consolidar_dimensao <- function(dimensao, tipo = "full", publicar = TRUE,
+                                     permitir_perda = FALSE, motivo_perda = NULL) {
   tabs <- mape_dicionario("tabelas")
   fontes <- tabs$slug_tabela[tabs$dimensao == dimensao & grepl("/", tabs$slug_tabela)]
   fontes <- fontes[vapply(fontes, function(s) {
@@ -61,7 +67,29 @@ mape_consolidar_dimensao <- function(dimensao, tipo = "full", publicar = TRUE) {
   mape_validar_chave(resultado, chaves)
 
   if (publicar) {
-    mape_escrever_tabela(resultado, dimensao, validar = FALSE, camada = "dimensao")
+    # A guarda de perda pode barrar a gravação. Quando barra, o que falta é
+    # sempre uma entrada — uma fonte não publicada, ou a expansão do painel que
+    # esta função não faz —, e não a tabela publicada. A mensagem nomeia as
+    # fontes usadas para que o diagnóstico comece no lugar certo.
+    tryCatch(
+      mape_escrever_tabela(resultado, dimensao, validar = TRUE,
+                           camada = "dimensao",
+                           permitir_perda = permitir_perda,
+                           motivo_perda = motivo_perda),
+      error = function(e) {
+        stop("Não dá para publicar a dimensão '", dimensao, "'.\n\n",
+             conditionMessage(e), "\n\n",
+             "Consolidei a partir de ", length(fontes), " fonte(s): ",
+             paste(basename(fontes), collapse = ", "), ".\n",
+             "mape_consolidar_dimensao() junta as fontes e para aí — ela NÃO ",
+             "expande o painel município x ano.\n",
+             "Se a dimensão publicada tem o painel expandido e as fontes estão ",
+             "compactadas, a consolidação não a reproduz, e é isso que a guarda ",
+             "está dizendo.\n",
+             "Para inspecionar sem gravar: mape_consolidar_dimensao(\"",
+             dimensao, "\", publicar = FALSE).", call. = FALSE)
+      }
+    )
   }
   resultado
 }

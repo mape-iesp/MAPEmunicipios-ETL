@@ -21,23 +21,132 @@ mape_caminho_tabela <- function(tabela, formato = "parquet", camada = NULL) {
   mape_caminho("dados", camada, paste0(tabela, ".", formato))
 }
 
+#' Mede as quatro grandezas que uma sobrescrita não pode reduzir
+#'
+#' Linhas, colunas, chaves distintas e municípios distintos. É o vetor que
+#' mape_conferir_perda() compara antes de deixar gravar por cima.
+#'
+#' @param x Data frame.
+#' @return Lista com n_linhas, n_colunas, n_chaves, n_municipios e colunas.
+mape_medir_tabela <- function(x) {
+  chaves <- intersect(c("id_municipio", "ano"), names(x))
+  list(
+    n_linhas = nrow(x),
+    n_colunas = ncol(x),
+    n_chaves = if (length(chaves)) nrow(unique(x[, chaves, drop = FALSE])) else NA_integer_,
+    n_municipios = if ("id_municipio" %in% names(x)) length(unique(x$id_municipio)) else NA_integer_,
+    colunas = names(x)
+  )
+}
+
+#' Impede que uma sobrescrita destrua dado publicado
+#'
+#' Antes de gravar por cima de uma tabela que já existe, compara as quatro
+#' grandezas de mape_medir_tabela(). Se a nova perder qualquer uma delas, para
+#' com erro e mostra o diff.
+#'
+#' Isto é o achado crítico nº 6 da auditoria de 26/07/2026:
+#' tar_make(dim_11_transportes) trocava 183.814 linhas e 5.570 municípios por
+#' 929 linhas e 133 municípios, sem que nada barrasse a gravação. A perda era
+#' possível porque ninguém comparava antes de sobrescrever.
+#'
+#' A perda continua sendo possível — há casos legítimos, como remover uma coluna
+#' que o dicionário mandou remover. Mas passa a exigir declaração explícita e
+#' motivo registrado, que é a diferença entre uma decisão e um acidente.
+#'
+#' @param x A tabela nova.
+#' @param tabela Identificador da tabela.
+#' @param camada "fonte", "dimensao" ou "derivado".
+#' @param permitir_perda Se TRUE, autoriza a perda. Exige motivo.
+#' @param motivo_perda Texto que justifica a perda. Registrado em
+#'   qa/perdas_autorizadas.csv.
+#' @return Invisivelmente, TRUE se pode gravar.
+mape_conferir_perda <- function(x, tabela, camada = NULL,
+                                permitir_perda = FALSE, motivo_perda = NULL) {
+  canonico <- mape_caminho_tabela(tabela, mape_param("formatos.canonico"), camada)
+  if (!file.exists(canonico)) return(invisible(TRUE))
+
+  antes <- mape_medir_tabela(as.data.frame(arrow::read_parquet(canonico)))
+  depois <- mape_medir_tabela(x)
+
+  perdas <- character()
+  for (m in c("n_linhas", "n_colunas", "n_chaves", "n_municipios")) {
+    a <- antes[[m]]; d <- depois[[m]]
+    if (is.na(a) || is.na(d)) next
+    if (d < a) {
+      fmt <- function(v) formatC(v, format = "d", big.mark = ".", decimal.mark = ",")
+      perdas <- c(perdas, sprintf("  %-13s %s -> %s  (perde %s, %.2f%%)",
+                                  m, fmt(a), fmt(d), fmt(a - d), 100 * (a - d) / a))
+    }
+  }
+  sumidas <- setdiff(antes$colunas, depois$colunas)
+  if (length(sumidas)) {
+    perdas <- c(perdas, paste0("  colunas que somem: ", paste(sumidas, collapse = ", ")))
+  }
+
+  if (!length(perdas)) return(invisible(TRUE))
+
+  if (!permitir_perda) {
+    stop("Gravar '", tabela, "' destruiria dado publicado. A gravação foi barrada.\n\n",
+         paste(perdas, collapse = "\n"), "\n\n",
+         "Se a tabela nova está certa e a publicada é que estava errada, ",
+         "grave com permitir_perda = TRUE e um motivo_perda.\n",
+         "Se não está, a entrada que falta é o que precisa ser consertado — ",
+         "não a tabela publicada.", call. = FALSE)
+  }
+  if (is.null(motivo_perda) || !nzchar(trimws(motivo_perda))) {
+    stop("permitir_perda = TRUE exige motivo_perda: a perda fica registrada em ",
+         "qa/perdas_autorizadas.csv e sem motivo o registro não serve para nada.",
+         call. = FALSE)
+  }
+
+  registro <- data.frame(
+    data = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+    tabela = tabela,
+    n_linhas_antes = antes$n_linhas, n_linhas_depois = depois$n_linhas,
+    n_colunas_antes = antes$n_colunas, n_colunas_depois = depois$n_colunas,
+    n_chaves_antes = antes$n_chaves, n_chaves_depois = depois$n_chaves,
+    n_municipios_antes = antes$n_municipios, n_municipios_depois = depois$n_municipios,
+    colunas_removidas = paste(sumidas, collapse = " "),
+    motivo = motivo_perda,
+    stringsAsFactors = FALSE
+  )
+  destino <- mape_caminho("qa", "perdas_autorizadas.csv")
+  dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
+  utils::write.table(registro, destino, sep = ",", row.names = FALSE,
+                     col.names = !file.exists(destino), append = file.exists(destino),
+                     qmethod = "double", fileEncoding = "UTF-8")
+  message("[perda autorizada] ", tabela, ": ", motivo_perda)
+  invisible(TRUE)
+}
+
 #' Escreve uma tabela publicada
 #'
-#' Valida contra o dicionário antes de gravar, escreve o formato canônico e as
-#' exportações, e confere que a releitura de cada exportação devolve o mesmo
-#' número de linhas e colunas. Essa conferência é a checagem 11 do plano, e é o
-#' que teria pego a coluna fantasma do CSV publicado.
+#' Valida contra o dicionário antes de gravar, confere que a gravação não
+#' destrói dado publicado, escreve o formato canônico e as exportações, e
+#' confere que a releitura de cada exportação devolve o mesmo número de linhas e
+#' colunas. Essa conferência é a checagem 11 do plano, e é o que teria pego a
+#' coluna fantasma do CSV publicado.
 #'
 #' @param x Data frame.
 #' @param tabela Identificador da tabela.
 #' @param formatos Formatos de exportação, além do canônico.
 #' @param validar Se TRUE, roda mape_validar_schema() antes de gravar.
 #' @param camada "fonte", "dimensao" ou "derivado".
+#' @param permitir_perda Se TRUE, autoriza sobrescrever perdendo linha, coluna,
+#'   chave ou município. Exige motivo_perda.
+#' @param motivo_perda Justificativa da perda, registrada em
+#'   qa/perdas_autorizadas.csv.
 #' @return Invisivelmente, o vetor de caminhos escritos.
 mape_escrever_tabela <- function(x, tabela,
                                  formatos = mape_param("formatos.exportacao"),
-                                 validar = TRUE, camada = NULL) {
+                                 validar = TRUE, camada = NULL,
+                                 permitir_perda = FALSE, motivo_perda = NULL) {
   stopifnot(is.data.frame(x))
+
+  # A guarda de perda vem ANTES da validação de schema: uma tabela truncada pode
+  # passar no schema (os tipos continuam certos) e ainda assim destruir o painel.
+  mape_conferir_perda(x, tabela, camada, permitir_perda, motivo_perda)
 
   if (validar && mape_tabela_no_dicionario(tabela)) {
     mape_validar_schema(x, tabela)

@@ -26,15 +26,23 @@ Os demais documentos continuam úteis para entender **por que** as coisas são a
 
 **O pacote R vive noutro repositório**: `mape-iesp/MAPEmunicipios`. Este aqui é interno, para quem atualiza dado; aquele é público, para quem consome. O único acoplamento é o release do GitHub.
 
-## ⛔ `tar_make()` sem argumento destrói dado publicado
+## A escrita destrutiva agora é barrada — achado 6, corrigido
 
-Antes de qualquer outra coisa. É o achado crítico nº 6 da auditoria, e a versão anterior deste arquivo ensinava o comando:
+Este era o achado crítico nº 6 da auditoria, e a versão de 26/07/2026 deste arquivo abria com um aviso em vermelho porque o comando de entrada do repositório apagava dado publicado: `tar_make(dim_11_transportes)` trocava 183.814 linhas e 5.570 municípios por 929 linhas e 133 municípios, e `tar_make(dim_09_educacao)` trocava 111.388 linhas por 60.672 e perdia a coluna `ano_ref_ideb`.
 
-- `tar_make(dim_11_transportes)` troca as 183.814 linhas / 5.570 municípios de `dados/dimensao/11_transportes.parquet` por 929 linhas e 133 municípios.
-- `tar_make(dim_09_educacao)` troca 111.388 linhas por 60.672 e perde a coluna `ano_ref_ideb`.
-- A gravação sai com `validar = FALSE`, e nenhum alvo `dim_*` consta de `_targets/meta/meta` — então `tar_make()` puro reconstrói os três e destrói os dois.
+**Não faz mais.** `mape_escrever_tabela()` compara com a tabela publicada antes de gravar — linhas, colunas, chaves distintas e municípios distintos — e para com erro se a nova perder qualquer um dos quatro, ou se alguma coluna sumir. Os dois alvos que destruíam agora falham alto, nomeando o que falta:
 
-A causa é a assimetria da § "O grafo é menor do que a árvore de dados sugere": os Parquet publicados vieram dos scripts de migração, os alvos `dim_*` os regeneram a partir de um subconjunto do que existia então, e ninguém compara antes de sobrescrever.
+```
+Gravar '11_transportes' destruiria dado publicado. A gravação foi barrada.
+
+  n_linhas      183.814 -> 929  (perde 182.885, 99,49%)
+  n_chaves      183.814 -> 929  (perde 182.885, 99,49%)
+  n_municipios  5.570 -> 133  (perde 5.437, 97,61%)
+```
+
+A perda continua possível quando é deliberada, e só assim: `permitir_perda = TRUE` **com** um `motivo_perda`, que fica registrado em `qa/perdas_autorizadas.csv`. Sem motivo, a autorização é recusada.
+
+A causa-raiz permanece e é a assimetria da § "O grafo é menor do que a árvore de dados sugere": os Parquet publicados vieram dos scripts de migração já com o painel expandido, e `mape_consolidar_dimensao()` junta as fontes compactadas e para aí — ela não expande o painel. Enquanto os `tratar_*.R` de ideb, censup, tarifa_zero e tarifas não existirem, esses dois alvos não têm como reproduzir o publicado. A diferença é que agora eles dizem isso em vez de gravar por cima.
 
 **Para inspecionar uma consolidação sem gravar**, chame a função com `publicar = FALSE` — o default é `TRUE`:
 
@@ -43,7 +51,7 @@ for (f in list.files("R", pattern = "[.]R$", full.names = TRUE)) source(f, encod
 novo <- mape_consolidar_dimensao("09_educacao", publicar = FALSE)
 ```
 
-Enquanto isso não for corrigido: rode alvo por alvo, e nunca um `dim_*`.
+A guarda é coberta por `tests/testthat/test-escrita-guarda.R`: perda de linha, de município e de coluna têm de falhar; sobrescrita sem perda e tabela inédita têm de passar.
 
 ## Comandos
 
