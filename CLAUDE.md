@@ -270,7 +270,7 @@ Do dado publicado — o que mais importa não repetir como se estivesse resolvid
 - **A série de PIB de `04_economia` tem três quebras de nível** (2001, 2004, 2011) que nenhum deflator explica, e `06_financas` tem colunas de receita infladas em uma ordem de grandeza e zeradas em 99% das linhas de alguns anos. Não use essas duas dimensões em análise sem ler os achados 1–5.
 - **Códigos não municipais publicados**: 352 linhas de 70 códigos em `13_seguranca` inflam a soma nacional de homicídios em até 10,3%, e os 30 pseudo-códigos do Rio deixam a série municipal de 1996–1998 97% subestimada.
 - **O hook de `pre-commit` barra arquivo acima de 20 MB e caminho de `mape_municipios/`.** Instale-o (`bash tools/hooks/instalar.sh`). Ele deixa passar caminho com acento e arquivo removido da árvore depois do `git add`; `--no-verify` contorna, e quase nunca é o certo.
-- **Dado bruto do CadÚnico (10,6 MiB) está no histórico público do git**, apesar da promessa de que `**/raw/` nunca é versionado. Exceção decidida e registrada em `plano/03-versionamento-qa.md`; é agregado municipal público, sem PII.
+- **Dado bruto do CadÚnico (10,6 MiB) está no histórico público do git**, apesar da promessa de que `**/raw/` nunca é versionado. Exceção decidida e registrada em `plano/migracao-etl/03-versionamento-qa.md`; é agregado municipal público, sem PII.
 - **O identificador do projeto GCP está em três commits do histórico remoto.** Os detalhes redigidos e o roteiro de remediação ficam em `auditoria/VAZAMENTO-GCP.local.md`, que não é versionado — não copie o conteúdo dele para arquivo que vá para o git.
 
 ## O que ainda está aberto

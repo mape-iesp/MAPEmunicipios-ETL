@@ -199,7 +199,12 @@ mape_query <- function(sql, fonte, billing = NULL, registrar = TRUE,
     mape_registrar_proveniencia(
       fonte = fonte,
       metodo = "bigquery",
-      detalhe = paste0("projeto=", billing, "; bytes=", format(cobrados, scientific = FALSE)),
+      # O identificador do projeto GCP NÃO entra aqui: `dicionario/proveniencia.csv`
+      # é versionado e vai no release, e o repositório é público. O identificador
+      # vive só em MAPE_GCP_BILLING, no .Renviron, que o .gitignore cobre. Ele
+      # também não é proveniência do dado: quem paga a consulta não diz nada
+      # sobre o que a consulta devolveu — isso é o hash e o número de linhas.
+      detalhe = paste0("bytes=", format(cobrados, scientific = FALSE)),
       hash_consulta = substr(digest::digest(sql, algo = "sha256"), 1, 16),
       n_linhas = nrow(resultado),
       segundos = round(as.numeric(difftime(fim, inicio, units = "secs")), 1)
@@ -301,7 +306,7 @@ mape_verificar_raw <- function(fonte, arquivo = NULL) {
   if (!file.exists(manifesto_path)) {
     stop("Sem MANIFESTO.yml em fontes/", fonte, ".\n",
          "Toda fonte de download manual precisa de um — ver ",
-         "plano/02-documentacao-e-atualizacao.md, seção 8.4.", call. = FALSE)
+         "plano/migracao-etl/02-documentacao-e-atualizacao.md, seção 8.4.", call. = FALSE)
   }
   manifesto <- yaml::read_yaml(manifesto_path)
   if (is.null(arquivo)) arquivo <- manifesto$arquivo_local

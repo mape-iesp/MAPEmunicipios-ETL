@@ -352,7 +352,7 @@ arquivo.
 **Há uma exceção, e ela está no histórico:** o bruto do CadÚnico (~10,6 MiB
 comprimidos) foi versionado no commit `20a3b11` e permanece na história do git.
 A decisão de não reescrever o histórico por causa disso está registrada em
-`plano/03-versionamento-qa.md` §10.3 — é agregado municipal público, sem dado
+`plano/migracao-etl/03-versionamento-qa.md` §10.3 — é agregado municipal público, sem dado
 pessoal, e reescrever invalidaria todos os hashes e todos os clones por 10,6 MiB.
 
 *(Errata de 26/07/2026, achado 72 da auditoria: esta seção dizia que dado bruto

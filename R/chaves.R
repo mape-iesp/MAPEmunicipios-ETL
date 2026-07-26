@@ -247,7 +247,7 @@ mape_validar_dominio_chave <- function(x, col = "id_municipio",
 
   if (n_na > 0) {
     warning(n_na, " linha(s) com ", col, " nulo. Elimine na origem antes de ",
-            "qualquer deduplicação — ver plano/03-versionamento-qa.md, 11.4.",
+            "qualquer deduplicação — ver plano/migracao-etl/03-versionamento-qa.md, 11.4.",
             call. = FALSE)
   }
   if (length(orfaos)) {
