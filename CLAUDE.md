@@ -4,19 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Visão geral
 
-ETL em R que constrói o MAPEmunicipios: um painel de dados dos 5.570 municípios brasileiros no formato `id_municipio × ano`. A base final (`base_municipios_brasileiros`) tem 180.285 linhas × 451 colunas — o CSV publicado mostra 452 campos no header porque o `write.csv` foi feito sem `row.names = FALSE` —, resultado da junção de 17 dimensões temáticas (identificação, população, meio-ambiente, economia, sociedade, finanças, RH, assistência social/DH, energia e internet, educação, saúde, transportes, habitação, segurança, corrupção, dados históricos, eleições).
+ETL em R que constrói o **MAPEmunicipios**: um painel dos 5.570 municípios brasileiros, de 1989 a 2024, em 17 eixos temáticos, 26 tabelas publicadas e 431 variáveis documentadas.
 
-O repositório está em transição entre duas estruturas:
-
-- **`01_dimensoes_individuais/`** — estrutura nova, versionada, em construção. Hoje contém apenas `00_diretorios/`.
-- **`mape_municipios/`** — árvore legada (~18 GB), agora **coberta pelo `.gitignore`**. Contém o pipeline completo original e é a referência canônica de como cada dimensão foi produzida. Leia à vontade; não versione.
-
-> ✅ **A migração está feita.** As 16 dimensões com dado foram migradas, validadas e publicadas em
-> `dados/`. Leia [`docs/encerramento-migracao.md`](docs/encerramento-migracao.md) para o estado final
-> e [`plano/`](plano/) para o raciocínio por trás das decisões.
+> ✅ **O ETL está completo.** A migração do legado terminou, as sete funções prometidas no plano existem, os nomes foram harmonizados e a documentação é gerada.
 >
-> O legado em `mape_municipios/` continua sendo a referência de como cada número foi produzido, e é
-> o alvo do teste de paridade. Ele não é tocado.
+> - [`README.md`](README.md) — como dar manutenção (é o documento principal)
+> - [`docs/encerramento-migracao.md`](docs/encerramento-migracao.md) — o estado da migração
+> - [`docs/fechamento-etl.md`](docs/fechamento-etl.md) — o que esta etapa entregou
+> - [`docs/decisao-dois-repositorios.md`](docs/decisao-dois-repositorios.md) — por que o pacote R fica noutro repositório
+> - [`plano/`](plano/) — o raciocínio por trás de cada decisão de desenho
+>
+> O legado em `mape_municipios/` (18 GB) continua sendo a referência de como cada número foi produzido, e é o alvo do teste de paridade. **Nunca é tocado nem versionado.**
+
+**O pacote R vive noutro repositório**: `mape-iesp/MAPEmunicipios`. Este aqui é interno, para quem atualiza dado; aquele é público, para quem consome. O único acoplamento é o release do GitHub.
 
 ## Comandos
 
@@ -25,103 +25,96 @@ O repositório está em transição entre duas estruturas:
 Rscript -e 'renv::restore()'
 bash tools/hooks/instalar.sh
 
-# Rodar o pipeline
-Rscript -e 'targets::tar_make()'                          # o que estiver desatualizado
-Rscript -e 'targets::tar_make(fonte_00_diretorios_municipios)'   # uma fonte só
-Rscript -e 'targets::tar_visnetwork()'                    # desenha o grafo
+# Pipeline
+Rscript -e 'targets::tar_make()'                      # o que estiver desatualizado
+Rscript -e 'targets::tar_make(dim_09_educacao)'       # uma dimensão
+Rscript -e 'targets::tar_make(documentacao)'          # regera os README
+Rscript -e 'targets::tar_visnetwork()'                # desenha o grafo
 
-# Testes
+# Testes (154)
 Rscript -e 'testthat::test_dir("tests/testthat")'
 
-# Migrar ou remigrar uma dimensão a partir do legado
-Rscript tools/migracao/migrar_dimensoes.R 03_meio_ambiente
+# Empacotar o release que o pacote R consome
+Rscript tools/publicar_release.R v1.0.0
 ```
 
-Ambiente: R 4.5.2, fixado por `renv` (137 pacotes no lockfile). Quarto disponível.
+Ambiente: R 4.5.2, fixado por `renv` (128 pacotes no lockfile). Quarto disponível.
 
 ## Consumir os dados
 
 ```r
 for (f in list.files("R", pattern = "[.]R$", full.names = TRUE)) source(f, encoding = "UTF-8")
 
-x <- mape_ler_tabela("03_meio_ambiente", camada = "dimensao")   # uma dimensão
-d <- mape_ler_tabela("00_diretorios/municipios")                # uma fonte
-b <- mape_montar_base_larga(flags = TRUE, deduplicar = TRUE)    # a base larga
+mape_tabelas_publicadas()                  # as 26 tabelas
+mape_ler("saude")                          # uma dimensão, pelo nome
+mape_ler("educacao/ideb", territorio = TRUE)
+mape_cobertura("14_corrupcao")             # cobertura real, por ano
+mape_derivadas("taxa_homicidios_p100k")    # indicador com o denominador visível
+mape_montar_base_larga(flags = TRUE, deduplicar = TRUE)
 ```
 
-**Quem só consome os dados publicados não precisa de conta no Google Cloud.**
+**Quem só consome os dados publicados não precisa de conta no Google Cloud.** A credencial só é exigida para reextrair uma fonte do BigQuery. Ela vive em `MAPE_GCP_BILLING`, no `.Renviron` (que o `.gitignore` cobre, porque o repositório é público). Use `.Renviron.exemplo` como molde, e nunca uma chamada literal a `set_billing_id`.
 
-**`basedosdados` exige autenticação no Google Cloud.** O projeto oficial do MAPEmunicipios existe e tem faturamento habilitado, mas o identificador dele **não é versionado** (o repositório é público). Ele vive no `.Renviron`, que o `.gitignore` cobre; use `.Renviron.exemplo` como molde. No legado há quatro projetos diferentes escritos dentro do código (`dados-importacao`, `base-dos-dados-429117`, `municipality-carlos`, `dissertacao-de-mestrado-399114`); nenhum sobrevive à migração. Em código novo, use `MAPE_GCP_BILLING` no `.Renviron`, nunca uma chamada literal a `set_billing_id`.
+**Nunca rode um script do legado.** Vários consultam o BigQuery sem filtro e geram custo real: o do SICONFI baixa 18,5 milhões de linhas, o do SIM varre o país inteiro, e alguns executam a consulta e descartam o resultado.
 
-**Quem apenas consome os dados publicados não precisa de conta no Google Cloud.** A credencial só é necessária para atualizar fontes que vêm do BigQuery. Cuidado ao rodar scripts legados: vários consultam o BigQuery sem filtro e geram cobrança real — o do SICONFI baixa 18,5 milhões de linhas, e há scripts que executam a consulta e descartam o resultado.
+## Arquitetura
 
-## Arquitetura do pipeline
+Três camadas, e a distinção entre as duas primeiras é a decisão central:
 
-O fluxo é hierárquico, em três níveis de agregação, e roda inteiramente por materialização em arquivo — não há orquestrador, cada etapa lê o output em disco da anterior.
+```
+fonte  →  dimensão  →  base larga
+```
 
-1. **Fonte → dimensão.** Cada fonte de dados (SIA, SIM, IEPS, IDEB, SICONFI, Emendas, Desastres, Desmatamento…) tem um script próprio que baixa/lê o dado bruto e grava um arquivo por fonte. Ex.: `11 Saúde - Códigos e Dados/{Atenção Básica,IEPS,Imunizações,SIA,SIM,SINAN}/*.R`.
-2. **Dimensão consolidada.** Um script no nível da dimensão (`saude.R`, `meio_ambiente.R`, `educacao.R`…) faz `full_join` das fontes por `c("id_municipio", "ano")` e grava `<dimensao>.RData` + `<dimensao>.xlsx`.
-3. **Junção geral.** `2 Junção Bases/municipalityBR.qmd` lê os 17 `.xlsx` de dimensão e os empilha em joins sucessivos (`d1 → d2 → … → d16`), gravando `base_municipios_brasileiros1.*`.
-4. **Renomeação e dedup.** `3 Renomear e excluir duplicados/renomear_variaveis.R` substitui *todos* os nomes de coluna por um vetor posicional de 451 nomes e aplica `distinct(id_municipio, ano, .keep_all = TRUE)`. O resultado final vai para `4 Base completa/`.
+**A fonte é canônica** e guarda o dado *como foi observado*, na granularidade nativa. `03_meio_ambiente/adaptabrasil` tem 5.570 linhas porque o AdaptaBrasil publica um retrato de 2015.
 
-Etapas auxiliares: `5 Análise Exploratória de Dados/` (modelos e gráficos), `6 Metadados/` (dicionário de variáveis em xlsx), `7 Textos Blog/` (posts em Quarto que consomem a base final).
+**A dimensão é derivada** e é o painel município × ano. `03_meio_ambiente` tem 183.810 linhas, com aquele retrato repetido de 2010 a 2020.
+
+**A base larga** junta as 16 dimensões em 440 colunas. É derivada, gerada por função, não versionada.
+
+### Árvore
+
+```
+config/parametros.yml      única fonte de verdade para constantes
+dicionario/*.csv           a especificação: 431 variáveis, 26 tabelas
+R/                         16 arquivos de funções comuns
+fontes/<dim>/<fonte>/      extrair_*.R, tratar_*.R, MANIFESTO.yml, raw/
+dados/{fonte,dimensao}/    Parquet + csv.gz, versionados abaixo de 20 MB
+dados/derivado/            base larga (não versionada)
+qa/                        relatórios de qualidade e de paridade
+tools/                     migração, hooks, publicar_release.R
+tests/testthat/            154 testes
+docs/ plano/ pendencias/   documentação
+mape_municipios/           legado, 18 GB, NUNCA versionado
+```
 
 ### Contrato de dados
 
-- **Chave**: `id_municipio` (código IBGE de 7 dígitos, tratado como *character*) + `ano`.
-- **`diretorios` é a espinha dorsal.** Vem de `basedosdados.br_bd_diretorios_brasil.municipio` e traz as equivalências entre os vários códigos municipais (`id_municipio`, `id_municipio_6`, `id_municipio_tse`, `id_municipio_rf`, `id_municipio_bcb`) além da hierarquia territorial. Precisa ser gerado antes de qualquer outra dimensão.
-- **Códigos de 6 dígitos.** Várias fontes (CadÚnico, TSE, dados históricos) trazem o código IBGE sem o dígito verificador. O padrão é fazer `left_join` com `diretorios` por `id_municipio_6` para recuperar o código de 7 dígitos e então descartar o de 6.
-- **Flag de dimensão.** As 17 colunas `dimensao_<nome>` **não são criadas pelos scripts de dimensão** — nenhum deles as cria. Todas nascem dentro de `2 Junção Bases/municipalityBR.qmd`, são codificadas como `1`/`NA` (nunca `0`), e nenhum consumidor as usa. O plano as elimina (ver `plano/01-modelo-e-convencoes.md`, seção 3.5).
-- **Painel expandido.** Dimensões cujo dado não é anual (ex.: meio-ambiente) constroem um esqueleto `município × ano` via cross join com `data.frame(ano = 1991:2023)` antes de juntar, e às vezes extrapolam um ano de referência para uma faixa (AdaptaBrasil 2015 → 2010–2020).
+- **Chave**: `id_municipio` (texto de 7 dígitos) + `ano` (inteiro). Código não é quantidade.
+- **`00_diretorios/municipios` é a espinha dorsal**, e é dono exclusivo do bloco territorial. Nenhuma outra tabela publica `nome_municipio` ou `sigla_uf`.
+- **Códigos de 6 dígitos** viram 7 por `left_join` com o diretório em `id_municipio_6`.
+- **`ano` só existe como chave.** Qualquer outro ano é `ano_ref_<fonte>`.
+- **Sufixo obrigatório**, de vocabulário fechado: `_i`, `_pct`, `_prop`, `_razao`, `_p100k`, `_p1k`, `_p100dom`, `_brl_nominal`, `_brl2023`, `_km`, `_km2`, `_idx`, `_cat`, mais os prefixos `flag_` e `ano_ref_`. É isso que permite a validação **provar** que toda coluna `_pct` está entre 0 e 100.
+- **Prefixo de fonte obrigatório** quando duas fontes medem o mesmo conceito: `pni_` contra `ieps_` na cobertura vacinal, `sim_` contra `fbsp_` na morte violenta.
 
-### Armadilhas conhecidas
+### O dicionário é a especificação
 
-- **Tipo de `ano` nos joins.** O legado alterna `ano` entre character e numeric a cada dimensão e faz a coerção manualmente antes de cada `full_join`/`left_join`. Um join silenciosamente vazio quase sempre é incompatibilidade de tipo em `ano` ou em `id_municipio`.
-- **`full_join` vs `left_join`.** A junção geral usa `full_join` em algumas dimensões e `left_join` em outras — a escolha não é uniforme e altera a contagem de linhas do painel. Preserve o que já existe ao mexer nessa etapa.
-- **Renomeação posicional.** `renomear_variaveis.R` depende da *ordem* das colunas produzidas pelo `.qmd`. Qualquer variável adicionada, removida ou reordenada em `municipalityBR.qmd` desalinha o vetor inteiro e renomeia colunas erradas sem erro.
-- **Erros de digitação e nomes que mentem.** Além de `dimensao_identificao` e `populacao_atentida_esgoto`, há casos piores: `total_receitas_fundeb` mede a **dedução** do FUNDEB, e `proporcao_votos_nulos_prefeitura` contém votos **brancos** (o dicionário documenta os dois ao contrário do conteúdo). Como o uso da base é interno, o plano corrige todos, com tabela de depreciação — ver `plano/01-modelo-e-convencoes.md`, seção 6.6.
-- **`here()` no legado.** A raiz do repositório não tem `.Rproj`, então `here()` ancora no `.git`. Mas existem **7 arquivos `.Rproj` dentro do legado**, e cada um desloca a âncora se a sessão for aberta naquela subárvore. O `mcmv/mcmv.Rmd` chega a depender disso. O plano cria um `.Rproj` na raiz (o `.gitignore` já abre exceção para ele).
-- **Valores deflacionados sobrescrevem os nominais.** Oito scripts aplicam `ipca(..., "12/2023")` e gravam o resultado por cima da coluna original, com o mesmo nome. A série nominal não existe em lugar nenhum do repositório, e nada registra que a deflação aconteceu.
+Ele é **lido pelo código** para renomear colunas, validar tipos e domínios, e gerar a documentação. Não é subproduto.
 
-## Estrutura nova (`01_dimensoes_individuais/`)
+Campos **calculados** (`tipo_real`, `pct_na`, `n_distintos`, `minimo`, `maximo`, `n_infinito`) são reescritos por `mape_recalcular_campos()` a cada execução. Editá-los não adianta — e é bom que não adiante, porque foi exatamente neles que os números da documentação antiga não fechavam.
 
-**Esta estrutura vai ser substituída.** O plano define uma árvore diferente, separando código (`fontes/`)
-de dado (`dados/`) e trocando `script.R` por nomes com verbo (`extrair_`, `tratar_`, `consolidar_`).
-Ver `plano/01-modelo-e-convencoes.md`, seção 4.4. Não invista em código novo aqui antes de ler aquilo.
+Toda renomeação vai para `dicionario/deprecacao.csv`.
 
-O que existe hoje é `00_diretorios/`, com a convenção original:
+## Armadilhas conhecidas
 
-```
-NN_<dimensao>/NN_<fonte>/
-  R/script.R
-  raw/
-  processed/
-```
+- **`formatC(x, flag = "0")` sobre texto preenche com espaço, não com zero.** `mape_como_codigo()` preenche à mão por isso.
+- **`integer64` é armadilha silenciosa.** `as.numeric(ano)` devolve `9.83e-321`; `sort()` e `range()` devolvem lixo sem erro. `mape_normalizar_chaves()` converte para `integer` sempre.
+- **Duas tabelas têm chave duplicada herdada da fonte, e continuam tendo.** `06_financas` (222 chaves, emendas associadas por nome sem UF) e `15_dados_historicos` (54, Tocantins pré e pós-1988). Mantidas de propósito, para o problema ficar visível. `mape_montar_base_larga()` se recusa a rodar e nomeia a responsável.
+- **A série nominal não existe.** Oito scripts do legado gravavam o valor deflacionado por cima do original. O único par que sobreviveu está na Saúde.
+- **As coberturas vacinais do SI-PNI passam de 100%**, chegando a 51.175%. Domínio `[0,100]` declarado, para a validação avisar a cada execução.
 
-Duas regras da convenção original que continuam valendo, e que o próprio `00_diretorios/R/script.R`
-viola (ele grava com caminho relativo nu e produz `.RData` + `.xlsx`):
+## O que ainda está aberto
 
-- Caminhos sempre via `here()` a partir da raiz do repositório, nunca relativos ao cwd.
-- Nomes de diretório em snake_case sem acento, com prefixo numérico.
-
-Duas que **mudam**:
-
-- A saída passa de CSV para **Parquet** (seção 3.8 do plano). O `.xlsx` sai do pipeline: ele não
-  preserva tipos, e o pipeline atual depende de um acidente de serialização dele para funcionar.
-- Os sufixos de variável deixam de ser herdados da fonte e passam a sair de um **vocabulário fechado
-  e verificável** — `_i` para contagem, `_pct` para percentual de 0 a 100, `_prop` para razão de 0 a 1,
-  `_p100k` para taxa por 100 mil, `_brl_nominal` e `_brl2023` para dinheiro (seção 6.2 do plano). O
-  antigo `_d` desaparece por ser ambíguo entre percentual e proporção.
-
-### Versionamento de dados
-
-**Dados brutos não são versionados.** O `.gitignore` cobre `**/raw/`. A procedência de cada fonte fica
-num `MANIFESTO.yml` versionado ao lado do script, com URL, versão, data de download e `sha256` — o
-checksum dá a mesma garantia que versionar o arquivo, por 64 bytes.
-
-Tabelas processadas **são** versionadas quando abaixo de 20 MB, o que cobre quase tudo (a soma de
-todas as 17 saídas de dimensão é ~66 MB). Acima disso vão para release do GitHub. Um hook de
-`pre-commit` bloqueia arquivos grandes e qualquer caminho em `mape_municipios/`; instale com
-`bash tools/hooks/instalar.sh` depois de clonar.
-
-Detalhes em `plano/03-versionamento-qa.md`, seção 10.
+- A **primeira reextração nunca aconteceu**. Os `extrair_*.R` estão escritos e nunca rodaram.
+- **Seis fontes não migraram**, com diagnóstico em `pendencias/`. Nenhuma contribui com coluna publicada.
+- **Três licenças** precisam de verificação: IEPS Data, Anuário do FBSP e Kustov & Pardelli.
+- **O release v1.0.0 está montado em `dist/` e não foi publicado.** O comando está no fim de `tools/publicar_release.R`.
