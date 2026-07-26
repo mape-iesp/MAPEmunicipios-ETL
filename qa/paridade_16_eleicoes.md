@@ -1,6 +1,6 @@
 # Paridade — 16_eleicoes
 
-Gerado em 2026-07-26 00:44:24.
+Gerado em 2026-07-26 00:58:18.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 34. Diferenças não explicadas: 0.

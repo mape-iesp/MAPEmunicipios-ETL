@@ -1,6 +1,6 @@
 # Paridade — 07_recursos_humanos
 
-Gerado em 2026-07-26 00:42:56.
+Gerado em 2026-07-26 00:56:49.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 15. Diferenças não explicadas: 0.

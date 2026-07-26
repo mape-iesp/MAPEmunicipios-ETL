@@ -69,6 +69,30 @@ mape_migrar_do_legado <- function(dimensao, arquivo,
   if (!is.null(renomear)) {
     mapa <- c(mapa, stats::setNames(unname(renomear), janitor::make_clean_names(names(renomear))))
   }
+
+  # Mapeamento das colunas que o renomeio POSICIONAL do legado alterou.
+  #
+  # Em duas dimensões, o nome no artefato difere do nome na base publicada
+  # porque renomear_variaveis.R substitui todos os nomes por um vetor de 451
+  # posições. Reconstruí a correspondência uma vez, conferindo que o artefato e
+  # o bloco da dimensão têm o mesmo número de colunas depois de removida a
+  # sobra `nome`, e gravei o resultado como TABELA. A diferença em relação ao
+  # legado é que agora o mapeamento é explícito e auditável, em vez de depender
+  # da ordem em tempo de execução.
+  arq_mapa <- mape_caminho("tools", "migracao", "mapa_renomeio_posicional.csv")
+  if (file.exists(arq_mapa)) {
+    mp <- utils::read.csv(arq_mapa, stringsAsFactors = FALSE, encoding = "UTF-8")
+    mp <- mp[mp$dimensao == dimensao, , drop = FALSE]
+    if (nrow(mp)) {
+      # O nome do artefato passa pelo clean_names antes de casar, e o destino é
+      # o nome CANÔNICO, não o nome legado.
+      canon <- stats::setNames(desta$nome_canonico, desta$nome_legado)
+      destino <- ifelse(mp$nome_base %in% names(canon),
+                        unname(canon[mp$nome_base]), mp$nome_base)
+      mapa <- c(mapa, stats::setNames(destino, janitor::make_clean_names(mp$nome_artefato)))
+      message("mapeamento posicional reconstruído para ", nrow(mp), " coluna(s)")
+    }
+  }
   alvo <- intersect(names(x), names(mapa))
   if (length(alvo)) {
     names(x)[match(alvo, names(x))] <- unname(mapa[alvo])

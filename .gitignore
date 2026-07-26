@@ -76,3 +76,6 @@ _targets/
 # Biblioteca do renv (o lockfile é versionado, a biblioteca não)
 renv/library/
 renv/staging/
+
+# Base larga: artefato DERIVADO, reconstruível com mape_montar_base_larga()
+dados/derivado/

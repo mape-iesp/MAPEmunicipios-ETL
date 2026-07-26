@@ -1,6 +1,6 @@
 # Paridade — 13_seguranca
 
-Gerado em 2026-07-26 00:44:08.
+Gerado em 2026-07-26 00:58:00.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 63. Diferenças não explicadas: 0.

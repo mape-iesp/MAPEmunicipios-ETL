@@ -1,6 +1,6 @@
 # Paridade — 09_educacao
 
-Gerado em 2026-07-26 00:43:13.
+Gerado em 2026-07-26 00:57:06.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 35. Diferenças não explicadas: 0.

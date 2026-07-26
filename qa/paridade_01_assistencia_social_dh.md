@@ -1,6 +1,6 @@
 # Paridade — 01_assistencia_social_dh
 
-Gerado em 2026-07-26 00:42:34.
+Gerado em 2026-07-26 00:55:31.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 14. Diferenças não explicadas: 0.

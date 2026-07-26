@@ -1,6 +1,6 @@
 # Paridade — 02_populacao
 
-Gerado em 2026-07-26 00:42:39.
+Gerado em 2026-07-26 00:55:37.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 8. Diferenças não explicadas: 0.

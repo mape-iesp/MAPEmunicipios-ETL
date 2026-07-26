@@ -11,3 +11,6 @@ dimensao,coluna,motivo
 02_populacao,*,"42 linhas com id_municipio nulo eliminadas na origem. São linhas fantasma que atravessavam o pipeline e das quais 13 sobreviviam no artefato publicado."
 07_recursos_humanos,*,"81 linhas com id_municipio nulo eliminadas na origem. São as 80 linhas fantasma da planilha MUNIC de 2019, que contêm apenas o caractere '-', mais uma linha de 2011."
 08_energia_internet,*,"137 linhas com ano nulo eliminadas na origem."
+06_financas,*,"Diferenças concentradas nas colunas de emendas parlamentares, nas linhas afetadas pelas 222 chaves duplicadas (235 linhas excedentes) que a fonte traz. A duplicação vem de as emendas serem associadas ao município POR NOME, sem UF: 1.067 de 11.649 linhas têm UF divergente, e o comentário do script legado admite o problema. Com a chave ambígua, a comparação por chave casa linhas diferentes. Corrigir exige reprocessar a fonte das Emendas com join por código, o que está fora do escopo desta etapa."
+06_financas,localidade_gasto,"Mesma causa: coluna de texto afetada pelas chaves duplicadas das Emendas."
+03_meio_ambiente,*,"Recuperação de tipo em 12 colunas que estavam como texto por causa do sentinela NaoDisponivel do AdaptaBrasil, presente numa coluna e ausente na coluna irmã."

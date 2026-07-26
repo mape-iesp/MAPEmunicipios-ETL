@@ -77,7 +77,8 @@ mape_consolidar_dimensao <- function(dimensao, tipo = "full", publicar = TRUE) {
 #' @param flags Se TRUE, recria as colunas dimensao_<nome>, agora como 0/1 e
 #'   derivadas da presença real na tabela de fonte.
 #' @return A base larga.
-mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE) {
+mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
+                                   deduplicar = FALSE) {
   if (is.null(anos)) anos <- mape_anos_painel()
   disponiveis <- list.files(mape_caminho("dados", "dimensao"),
                             pattern = "[.]parquet$")
@@ -91,9 +92,42 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE)
   base <- mape_join(base, dir_mun, by = "id_municipio", tipo = "left",
                     relationship = "many-to-one", nome = "esqueleto + diretorio")
 
+  # Antes de juntar qualquer coisa, confere a unicidade da chave em cada
+  # dimensão. O legado não faz isso: ele junta, a chave duplicada multiplica as
+  # linhas, e um distinct() cego no fim apaga a evidência. Aqui a montagem PARA
+  # e diz qual dimensão é a responsável.
+  problematicas <- character()
+  if (deduplicar) problematicas <- character(0)
+  for (d in if (deduplicar) character(0) else sort(dimensoes)) {
+    parte <- mape_ler_tabela(d, camada = "dimensao")
+    if (!"ano" %in% names(parte)) next
+    k <- paste(parte$id_municipio, parte$ano)
+    if (anyDuplicated(k)) {
+      problematicas <- c(problematicas, sprintf(
+        "%s (%d chaves duplicadas, %d linhas excedentes)",
+        d, length(unique(k[duplicated(k)])), sum(duplicated(k))))
+    }
+  }
+  if (length(problematicas)) {
+    stop("Não dá para montar a base larga: há dimensão com chave duplicada.\n",
+         paste0("  - ", problematicas, collapse = "\n"),
+         "\n\nJuntar assim multiplicaria linhas, que é o defeito do legado. ",
+         "Resolva na origem, ou passe deduplicar = TRUE para aceitar a primeira ",
+         "ocorrência de cada chave — o que é uma escolha arbitrária e fica ",
+         "registrada no relatório.", call. = FALSE)
+  }
+
   for (d in sort(dimensoes)) {
     parte <- mape_ler_tabela(d, camada = "dimensao")
     if (!"ano" %in% names(parte)) next
+    if (deduplicar) {
+      k <- paste(parte$id_municipio, parte$ano)
+      if (anyDuplicated(k)) {
+        message("[", d, "] deduplicando ", sum(duplicated(k)),
+                " linha(s) excedente(s): fica a PRIMEIRA ocorrência de cada chave")
+        parte <- parte[!duplicated(k), ]
+      }
+    }
     if (flags) parte[[paste0("dimensao_", d)]] <- 1L
     base <- mape_join(base, parte, by = c("id_municipio", "ano"), tipo = "left",
                       relationship = "one-to-one", nome = paste0("larga + ", d))

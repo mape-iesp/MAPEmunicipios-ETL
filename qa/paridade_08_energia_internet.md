@@ -1,6 +1,6 @@
 # Paridade — 08_energia_internet
 
-Gerado em 2026-07-26 00:43:01.
+Gerado em 2026-07-26 00:56:54.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 10. Diferenças não explicadas: 0.
