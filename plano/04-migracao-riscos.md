@@ -89,16 +89,18 @@ repositório precisa rodar uma vez.
 
 **Recomendo a Assistência Social e Direitos Humanos.**
 
-O argumento mais forte é que ela **já tem uma fonte migrada**, o CadÚnico. Isso significa que o
-piloto testa a convenção existente contra a convenção proposta, em vez de inventar do zero — e o
-levantamento já mostrou que essa comparação rende: descobri que a nomenclatura não é produzida pelo
-script, o que só ficou visível ao olhar o caso concreto.
+O argumento original era que ela já tinha uma fonte migrada, o CadÚnico. Essa cópia acabou sendo
+descartada, porque era um teste — mas o exercício de compará-la com o legado é justamente o que
+revelou que a nomenclatura `cadun_*` não é produzida por código nenhum, e o que levou a localizar a
+origem da fonte no MDS/SAGI. O piloto já rendeu antes de começar.
 
-Ela também tem três fontes com métodos de obtenção diferentes (arquivo local, microdados e MUNIC), o
-que exercita o desenho sem ser gigantesca. E tem um caso de fonte que simplesmente não roda — o
-suplemento de Direitos Humanos da MUNIC 2023, que quebra num pacote ausente —, o que força uma
-decisão logo no início sobre o que fazer com fonte quebrada, em vez de deixar essa questão para a
-décima dimensão.
+O que sustenta a escolha agora são três coisas. A dimensão tem três fontes com métodos de obtenção
+bem diferentes — indicadores agregados de um portal, microdados de denúncias e uma pesquisa do IBGE
+—, o que exercita o desenho sem ser gigantesca. Tem um caso de fonte que simplesmente não roda, o
+suplemento de Direitos Humanos da MUNIC 2023, que quebra num pacote ausente, forçando uma decisão
+logo no início sobre o que fazer com fonte quebrada em vez de empurrar essa questão para a décima
+dimensão. E tem a fonte cuja origem acabou de ser reconstruída, o que faz dela o primeiro teste real
+do `MANIFESTO.yml` e do procedimento de proveniência.
 
 As alternativas que considerei e descartei:
 
@@ -373,27 +375,38 @@ e a dimensão passa a declarar que cobre apenas a faixa financiada com FGTS. As 
 2020**, com a faixa de anos parametrizada para que estendê-la depois seja trivial. E a **Fase 0 foi
 executada** durante esta sessão.
 
+Uma terceira rodada resolveu as fontes sem origem. A cópia do **CadÚnico** na árvore nova era um
+teste e foi descartada, mas a fonte continua no escopo, porque alimenta 8 das 15 colunas da dimensão
+8 na base publicada — e a origem dela, antes desconhecida, foi localizada no MDS/SAGI. Na
+**dimensão 16**, as duas fontes tiveram a procedência reconstruída: o arquivo do IBGE vem de uma
+publicação identificável, e o `data.csv` do artigo de Kustov e Pardelli, com DOI, ainda que sem
+pacote de replicação público — o arquivo local é mantido com a citação registrada. O **faturamento
+do projeto `mapemunicipios`** está habilitado, e **"Habitação e Zoneamento" passa a se chamar
+apenas "Habitação"**. As licenças pendentes ficam sob minha responsabilidade na Fase 3.
+
 ## Ainda em aberto
 
-Nenhuma destas bloqueia as Fases 0 e 1, que podem começar imediatamente.
+**Nenhuma pendência bloqueia a execução.** As perguntas que restavam foram respondidas ou viraram
+tarefa minha. O que sobrou fica registrado abaixo para não se perder.
 
-**1. As licenças do IEPS, do Anuário do FBSP e do pacote de Kustov & Pardelli.** Você tem contato ou
-registro dos termos de uso? Isso bloqueia a Fase 3, quando a primeira release pública seria montada.
+**Sob minha responsabilidade, na Fase 3: as licenças do IEPS, do Anuário do FBSP e do pacote de
+Kustov & Pardelli.** Você não tem os termos, então eu vou atrás. É a única pendência capaz de
+impedir uma publicação formal dos dados, mas ela não atrapalha nada antes disso — as três tabelas
+seguem marcadas como `licenca = "a verificar"` até lá.
 
-**2. A origem dos arquivos brutos do CadÚnico.** Os dez `.txt` são a fonte já migrada, e não existe
-nenhum registro de onde vieram — procurei por `cadun`, `anomes_s` e `http` em toda a árvore legada e
-não há nada. Você lembra de qual portal ou relatório eles saíram? Sem isso a fonte não é atualizável,
-e ela é justamente o piloto. Bloqueia a Fase 2.
+**Sob minha responsabilidade, na Fase 2: confirmar a ferramenta de download do CadÚnico.** A origem
+está identificada (MDS/SAGI, indicador IN004 e a Taxa de Atualização Cadastral), mas falta descobrir
+qual ferramenta da SAGI gera a série municipal mensal. Os candidatos são o CECAD e os Relatórios de
+Informações Sociais. É verificação de minutos.
 
-**3. A origem do `data.csv` da dimensão 16** e do `IBGE_1872_2010_atualizado.xlsx`. O segundo é mais
-urgente: o passo que transforma a versão "original" na "atualizada" é edição manual em Excel sem
-registro, e é dentro dele que nascem os 54 duplicados. Bloqueia a Fase 6.
+**Continua sem solução, e vai precisar de decisão quando chegarmos na dimensão 16: o passo
+`original -> atualizado` do arquivo do IBGE.** A origem da planilha está documentada, mas a
+transformação que produz a versão usada é edição manual em Excel, sem registro, e é dentro dela que
+nascem os 54 registros duplicados que hoje corrompem o ano de fundação de 54 municípios do
+Tocantins. Reescrever esse passo em código exige entender o que ele fez, e isso pode acabar sendo
+mais barato refazendo a derivação a partir do `original.xls` do que tentando reproduzir a edição.
 
-**4. O projeto `mapemunicipios` tem faturamento habilitado e teto de orçamento definido?** O projeto
-já está escolhido, mas resta saber se ele aguenta uma reconstrução completa. A consulta do SICONFI
-sozinha baixa 18,5 milhões de linhas, e a do SIM faz varredura nacional sem filtro. Recomendo
-configurar um alerta de orçamento no console do GCP antes da Fase 4.
-
-**5. A dimensão "Habitação e Zoneamento" não tem nenhum dado de zoneamento.** Renomear para
-"Habitação" ou há intenção de acrescentar o zoneamento depois? Como a numeração é só de acréscimo, é
-melhor decidir antes de publicar. Não bloqueia nada, mas fica mais barato decidir agora.
+**Vale configurar um alerta de orçamento no projeto `mapemunicipios`** antes da segunda etapa do
+trabalho, aquela em que os dados serão de fato atualizados. Durante a migração o custo é próximo de
+zero, porque não haverá reextração, mas a consulta do SICONFI baixa 18,5 milhões de linhas e a do
+SIM faz varredura nacional sem filtro — vale ter o alerta ligado antes de rodá-las pela primeira vez.
