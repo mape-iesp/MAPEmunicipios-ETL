@@ -1,38 +1,42 @@
-# Plano de Reestruturação do ETL do MAPEmunicipios
+# plano/
 
-> **Este plano foi executado.** Ele está preservado como escrito, porque é o registro do
-> raciocínio que produziu a estrutura atual — cada decisão, com o argumento e a evidência que a
-> sustentaram.
->
-> Para o que foi de fato entregue, leia [`docs/fechamento-etl.md`](../docs/fechamento-etl.md). Para
-> operar o ETL no dia a dia, leia o [`README.md`](../README.md) da raiz.
->
-> Onde o plano e o repositório divergirem, **o repositório manda**. Algumas coisas mudaram durante
-> a execução, e as mudanças estão registradas em `docs/`.
+Os planos do MAPEmunicipios, em duas pastas. A primeira é história executada; a segunda é trabalho
+a fazer.
 
-## Por onde começar
+| pasta | o que é | estado |
+|---|---|---|
+| [`migracao-etl/`](migracao-etl/) | a reestruturação do ETL legado nesta árvore: diagnóstico, modelo de dados, convenções, versionamento e as oito fases da migração | **executado** — preservado como registro do raciocínio |
+| [`atualizacao-dados/`](atualizacao-dados/) | pôr as 26 tabelas no dado mais recente, e dar a cada fonte um caminho de atualização programático | **a executar** |
 
-Se você quer entender por que o ETL é como é, leia o **sumário executivo** e as **oito decisões
-estruturais**. Eles contêm tudo que mudou; o resto é a justificativa e o detalhamento.
+Para operar o ETL no dia a dia, o ponto de partida é o [`README.md`](../README.md) da raiz e o
+[`CLAUDE.md`](../CLAUDE.md). Para o estado do dado publicado, `auditoria/RELATORIO-FINAL.md`.
 
-## Os arquivos
+## Os arquivos mudaram de lugar em 26/07/2026
 
-| Arquivo | Conteúdo |
+Os cinco documentos do plano de migração viviam na raiz de `plano/`. Como muita coisa aponta para
+eles — inclusive os treze relatórios de auditoria, que são imutáveis e **não** foram reescritos —,
+fica aqui o mapa:
+
+| caminho antigo | caminho atual |
 |---|---|
-| [prompt-original.md](prompt-original.md) | A especificação que originou este plano, preservada como foi escrita. Serve para conferir o que foi pedido contra o que foi entregue |
-| [00-diagnostico-inventario.md](00-diagnostico-inventario.md) | Sumário executivo, diagnóstico do que verifiquei e onde o inventário anterior estava errado, e o levantamento das 17 dimensões |
-| [01-modelo-e-convencoes.md](01-modelo-e-convencoes.md) | As oito decisões estruturais sobre o modelo de dados, a árvore de diretórios, a camada de funções comuns e a nomenclatura de colunas |
-| [02-documentacao-e-atualizacao.md](02-documentacao-e-atualizacao.md) | O contrato de documentação, os procedimentos de atualização e a orquestração com `targets` |
-| [03-versionamento-qa.md](03-versionamento-qa.md) | O que vai para o git e o que não vai, e o sistema de validação, incluindo o teste de paridade contra a base atual |
-| [04-migracao-riscos.md](04-migracao-riscos.md) | As oito fases da migração, os riscos, as alterações necessárias no `CLAUDE.md` e as perguntas que ainda dependem de você |
+| `plano/README.md` | `plano/migracao-etl/README.md` |
+| `plano/prompt-original.md` | `plano/migracao-etl/prompt-original.md` |
+| `plano/00-diagnostico-inventario.md` | `plano/migracao-etl/00-diagnostico-inventario.md` |
+| `plano/01-modelo-e-convencoes.md` | `plano/migracao-etl/01-modelo-e-convencoes.md` |
+| `plano/02-documentacao-e-atualizacao.md` | `plano/migracao-etl/02-documentacao-e-atualizacao.md` |
+| `plano/03-versionamento-qa.md` | `plano/migracao-etl/03-versionamento-qa.md` |
+| `plano/04-migracao-riscos.md` | `plano/migracao-etl/04-migracao-riscos.md` |
 
-## De onde veio o diagnóstico
+Referências no texto a `plano/01`, `plano/02` e `plano/03` — comuns em `auditoria/`, no dicionário e
+nos documentos gerados — apontam para os arquivos de `migracao-etl/` com o mesmo número.
 
-O levantamento saiu da leitura do código legado em `mape_municipios/` (cerca de 18 GB, fora do
-controle de versão), da inspeção dos arquivos `.RData` que cada dimensão produz, e do dicionário de
-metadados em `6 Metadados/`.
+## Como os dois planos se relacionam
 
-Nenhum script legado foi executado. Vários deles consultam o BigQuery e geram cobrança real — o do
-SICONFI sozinho baixa 18,5 milhões de linhas. Sempre que confirmar alguma coisa exigiria rodar uma
-consulta paga, registrei o item como não verificado em vez de executar, e a lista completa desses
-casos está na seção de diagnóstico.
+A § 8 de [`migracao-etl/02-documentacao-e-atualizacao.md`](migracao-etl/02-documentacao-e-atualizacao.md)
+já descrevia uma estratégia de atualização: acrescentar um ano, acrescentar uma fonte, acrescentar
+uma dimensão, e o tratamento das fontes de download manual com `MANIFESTO.yml`.
+
+Ela continua valendo, e `atualizacao-dados/` **não a substitui — a executa**. A diferença é que
+aquele texto descrevia o procedimento supondo que os produtores existissem. Eles não existem: 15 das
+26 tabelas não têm caminho de reconstrução nesta árvore, e a primeira extração de verdade só
+aconteceu em 26/07/2026. `atualizacao-dados/` parte desse fato medido.
