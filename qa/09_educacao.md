@@ -1,6 +1,6 @@
 # QA — 09_educacao
 
-Gerado em 2026-07-26 16:19:50.
+Gerado em 2026-07-26 16:35:00.
 
 ## Resumo
 

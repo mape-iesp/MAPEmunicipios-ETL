@@ -1,6 +1,6 @@
 # QA — 16_eleicoes
 
-Gerado em 2026-07-26 16:19:58.
+Gerado em 2026-07-26 16:35:08.
 
 ## Resumo
 

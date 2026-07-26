@@ -39,6 +39,25 @@ mape_ler <- function(tabela, painel = FALSE, territorio = FALSE,
   camada <- if (grepl("/", slug)) "fonte" else "dimensao"
   x <- mape_ler_tabela(slug, camada = camada)
 
+  # Achado 32: nenhum dos defeitos declarados chegava a quem consome. Eles
+  # estavam no dicionário e nos qa/*.md, e a interface pública não os
+  # mencionava — quem chamava mape_ler("financas") recebia a tabela e nada mais.
+  # O custo é uma leitura de dicionario/tabelas.csv, que esta função já faz para
+  # resolver o slug.
+  defeitos <- tryCatch(mape_defeitos_declarados(slug), error = function(e) character())
+  if (length(defeitos)) {
+    message("[", slug, "] ATENÇÃO: ", length(defeitos),
+            " defeito(s) declarado(s) no dicionário para esta tabela.")
+    for (d in utils::head(defeitos, 3)) {
+      message("      ", substr(gsub("\\s+", " ", d), 1, 220),
+              if (nchar(d) > 220) "..." else "")
+    }
+    if (length(defeitos) > 3) {
+      message("      (mais ", length(defeitos) - 3, "; veja qa/",
+              gsub("/", "__", slug), ".md, seção 'Defeitos declarados')")
+    }
+  }
+
   if (painel) {
     tabs <- mape_dicionario("tabelas")
     regra <- tabs$regra_preenchimento_temporal[tabs$slug_tabela == slug]

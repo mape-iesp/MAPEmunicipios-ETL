@@ -37,7 +37,7 @@ importa não é a raiz, o que é justamente o tipo de armadilha que a
 reestruturação existe para eliminar.
 
 **Os dois têm ritmos incompatíveis.** O ETL muda quando o IBGE publica o PIB de
-2023 — algumas vezes por ano, com um `renv.lock` de 137 pacotes fixados e um
+2023 — algumas vezes por ano, com um `renv.lock` de 147 pacotes fixados e um
 teste de paridade que roda contra 18 GB de legado. O pacote muda quando alguém
 quer uma função nova, e precisa passar em `R CMD check` em três sistemas
 operacionais. Amarrar os dois num histórico só significa que cada atualização de

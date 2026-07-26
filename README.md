@@ -97,7 +97,7 @@ adotaram tarifa zero?" se responde na fonte. "Como a adesão evolui ao lado do P
 per capita?" se responde na dimensão. O pipeline antigo só tinha a segunda, e por
 isso a resposta da primeira era 5.570 — todos, o tempo todo.
 
-**A base larga** junta as dezesseis dimensões num único objeto de 440 colunas.
+**A base larga** junta as **quinze** dimensões município × ano num único objeto de **424 colunas** (439 com `flags = TRUE`), com 200.520 linhas. São dezesseis dimensões publicadas: `15_dados_historicos` fica de fora **por desenho**, porque é transversal e não tem coluna `ano` — juntá-la por município replicaria os valores nos 36 anos. A função avisa quando isso acontece. *(Errata de 26/07/2026, achado 11 da auditoria: este parágrafo dizia 440 colunas e dezesseis dimensões, e as duas metades estavam erradas.)*
 Ela existe porque três scripts de análise e um artigo publicado dependem dela;
 como artefato derivado, custa um comando e não é versionada.
 
@@ -105,7 +105,7 @@ como artefato derivado, custa um comando e não é versionada.
 
 ```
 config/parametros.yml      a única fonte de verdade para constantes
-dicionario/*.csv           a especificação: 431 variáveis, 26 tabelas
+dicionario/*.csv           a especificação: 432 variáveis, 26 tabelas
 R/                         as funções comuns (16 arquivos)
 fontes/<dim>/<fonte>/      extrair_*.R, tratar_*.R, MANIFESTO.yml, raw/
 dados/fonte/               tabelas de fonte, em Parquet e csv.gz
@@ -157,6 +157,20 @@ existe como chave do painel**: qualquer outro ano vira `ano_ref_*`.
 
 É o caso mais comum: o IBGE publica o PIB de 2023, o SNIS publica 2024.
 
+**Antes de invocar um alvo pelo nome, confira que ele existe:**
+
+```bash
+Rscript -e 'targets::tar_manifest(fields = "name")'
+```
+
+Existem **14 alvos** para **26 tabelas publicadas**. Um alvo `fonte_<slug>` só
+nasce quando a função `tratar_<nome>` existe, e hoje só três existem
+(`00_diretorios/municipios`, `cadunico`, `disque100`); um alvo `dim_<slug>` só
+nasce quando a dimensão tem duas ou mais fontes publicadas. As demais tabelas
+vieram dos scripts de migração e **não são reconstruídas por `tar_make()`**.
+
+Para uma fonte que **tem** alvo, o ciclo é:
+
 ```bash
 # Uma vez só, se a fonte vier do BigQuery:
 echo 'MAPE_GCP_BILLING=<projeto-gcp>' >> .Renviron
@@ -164,10 +178,25 @@ echo 'MAPE_GCP_BILLING=<projeto-gcp>' >> .Renviron
 # Se o ano for novo para a base inteira, amplie a janela em
 # config/parametros.yml:   anos_painel: [1989, 2025]
 
-Rscript -e 'targets::tar_make(fonte_04_economia_ibge_pib)'   # só a fonte que mudou
-Rscript -e 'targets::tar_make(dim_04_economia)'              # a dimensão dela
-Rscript -e 'targets::tar_make(documentacao)'                 # a documentação
+Rscript tools/rodar_grafo.R fonte_01_assistencia_social_dh_cadunico  # a fonte
+Rscript tools/rodar_grafo.R dim_01_assistencia_social_dh             # a dimensão
+Rscript tools/recalcular_dicionario.R                                # campos calculados
+Rscript tools/rodar_grafo.R documentacao                             # a documentação
 ```
+
+Use `tools/rodar_grafo.R` e não `tar_make()` direto: `tar_make()` sai com código
+0 mesmo quando um alvo falha (achado 41 da auditoria), e o wrapper consulta
+`tar_meta()` e sai com código 1 se houver erro.
+
+Para uma dimensão **sem** alvo — que é a maioria —, atualizar significa
+**escrever o `tratar_*.R` primeiro**. Use `mape_nova_fonte()` para o esqueleto e
+acrescente a linha em `dicionario/tabelas.csv`; o grafo se ajusta sozinho.
+
+*(Errata de 26/07/2026, achado 70 da auditoria: esta receita mandava rodar
+`tar_make(fonte_04_economia_ibge_pib)` e `tar_make(dim_04_economia)`. Nenhum dos
+dois alvos existe — `04_economia` não tem `tratar_*.R` e tem uma fonte só —, e os
+dois falhavam com `Column doesn't exist`. A receita descrevia o estado pretendido
+depois que a fonte tivesse o seu script de tratamento.)*
 
 **Nenhum script precisa ser editado.** Se a fonte não mudou de schema, só o
 arquivo de configuração muda. Se mudou, o que muda é `dicionario/variaveis.csv` —
@@ -258,7 +287,7 @@ geral: **erro impede a publicação, aviso exige justificativa registrada** no c
 `observacoes` da tabela ou `problema` da variável. Aviso sem justificativa vira
 erro — sem isso, aviso vira paisagem.
 
-Estado atual, sobre as 26 tabelas: **2 erros e 23 avisos**. Os dois erros são
+Estado atual, sobre as 26 tabelas: **0 erros e 120 avisos, todos com justificativa registrada** (medido em 26/07/2026 com `Rscript tools/validar_tudo.R`). Os avisos são muitos porque as checagens novas da rodada de correção — zero-inflação, quebra de nível, invariância temporal, continuidade do painel, cobertura temporal, licença e proveniência — olham coisas que ninguém olhava. Os dois erros que antes bloqueavam
 chaves duplicadas herdadas das fontes e estão descritos na seção de armadilhas.
 
 ### O teste de paridade
@@ -315,9 +344,25 @@ precisar de nova versão do pacote.
 
 ### O que é versionado e o que não é
 
-Dado bruto **nunca** é versionado: o `.gitignore` cobre `**/raw/`. A procedência
-fica num `MANIFESTO.yml` versionado ao lado do script, com URL, versão, data e
-`sha256`. São 64 bytes que dão a mesma garantia que versionar o arquivo.
+Dado bruto não é versionado desde a Fase 0: o `.gitignore` cobre `**/raw/`. A
+procedência fica num `MANIFESTO.yml` versionado ao lado do script, com URL,
+licença e `sha256`. São 64 bytes que dão a mesma garantia que versionar o
+arquivo.
+
+**Há uma exceção, e ela está no histórico:** o bruto do CadÚnico (~10,6 MiB
+comprimidos) foi versionado no commit `20a3b11` e permanece na história do git.
+A decisão de não reescrever o histórico por causa disso está registrada em
+`plano/03-versionamento-qa.md` §10.3 — é agregado municipal público, sem dado
+pessoal, e reescrever invalidaria todos os hashes e todos os clones por 10,6 MiB.
+
+*(Errata de 26/07/2026, achado 72 da auditoria: esta seção dizia que dado bruto
+"**nunca**" é versionado, o que é falso em uma ocorrência conhecida e decidida.
+Uma promessa absoluta com uma exceção não registrada é pior que a exceção.)*
+
+Os campos `versao_fonte`, `data_download` e `baixado_por` do manifesto ficam em
+branco nas fontes que vieram da árvore legada: o arquivo original nunca esteve
+neste repositório e inventá-los seria pior que deixá-los vazios. Eles passam a
+significar alguma coisa na primeira reextração.
 
 Tabelas processadas **são** versionadas abaixo de 20 MB, o que cobre todas as 26
 (a maior tem 15,6 MB). Acima disso vão para o release. O hook de `pre-commit`
@@ -369,6 +414,22 @@ Alagoas e do Amazonas". É falso — os códigos do AC começam em 12, os de AL 
 e os do AM em 13. A afirmação sustentava um ramo de `mape_como_codigo()` que
 preenchia com zero qualquer entrada curta e fabricava códigos bem-formados
 inexistentes; o ramo foi removido.)*
+
+**Ao ler um `.csv.gz` publicado, declare o tipo da chave.** O CSV não carrega
+tipo, e tanto `read.csv()` quanto `readr::read_csv()` devolvem `id_municipio`
+como número — o que quebra qualquer junção contra o Parquet, contra
+`00_diretorios/municipios` ou contra o pacote R. A receita:
+
+```r
+read.csv("dados/dimensao/09_educacao.csv.gz",
+         colClasses = c(id_municipio = "character"))
+
+readr::read_csv("dados/dimensao/09_educacao.csv.gz",
+                col_types = readr::cols(id_municipio = readr::col_character()))
+```
+
+O Parquet não tem esse problema, porque preserva o tipo. Prefira-o sempre que
+puder. *(Achado 103 da auditoria.)*
 
 **`integer64` é uma armadilha silenciosa.** Em `populacao.RData`,
 `as.numeric(ano)` devolve `9.83e-321`. Em `instituicoes.RData`, `sort()` e

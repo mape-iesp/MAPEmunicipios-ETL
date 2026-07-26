@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Visão geral
 
-ETL em R que constrói o **MAPEmunicipios**: um painel dos 5.570 municípios brasileiros, de 1989 a 2024, em 17 eixos temáticos, 26 tabelas publicadas e 431 variáveis documentadas.
+ETL em R que constrói o **MAPEmunicipios**: um painel dos 5.570 municípios brasileiros, de 1989 a 2024, em 17 eixos temáticos, 26 tabelas publicadas e 432 variáveis documentadas.
 
 A migração do legado terminou e as 26 tabelas estão publicadas em `dados/`. Mas **em 26/07/2026 uma auditoria independente levantou 105 grupos de defeito — sete deles críticos — e nenhum foi corrigido ainda.** Seis dos sete críticos são dado publicado errado; o outro é um comando que a versão anterior deste arquivo ensinava.
 
@@ -65,7 +65,7 @@ Rscript -e 'targets::tar_manifest()'                  # os 14 alvos que existem
 Rscript -e 'targets::tar_outdated()'                  # devolve os 14: o grafo nunca fechou
 Rscript -e 'targets::tar_visnetwork()'                # desenha o grafo
 
-# Testes — 6 arquivos, 154 expectativas, segundos. Hoje: FAIL 0 | PASS 154
+# Testes — 9 arquivos, 405 expectativas, segundos. Hoje: FAIL 0 | PASS 405
 Rscript -e 'testthat::test_dir("tests/testthat")'
 Rscript -e 'testthat::test_file("tests/testthat/test-chaves.R")'      # um arquivo só
 Rscript -e 'testthat::test_dir("tests/testthat", filter = "painel")'  # por padrão no nome
@@ -171,7 +171,7 @@ fonte  →  dimensão  →  base larga
 
 ```
 config/parametros.yml      única fonte de verdade para constantes
-dicionario/*.csv           a especificação: 431 variáveis, 26 tabelas
+dicionario/*.csv           a especificação: 432 variáveis, 26 tabelas
 R/                         16 arquivos de funções comuns
 fontes/<dim>/<fonte>/      extrair_*.R, tratar_*.R, MANIFESTO.yml, raw/
 dados/{fonte,dimensao}/    Parquet + csv.gz, versionados abaixo de 20 MB
@@ -206,12 +206,12 @@ Uma responsabilidade por arquivo; `tar_source("R")` carrega tudo. **26 das 62 fu
 | `sentinelas.R` | `mape_tratar_sentinelas()` — os "NaoDisponivel" e "-" viram `NA` |
 | `joins.R` | `mape_join()` com cardinalidade declarada |
 | `painel.R` | `mape_esqueleto_painel()`, `mape_expandir_painel()`, `mape_compactar_painel()` |
-| `dimensao.R` | `mape_consolidar_dimensao()`, `mape_montar_base_larga()` |
+| `dimensao.R` | `mape_consolidar_dimensao()`, `mape_montar_base_larga()`, `mape_paridade()` |
 | `validacao.R` | `mape_validar_tabela()` — as checagens de qualidade |
 | `deflacao.R` | `mape_deflacionar()`, `mape_marcar_nominal()` |
 | `documentacao.R` | `mape_gerar_documentacao_completa()` |
 | `consumo.R` | a interface pública: `mape_ler()`, `mape_cobertura()`, `mape_derivadas()` |
-| `migracao_legado.R` | `mape_migrar_do_legado()`, `mape_paridade()` — histórico, não roda no grafo |
+| `migracao_legado.R` | `mape_migrar_do_legado()` — histórico, não roda no grafo |
 
 ### Contrato de dados
 

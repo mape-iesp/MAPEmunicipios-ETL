@@ -131,8 +131,12 @@ writeLines(c(
   "O painel município × ano de cada tema.", "",
   "| tabela | linhas | colunas | municípios | anos |",
   "|---|---|---|---|---|",
+  # Achado 97: aqui a linha de 15_dados_historicos saía como "NA-NA", porque a
+  # tabela é transversal e não tem `ano`. A linha 144, para as fontes, já
+  # tratava o caso; esta não.
   paste0("| `", d$slug, "` | ", fmt(d$linhas), " | ", d$colunas, " | ",
-         fmt(d$municipios), " | ", d$ano_min, "-", d$ano_max, " |"), "",
+         fmt(d$municipios), " | ",
+         ifelse(is.na(d$ano_min), "—", paste0(d$ano_min, "-", d$ano_max)), " |"), "",
   "## Tabelas de fonte", "",
   "O dado **como foi observado**, na granularidade nativa. Onde a dimensão",
   "repete a mesma medição em vários anos para preencher o painel, a fonte",

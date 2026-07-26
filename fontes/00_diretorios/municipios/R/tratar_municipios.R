@@ -10,9 +10,17 @@
 
 tratar_municipios <- function(origem = NULL) {
   if (is.null(origem)) {
-    # Artefato herdado, ainda em xlsx. Não é o formato canônico; é o que existe.
-    origem <- mape_caminho("01_dimensoes_individuais", "00_diretorios",
-                           "processed", "diretorios.xlsx")
+    # Achado 9: aqui havia um literal apontando para
+    # "01_dimensoes_individuais/00_diretorios/processed/diretorios.xlsx", dentro
+    # da árvore legada — que foi REMOVIDA do repositório em 26/07/2026 sem que o
+    # produtor fosse reescrito. O alvo fonte_00_diretorios_municipios falhava
+    # desde então com "arquivo não encontrado", e era o único alvo de fonte do
+    # diretório.
+    #
+    # O arquivo foi recuperado do histórico para raw/ e o caminho passa por
+    # mape_verificar_raw(), que confere o sha256 do MANIFESTO.yml — exatamente o
+    # que cadunico e disque100 já fazem.
+    origem <- mape_verificar_raw("00_diretorios/municipios", "diretorios.xlsx")
   }
 
   bruto <- if (grepl("[.]parquet$", origem)) {

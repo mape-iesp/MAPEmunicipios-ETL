@@ -19,3 +19,5 @@ As eleições municipais de 2024 ficam de fora do painel. Decisão registrada: a
 
 A faixa de anos já está parametrizada em config/parametros.yml (anos_eleicao). Estender passa a ser editar uma linha, mais conferir se o layout dos microdados de 2024 bate com o dos anteriores.
 
+*(Errata de 26/07/2026, achado 104 da auditoria: `anos_eleicao` está em `config/parametros.yml` mas **não tem consumidor** — nenhuma função o lê, porque não existe `tratar_*.R` para 16_eleicoes e a tabela publicada veio dos scripts de migração. Editar a linha não muda nada hoje. O parâmetro fica reservado para quando o script do TSE existir.)*
+

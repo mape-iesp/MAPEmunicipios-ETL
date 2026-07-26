@@ -1,0 +1,25 @@
+fonte: "municipios"
+dimensao: "00_diretorios"
+orgao: "IBGE — Diretorio de municipios brasileiros"
+url: "https://basedosdados.org/dataset/br-bd-diretorios-brasil"
+arquivo_local: "diretorios.xlsx"
+versao_fonte: ~
+data_download: ~
+baixado_por: ~
+sha256: "66dc51a2006cbc65b72917b4a29159bd0933f4e18f4287681680c54dfe09f943"
+licenca: "Dado publico federal. Uso livre com citacao da fonte."
+automatizavel: "sim"
+nota: >
+  Recuperado do historico do git em 26/07/2026 pela rodada de correcao da
+  auditoria (achado 9). O blob e 3a50faa, de
+  "01_dimensoes_individuais/00_diretorios/processed/diretorios.xlsx", removido
+  da arvore no commit d42f41a ("Faxina: corta a dependencia do legado").
+
+  A remocao da arvore legada nao veio acompanhada da reescrita do produtor:
+  tratar_municipios() continuou apontando para o caminho antigo, que deixou de
+  existir, e por isso o alvo fonte_00_diretorios_municipios falhava. Trazer o
+  arquivo para raw/ e apontar o tratamento para ca e o padrao que cadunico e
+  disque100 ja seguem.
+
+  raw/ nao e versionado (ver .gitignore); o que fica versionado e este sha256.
+  Para reobter o arquivo sem o historico, use a URL acima.

@@ -217,7 +217,8 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
 #'   colunas `coluna` e `motivo`. Reivindicar depois de ver o resultado
 #'   invalidaria o teste.
 #' @return Invisivelmente, o relatório de diferenças.
-mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
+mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
+                          chave = NULL) {
   if (is.null(referencia)) {
     # A referência vive em qa/referencia/, e não mais dentro da árvore legada.
     # São 56 MB contra os 18 GB do legado inteiro — a paridade nunca precisou
@@ -276,9 +277,32 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
 
   nova <- mape_ler_tabela(dimensao, camada = "dimensao")
 
-  chave_antiga <- antiga[, c("id_municipio", "ano")]
+  # Achado 25: a chave era fixa em (id_municipio, ano), e por isso
+  # `15_dados_historicos` — que é TRANSVERSAL, sem coluna `ano` — nunca passou
+  # pelo teste e não podia passar: a linha morria em `nova[, c("id_municipio",
+  # "ano")]`, ANTES do writeLines, então a chamada nem criava o relatório. A
+  # documentação afirmava que dezesseis dimensões tinham passado.
+  #
+  # A comparação por município é possível e produz resultado útil.
+  if (is.null(chave)) {
+    chave <- if ("ano" %in% names(nova)) c("id_municipio", "ano") else "id_municipio"
+  }
+  faltando_ref <- setdiff(chave, names(antiga))
+  if (length(faltando_ref)) {
+    stop("A referência não tem a(s) coluna(s) de chave: ",
+         paste(faltando_ref, collapse = ", "), call. = FALSE)
+  }
+
+  chave_antiga <- antiga[, chave, drop = FALSE]
   chave_antiga$id_municipio <- mape_como_codigo(chave_antiga$id_municipio, avisar = FALSE)
-  chave_antiga$ano <- mape_como_inteiro(chave_antiga$ano)
+  if ("ano" %in% chave) chave_antiga$ano <- mape_como_inteiro(chave_antiga$ano)
+  # A referência é município x ano; comparando só por município, uma linha por
+  # município basta, e duplicá-las multiplicaria a comparação.
+  if (!"ano" %in% chave) {
+    chave_antiga <- chave_antiga[!duplicated(chave_antiga$id_municipio), , drop = FALSE]
+    antiga <- antiga[!duplicated(mape_como_codigo(antiga$id_municipio, avisar = FALSE)), ,
+                     drop = FALSE]
+  }
 
   achados <- list()
   reg <- function(coluna, classe, descricao) {
@@ -291,8 +315,8 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
   # então 33.291 linhas publicadas jamais foram confrontadas com coisa alguma. O
   # `merge` é inner: linha que só existe de um lado simplesmente não entra na
   # comparação, e some do relatório junto.
-  k_ant <- paste(chave_antiga$id_municipio, chave_antiga$ano)
-  k_nov <- paste(nova$id_municipio, nova$ano)
+  k_ant <- do.call(paste, chave_antiga[, chave, drop = FALSE])
+  k_nov <- do.call(paste, nova[, chave, drop = FALSE])
   so_no_novo <- length(setdiff(k_nov, k_ant))
   so_no_antigo <- length(setdiff(k_ant, k_nov))
   if (so_no_novo > 0 || so_no_antigo > 0) {
@@ -324,9 +348,9 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
 
     # Compara pelos pares de chave presentes nos dois lados.
     va <- data.frame(chave_antiga, v = antiga[[col_antiga]], stringsAsFactors = FALSE)
-    vn <- data.frame(nova[, c("id_municipio", "ano")], v = nova[[col_nova]],
+    vn <- data.frame(nova[, chave, drop = FALSE], v = nova[[col_nova]],
                      stringsAsFactors = FALSE)
-    m <- merge(va, vn, by = c("id_municipio", "ano"), suffixes = c("_a", "_n"))
+    m <- merge(va, vn, by = chave, suffixes = c("_a", "_n"))
     if (!nrow(m)) {
       reg(col_antiga, "c_nao_explicada", "nenhuma chave em comum")
       next
@@ -397,7 +421,12 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
   writeLines(c(
     paste0("# Paridade — ", dimensao), "",
     paste0("Gerado em ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "."),
-    paste0("Referência: `", basename(referencia), "` (tag `dados-v1.0.0-legado`)."), "",
+    # Achado 68: esta linha afirmava a proveniência ("tag dados-v1.0.0-legado")
+    # sem verificar coisa nenhuma — o arquivo podia ser outro e o relatório diria
+    # o mesmo. Agora imprime o sha256 do arquivo que de fato foi lido, que é o
+    # que permite conferir a proveniência em vez de acreditar nela.
+    paste0("Referência: `", basename(referencia), "`  \n",
+           "sha256: `", digest::digest(referencia, algo = "sha256", file = TRUE), "`"), "",
     paste0("Colunas comparadas: ", length(cols_antigas), ". ",
            "Diferenças não explicadas: ", n_c, "."), "",
     if (!nrow(res)) "Nenhuma diferença. A reconstrução é idêntica ao publicado." else

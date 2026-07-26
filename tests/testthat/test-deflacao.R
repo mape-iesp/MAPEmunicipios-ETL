@@ -65,8 +65,17 @@ test_that("data fora da série avisa em vez de devolver NA em silêncio", {
 test_that("mape_marcar_nominal aplica o sufixo sem sobrescrever coluna existente", {
   x <- data.frame(receita = 100, despesa = 50)
   y <- mape_marcar_nominal(x, c("receita", "despesa"))
-  expect_setequal(names(y), c("receita_brl_nominal", "despesa_brl_nominal"))
+
+  # expect_setequal() aceita NULL contra NULL, então uma versão no-op da função
+  # passaria por ele. As asserções abaixo exigem o data frame de volta — foi o
+  # sweep de mutação (tools/sweep_mutacao.R) que apontou esse furo.
+  expect_s3_class(y, "data.frame")
+  expect_equal(ncol(y), 2)
+  expect_true(all(c("receita_brl_nominal", "despesa_brl_nominal") %in% names(y)))
   expect_equal(y$receita_brl_nominal, 100)
+  expect_equal(y$despesa_brl_nominal, 50)
+
   # Idempotente: chamar de novo não empilha sufixo.
-  expect_setequal(names(mape_marcar_nominal(y, names(y))), names(y))
+  z <- mape_marcar_nominal(y, names(y))
+  expect_equal(names(z), names(y))
 })

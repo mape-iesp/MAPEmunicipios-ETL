@@ -3,6 +3,16 @@ dimensao: "01_assistencia_social_dh"
 orgao: "MDS/SAGI — Secretaria de Avaliacao e Gestao da Informacao"
 url: "https://aplicacoes.mds.gov.br/sagi/vis/data3/"
 arquivo_local: "cadunico.csv"
+derivado: true
+passos_ja_aplicados: >
+  O arquivo em raw/ NAO e o bruto da origem: e a SAIDA do pipeline legado sobre
+  o indicador IN004 do CadUnico, e o sha256 abaixo ancora esse derivado. Dois
+  passos ja vem aplicados nele, e por isso NAO estao em tratar_cadunico.R:
+  (1) o filtro str_detect(anomes_s, '12$'), que reduz a serie MENSAL ao
+  snapshot de dezembro de cada ano; e (2) a conversao do codigo de municipio de
+  6 para 7 digitos. Quem reextrair do SAGI pela url acima vai receber a serie
+  mensal com codigo de 6 digitos, e vai precisar aplicar os dois — o segundo com
+  mape_id7_de_id6(). Registrado em 26/07/2026, achado 46 da auditoria.
 versao_fonte: ~
 data_download: ~
 baixado_por: ~

@@ -233,3 +233,27 @@ test_that("todo renomeio de variaveis.csv tem linha em deprecacao.csv", {
                            v$nome_legado != v$nome_canonico]
   expect_equal(setdiff(reais, dep$nome_antigo), character())
 })
+
+test_that("mape_quebras_de_nivel acha as três quebras do PIB e nada na origem", {
+  # Achado 1, e meta-cobertura do achado 26: sem este teste a função podia virar
+  # function(...) NULL sem quebrar nada, porque devolver NULL significa "nenhuma
+  # quebra" e nenhum teste exigia que ela ACHASSE alguma.
+  skip_if_not(file.exists(here::here("dados", "dimensao", "04_economia.parquet")))
+
+  d <- as.data.frame(mape_ler_tabela("04_economia", camada = "dimensao"))
+  q <- mape_quebras_de_nivel(d, "pib_brl2023")
+  expect_false(is.null(q))
+  expect_setequal(q$ano, c(2001L, 2004L, 2011L))
+  # 2011 é a maior: o fator cai de 2 para 1.
+  expect_lt(q$mediana[q$ano == 2011], 0.6)
+
+  # Controle: a coluna de proporção é imune, porque o fator cancela no quociente.
+  expect_null(mape_quebras_de_nivel(d, "impostos_sobre_pib_prop"))
+
+  # Controle forte: a série da ORIGEM, baixada do BigQuery, não tem quebra.
+  bruto <- here::here("fontes", "04_economia", "ibge_pib", "raw", "pib_municipio.parquet")
+  skip_if_not(file.exists(bruto), "sem o cache da origem")
+  o <- as.data.frame(arrow::read_parquet(bruto))
+  o$id_municipio <- as.character(o$id_municipio)
+  expect_null(mape_quebras_de_nivel(o, "pib_somado"))
+})

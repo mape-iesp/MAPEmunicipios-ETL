@@ -1,5 +1,7 @@
 # Encerramento da migração
 
+
+> **Retrato de 26/07/2026, no fim da migração.** Os números abaixo descrevem o estado *naquele momento*, e vários deles já não valem — a rodada de correção da auditoria mudou o repositório. Para o estado atual, veja `auditoria/RELATORIO-FINAL.md` e `CLAUDE.md`; para o estado no fecho do ETL, `docs/fechamento-etl.md`. Este documento fica como registro datado, e não como referência corrente.
 As dezesseis dimensões com dado foram migradas, validadas e publicadas. A base
 larga passou a ser um artefato derivado, gerado por função. O ambiente está
 fixado por `renv`.
@@ -19,13 +21,13 @@ o que a migração descobriu que ninguém sabia.
 | Erros de qualidade | 2, ambos chave duplicada herdada da fonte |
 | Avisos de qualidade | 20, todos com justificativa registrada |
 | Testes | 82, nenhuma falha |
-| Pacotes no `renv.lock` | 137 |
+| Pacotes no `renv.lock` | 147 |
 
 A soma das dezesseis tabelas de dimensão em Parquet dá 127 MB, contra 431 MB da
 base larga em CSV. Nenhum arquivo isolado passa do limiar de 20 MB, e o hook de
 `pre-commit` confirmou isso a cada commit.
 
-A base larga reconstruída tem 183.810 linhas por 440 colunas, com 50,7% de
+A base larga reconstruída tem 200.520 linhas por 424 colunas, com 50,7% de
 células vazias — número que confirma a medição que sustentou a decisão de
 publicar por dimensão.
 
