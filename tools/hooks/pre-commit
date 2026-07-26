@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# Hook de proteção do MAPEmunicipios-ETL.
+#
+# Instalar com:  bash tools/hooks/instalar.sh
+#
+# Bloqueia duas coisas que já quase aconteceram neste repositório:
+#   1. commitar a árvore legada mape_municipios/ (~18 GB)
+#   2. commitar qualquer arquivo acima do limiar de tamanho
+#
+# Para contornar deliberadamente:  git commit --no-verify
+
+set -euo pipefail
+
+LIMIAR_MB=20
+LIMIAR_BYTES=$((LIMIAR_MB * 1024 * 1024))
+erros=0
+
+# Arquivos adicionados ou modificados neste commit
+arquivos=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$arquivos" ]; then
+  exit 0
+fi
+
+while IFS= read -r arquivo; do
+  [ -z "$arquivo" ] && continue
+
+  # 1. Árvore legada
+  case "$arquivo" in
+    mape_municipios/*)
+      echo "ERRO: $arquivo pertence à árvore legada."
+      echo "      mape_municipios/ tem ~18 GB e nunca deve ser versionada."
+      erros=$((erros + 1))
+      continue
+      ;;
+  esac
+
+  # 2. Tamanho
+  [ -f "$arquivo" ] || continue
+  bytes=$(wc -c < "$arquivo" | tr -d ' ')
+  if [ "$bytes" -gt "$LIMIAR_BYTES" ]; then
+    mb=$((bytes / 1024 / 1024))
+    echo "ERRO: $arquivo tem ${mb} MB, acima do limiar de ${LIMIAR_MB} MB."
+    echo "      Ver plano/03-versionamento-qa.md, seção 10.2."
+    echo "      Arquivos grandes vão para release do GitHub, não para o git."
+    erros=$((erros + 1))
+  fi
+done <<< "$arquivos"
+
+if [ "$erros" -gt 0 ]; then
+  echo ""
+  echo "Commit bloqueado: $erros problema(s). Use --no-verify para forçar."
+  exit 1
+fi
+
+exit 0
