@@ -78,14 +78,20 @@ mape_como_codigo <- function(x, digitos = 7L, avisar = TRUE) {
   x <- gsub("[.,[:space:]]", "", x)
   x[x %in% c("", "NA", "NULL")] <- NA_character_
 
-  # Zeros à esquerda para códigos que perderam o primeiro dígito ao passar por
-  # numérico em algum ponto da cadeia.
+  # Achado 57: aqui havia um ramo que preenchia com zero à esquerda qualquer
+  # entrada curta, ANTES da checagem de validade. "1" virava "0000001" — um
+  # código de 7 dígitos bem-formado, que passa em todas as checagens e não
+  # existe —, enquanto a documentação prometia NA.
   #
-  # O preenchimento é feito à mão de propósito: formatC(..., flag = "0") sobre
-  # um vetor de TEXTO preenche com espaço, não com zero, e o código sairia daqui
-  # com um espaço à esquerda para ser rejeitado como inválido logo abaixo.
-  curto <- !is.na(x) & nchar(x) < digitos
-  x[curto] <- paste0(strrep("0", digitos - nchar(x[curto])), x[curto])
+  # O ramo foi REMOVIDO, e não só reordenado, porque não existe código de
+  # município brasileiro que ele possa reparar: o primeiro dígito do código do
+  # IBGE é a região (1 a 5), então nenhum município tem zero à esquerda. A
+  # justificativa que circulava — "perde o zero à esquerda de todo município do
+  # Acre, de Alagoas e do Amazonas" — é falsa: AC começa em 12, AL em 27 e AM
+  # em 13.
+  #
+  # Um código de 6 dígitos que precisa virar de 7 não se conserta com zero: ele
+  # precisa do dígito verificador, que só o diretório tem. Use mape_id7_de_id6().
 
   invalido <- !is.na(x) & (nchar(x) != digitos | grepl("\\D", x))
   if (any(invalido)) {
@@ -161,6 +167,26 @@ mape_id7_de_id6 <- function(x, col = "id_municipio_6", diretorio = NULL,
   x[[col]] <- mape_como_codigo(x[[col]], digitos = 6L, avisar = FALSE)
   de_para <- unique(diretorio[, c("id_municipio", "id_municipio_6")])
   de_para$id_municipio_6 <- mape_como_codigo(de_para$id_municipio_6, 6L, FALSE)
+
+  # Achado 100: match() devolve o PRIMEIRO casamento, em silêncio. Se o
+  # diretório tiver dois id_municipio para o mesmo id_municipio_6, metade das
+  # linhas recebe o município errado e nada avisa. A checagem custa uma linha e
+  # a função já tem o de_para na mão.
+  dup <- de_para$id_municipio_6[duplicated(de_para$id_municipio_6) &
+                                  !is.na(de_para$id_municipio_6)]
+  if (length(dup)) {
+    stop("O diretório tem código de 6 dígitos ambíguo: ", length(unique(dup)),
+         " código(s) apontam para mais de um município. Exemplos: ",
+         paste(utils::head(unique(dup), 5), collapse = ", "), ".\n",
+         "match() resolveria pelo primeiro casamento e atribuiria o município ",
+         "errado sem avisar.", call. = FALSE)
+  }
+
+  # E sobrescrever uma coluna id_municipio que já existe é perda silenciosa.
+  if ("id_municipio" %in% names(x)) {
+    warning("A tabela já tem coluna `id_municipio`, e ela será SOBRESCRITA pelo ",
+            "casamento com o diretório.", call. = FALSE)
+  }
 
   antes <- nrow(x)
   x$id_municipio <- de_para$id_municipio[match(x[[col]], de_para$id_municipio_6)]

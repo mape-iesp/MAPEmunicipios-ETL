@@ -356,13 +356,19 @@ do SIM varre o país inteiro. Alguns executam a consulta e **descartam o
 resultado**. Ligue um alerta de orçamento no projeto do GCP antes da primeira
 reextração.
 
-**`id_municipio` é texto, sempre.** Lê-lo como número perde o zero à esquerda de
-todo município do Acre, de Alagoas e do Amazonas. E código não é quantidade: nada
-deveria somar ou tirar média de um identificador municipal.
+**`id_municipio` é texto, sempre.** Não porque tenha zero à esquerda — nenhum
+município brasileiro tem, já que o primeiro dígito do código do IBGE é a região,
+de 1 a 5 —, mas porque **código não é quantidade**: nada deveria somar, tirar
+média ou interpolar um identificador municipal, e o tipo é o que impede. Lê-lo
+como número também o converte para `double`, e aí um `join` contra o Parquet ou
+contra o diretório passa a falhar por diferença de tipo.
 
-**`formatC(x, flag = "0")` sobre texto preenche com espaço, não com zero.** Isso
-transformava `"110015"` em `" 110015"` e fazia a validação rejeitar o código como
-inválido. `mape_como_codigo()` preenche à mão por causa disso.
+*(Errata de 26/07/2026, achado 57 da auditoria: este parágrafo afirmava que ler
+`id_municipio` como número "perde o zero à esquerda de todo município do Acre, de
+Alagoas e do Amazonas". É falso — os códigos do AC começam em 12, os de AL em 27
+e os do AM em 13. A afirmação sustentava um ramo de `mape_como_codigo()` que
+preenchia com zero qualquer entrada curta e fabricava códigos bem-formados
+inexistentes; o ramo foi removido.)*
 
 **`integer64` é uma armadilha silenciosa.** Em `populacao.RData`,
 `as.numeric(ano)` devolve `9.83e-321`. Em `instituicoes.RData`, `sort()` e

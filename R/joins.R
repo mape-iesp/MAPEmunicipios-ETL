@@ -87,6 +87,24 @@ mape_join <- function(x, y, by, tipo = c("left", "full", "inner", "anti"),
     chave_na_x = na_x, chave_na_y = na_y
   )
 
+  # Achado 77: a roxygen prometia que "many-to-many" emite aviso e exige
+  # justificativa, e nada era emitido. Ele desliga a verificação de cardinalidade
+  # do dplyr, que é a única coisa que impede a junção de multiplicar linhas.
+  if (identical(relationship, "many-to-many")) {
+    warning("[", rotulo, "] relationship = \"many-to-many\" desliga a ",
+            "verificação de cardinalidade do dplyr. ", n_x, " x ", n_y, " -> ",
+            nrow(res), " linha(s). Registre a justificativa.", call. = FALSE)
+  }
+
+  # A guarda de multiplicação valia só para `left`. Um `inner` ou um `full` com
+  # chave repetida em y multiplica exatamente igual.
+  if (tipo %in% c("inner", "full") && nrow(res) > max(n_x, n_y) &&
+      !identical(relationship, "many-to-many")) {
+    warning("[", rotulo, "] o ", tipo, "_join devolveu ", nrow(res),
+            " linha(s), mais que os ", max(n_x, n_y), " do maior lado: ",
+            "a chave se repete em algum dos dois.", call. = FALSE)
+  }
+
   if (!is.null(esperado_linhas) && nrow(res) != esperado_linhas) {
     stop("[", rotulo, "] esperava ", esperado_linhas, " linha(s) e obtive ",
          nrow(res), ". x tinha ", n_x, ", y tinha ", n_y, ".", call. = FALSE)

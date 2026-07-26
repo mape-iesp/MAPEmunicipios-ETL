@@ -103,3 +103,34 @@ test_that("expandir e compactar são inversas quando há ano de referência", {
   expect_equal(nrow(voltou), 2)
   expect_equal(sort(voltou$v), sort(observado$v))
 })
+
+# ---- Achado 78 --------------------------------------------------------------
+
+test_that("mape_compactar_painel('constante') não descarta valor de coluna irmã", {
+  # Achado 78: o colapso era por LINHA — ficava a primeira linha do município com
+  # algum valor — e por isso perdia em silêncio o valor de uma coluna cujo não-NA
+  # estivesse noutro ano. Aqui `a` só tem valor em 2001 e `b` só em 2002.
+  x <- data.frame(
+    id_municipio = rep("1100015", 3),
+    ano = 2000:2002,
+    a = c(NA, 10, NA),
+    b = c(NA, NA, 20),
+    stringsAsFactors = FALSE)
+
+  y <- mape_compactar_painel(x, metodo = "constante", cols = c("a", "b"))
+  expect_equal(nrow(y), 1)
+  expect_equal(y$a, 10)
+  expect_equal(y$b, 20)   # antes: NA, descartado em silêncio
+})
+
+test_that("mape_compactar_painel('constante') conserva as células preenchidas", {
+  x <- data.frame(
+    id_municipio = rep(c("1100015", "3304557"), each = 3),
+    ano = rep(2000:2002, 2),
+    a = c(NA, 1, NA, NA, NA, 3),
+    b = c(2, NA, NA, 4, NA, NA),
+    stringsAsFactors = FALSE)
+  y <- mape_compactar_painel(x, metodo = "constante", cols = c("a", "b"))
+  expect_equal(nrow(y), 2)
+  expect_equal(sum(!is.na(y[, c("a", "b")])), sum(!is.na(x[, c("a", "b")])))
+})

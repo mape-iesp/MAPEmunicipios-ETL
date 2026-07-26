@@ -1,9 +1,11 @@
-test_that("mape_como_codigo preserva zeros à esquerda", {
-  # O caso que motiva a função: um código que passou por numérico em algum
-  # ponto da cadeia e perdeu o zero inicial.
-  expect_equal(mape_como_codigo(110015, 7L, avisar = FALSE), "0110015")
+test_that("mape_como_codigo normaliza sem fabricar código", {
+  # Achado 57: este teste protegia o comportamento errado. Ele exigia que
+  # mape_como_codigo(110015, 7L) devolvesse "0110015" — um código que não
+  # existe, porque o primeiro dígito do código do IBGE é a região (1 a 5) e
+  # nenhum município brasileiro tem zero à esquerda.
   expect_equal(mape_como_codigo("1100015"), "1100015")
   expect_equal(mape_como_codigo(1100015), "1100015")
+  expect_true(is.na(mape_como_codigo(110015, 7L, avisar = FALSE)))
 })
 
 test_that("mape_como_codigo remove separador de milhar de planilha", {
@@ -90,4 +92,51 @@ test_that("mape_id7_de_id6 nunca multiplica linhas", {
 test_that("mape_para_geobr converte para inteiro", {
   x <- data.frame(id_municipio = "3550308", stringsAsFactors = FALSE)
   expect_type(mape_para_geobr(x)$id_municipio, "integer")
+})
+
+# ---- Achados 57 e 100 -------------------------------------------------------
+
+test_that("mape_como_codigo não fabrica código a partir de entrada curta", {
+  # Achado 57: o preenchimento com zero era feito ANTES da checagem de validade,
+  # então "1" virava "0000001" — um código de 7 dígitos bem-formado, que passa em
+  # todas as checagens e não existe. A documentação prometia NA.
+  expect_true(is.na(suppressWarnings(mape_como_codigo("1"))))
+  expect_true(is.na(suppressWarnings(mape_como_codigo("42"))))
+  expect_true(is.na(suppressWarnings(mape_como_codigo("110"))))
+  expect_warning(mape_como_codigo("1"), "não têm 7")
+
+  # O caso que o preenchimento existe para reparar continua funcionando: um
+  # código que perdeu UM zero à esquerda ao passar por numérico.
+  # Um código de 6 dígitos não vira de 7 com zero: precisa do dígito
+  # verificador, que só o diretório tem. Use mape_id7_de_id6().
+  expect_true(is.na(mape_como_codigo("110001", digitos = 7L, avisar = FALSE)))
+  expect_equal(suppressWarnings(mape_como_codigo(1100015)), "1100015")
+  expect_equal(mape_como_codigo("110001", digitos = 6L), "110001")
+})
+
+test_that("mape_id7_de_id6 falha em diretório com código de 6 dígitos ambíguo", {
+  # Achado 100: match() devolvia o primeiro casamento em silêncio, atribuindo o
+  # município errado a metade das linhas. O teste antigo usava um diretório em
+  # que a ambiguidade não podia ocorrer.
+  ambiguo <- data.frame(
+    id_municipio   = c("1100015", "1100023"),
+    id_municipio_6 = c("110001",  "110001"),
+    stringsAsFactors = FALSE)
+  x <- data.frame(id_municipio_6 = "110001", v = 1, stringsAsFactors = FALSE)
+  expect_error(mape_id7_de_id6(x, diretorio = ambiguo), "ambíguo")
+
+  # Diretório sem ambiguidade continua funcionando.
+  ok <- data.frame(id_municipio = c("1100015", "1100023"),
+                   id_municipio_6 = c("110001", "110002"),
+                   stringsAsFactors = FALSE)
+  r <- mape_id7_de_id6(x, diretorio = ok)
+  expect_equal(r$id_municipio, "1100015")
+})
+
+test_that("mape_id7_de_id6 avisa antes de sobrescrever id_municipio existente", {
+  ok <- data.frame(id_municipio = "1100015", id_municipio_6 = "110001",
+                   stringsAsFactors = FALSE)
+  x <- data.frame(id_municipio_6 = "110001", id_municipio = "9999999",
+                  stringsAsFactors = FALSE)
+  expect_warning(mape_id7_de_id6(x, diretorio = ok), "SOBRESCRITA")
 })

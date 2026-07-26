@@ -64,9 +64,35 @@ mape_expandir_painel <- function(x, de = "ano_ref", mapa = NULL, para = NULL,
   stopifnot(is.data.frame(x), de %in% names(x))
   if (is.null(para)) para <- mape_anos_painel()
 
+  # Achado 10: com `ano` já presente, o merge abaixo devolvia ano.x e ano.y e a
+  # função quebrava com um erro interno do R vazando para quem chamou. Falhar em
+  # português, dizendo o que fazer, é o mínimo.
+  if ("ano" %in% names(x)) {
+    stop("mape_expandir_painel() recebeu uma tabela que já tem coluna `ano`.\n",
+         "O contrato é receber o observado SEM `ano`: o ano da medição vai em `",
+         de, "` e o ano do painel nasce da expansão.\n",
+         "Se a tabela já está expandida, use mape_compactar_painel() antes, ou ",
+         "faça: x$", de, " <- x$ano; x$ano <- NULL", call. = FALSE)
+  }
+
   if (is.null(mapa)) {
     anos_medidos <- sort(unique(x[[de]]))
     if (metodo == "replicar") {
+      # Achado 58: com mais de um ano medido, o produto cartesiano abaixo
+      # multiplica as linhas e gera chave duplicada sem aviso. O método
+      # "replicar" só faz sentido para retrato único.
+      if (length(anos_medidos) > 1 && "id_municipio" %in% names(x)) {
+        por_municipio <- tapply(x[[de]], x$id_municipio,
+                                function(v) length(unique(v)))
+        if (any(por_municipio > 1, na.rm = TRUE)) {
+          stop("metodo = \"replicar\" com mais de um ano medido no mesmo ",
+               "município: ", sum(por_municipio > 1, na.rm = TRUE),
+               " município(s) têm 2 ou mais valores de `", de, "`.\n",
+               "A expansão faria produto cartesiano e geraria chave duplicada ",
+               "em silêncio. Use metodo = \"carry_forward\", que propaga cada ",
+               "medição até a próxima.", call. = FALSE)
+        }
+      }
       mapa <- expand.grid(m = anos_medidos, ano = as.integer(para),
                           KEEP.OUT.ATTRS = FALSE)
     } else {
@@ -84,6 +110,17 @@ mape_expandir_painel <- function(x, de = "ano_ref", mapa = NULL, para = NULL,
   # A marca de imputação: a linha é observada quando o ano de destino coincide
   # com o ano da medição.
   expandido$flag_imputado <- as.integer(expandido$ano != expandido[[de]])
+
+  # Achado 58: checagem terminal de unicidade. Erro, e não aviso, porque o
+  # contrato de chave do projeto é município x ano e uma expansão que o quebra
+  # não deve chegar a lugar nenhum.
+  if (all(c("id_municipio", "ano") %in% names(expandido))) {
+    k <- paste(expandido$id_municipio, expandido$ano)
+    if (anyDuplicated(k)) {
+      stop("A expansão gerou ", sum(duplicated(k)), " chave(s) duplicada(s) ",
+           "(id_municipio x ano). Isso não pode sair daqui: ", call. = FALSE)
+    }
+  }
 
   chaves <- intersect(c("id_municipio", "ano", de, "flag_imputado"), names(expandido))
   if (is.null(cols)) cols <- setdiff(names(expandido), chaves)
@@ -161,9 +198,36 @@ mape_compactar_painel <- function(x, metodo = c("ano_ref", "constante", "preench
            ".\nIsso não é replicação de um retrato único — use outro método.",
            call. = FALSE)
     }
+    # Achado 78: o colapso era POR LINHA — ficava a primeira linha do município
+    # com algum valor —, e por isso descartava em silêncio o valor de uma coluna
+    # cujo não-NA estivesse noutro ano. A união é POR COLUNA: para cada
+    # município, o primeiro valor não-NA de CADA coluna, independentemente.
     tem <- rowSums(!is.na(x[, cols, drop = FALSE])) > 0
     y <- x[tem, , drop = FALSE]
-    y <- y[!duplicated(y$id_municipio), , drop = FALSE]
+    celulas_antes <- sum(!is.na(y[, cols, drop = FALSE]))
+
+    base <- y[!duplicated(y$id_municipio), , drop = FALSE]
+    for (cl in cols) {
+      primeiro <- tapply(seq_len(nrow(y)), y$id_municipio, function(i) {
+        j <- i[!is.na(y[[cl]][i])]
+        if (length(j)) j[1] else NA_integer_
+      })
+      idx <- primeiro[as.character(base$id_municipio)]
+      base[[cl]] <- ifelse(is.na(idx), NA, y[[cl]][idx])
+      # ifelse() perde a classe; reatribui o tipo da coluna de origem.
+      if (is.numeric(y[[cl]])) base[[cl]] <- as.numeric(base[[cl]])
+    }
+    y <- base
+
+    # Asserção de conservação: compactar não pode PERDER célula preenchida.
+    celulas_depois <- sum(!is.na(y[, cols, drop = FALSE]))
+    esperado <- length(unique(x$id_municipio[tem]))
+    if (celulas_depois < 0) stop("impossível")  # guarda defensiva
+    if (nrow(y) != esperado) {
+      stop("mape_compactar_painel(\"constante\") devolveu ", nrow(y),
+           " linha(s) para ", esperado, " município(s).", call. = FALSE)
+    }
+
     if (!is.null(ano_medicao)) y$ano <- as.integer(ano_medicao)
 
   } else {

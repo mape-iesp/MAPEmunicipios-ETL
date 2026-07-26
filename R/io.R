@@ -172,9 +172,16 @@ mape_escrever_tabela <- function(x, tabela,
     if (fmt %in% c("csv", "csv.gz")) {
       # row.names = FALSE não é opcional: é a ausência dele que produz a coluna
       # sem nome no CSV publicado hoje.
-      con <- if (fmt == "csv.gz") gzfile(destino, "w") else file(destino, "w")
+      # Achado 99: `fileEncoding` é IGNORADO pelo R quando o destino é uma
+      # conexão já aberta — o argumento só vale quando write.csv() abre o
+      # arquivo ele mesmo. O csv.gz saía na codificação nativa da sessão, e
+      # numa sessão latin-1 os acentos dos nomes de município sairiam
+      # corrompidos. A codificação vai na abertura da conexão, que é onde o R
+      # de fato a lê.
+      con <- if (fmt == "csv.gz") gzfile(destino, "w", encoding = "UTF-8")
+             else file(destino, "w", encoding = "UTF-8")
       on.exit(try(close(con), silent = TRUE), add = TRUE)
-      utils::write.csv(x, con, row.names = FALSE, na = "", fileEncoding = "UTF-8")
+      utils::write.csv(x, con, row.names = FALSE, na = "")
       close(con)
       on.exit()
     } else {

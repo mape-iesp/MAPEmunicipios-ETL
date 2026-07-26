@@ -43,12 +43,38 @@ mape_ler <- function(tabela, painel = FALSE, territorio = FALSE,
     tabs <- mape_dicionario("tabelas")
     regra <- tabs$regra_preenchimento_temporal[tabs$slug_tabela == slug]
     regra <- if (length(regra)) regra[1] else "nenhuma"
-    if (!is.na(regra) && regra != "nenhuma" && "ano" %in% names(x)) {
-      x$ano_ref <- x$ano
-      metodo <- if (regra == "carry_forward") "carry_forward" else "replicar"
-      x <- mape_expandir_painel(x, de = "ano_ref", metodo = metodo)
+    if (!is.na(regra) && regra != "nenhuma") {
+      # Achado 10: mape_expandir_painel() quebra em qualquer tabela que JA tenha
+      # coluna `ano` (painel.R), porque o merge devolve ano.x/ano.y. A condição
+      # antiga exigia `"ano" %in% names(x)` para ENTRAR no ramo, ou seja, exigia
+      # exatamente o estado em que a função não roda. O caminho de volta ao
+      # painel nunca executou.
+      #
+      # O contrato de mape_expandir_painel() é receber x SEM `ano`: o ano da
+      # medição vai para `ano_ref`, e o ano do painel nasce da expansão.
+      if ("ano" %in% names(x)) {
+        x$ano_ref <- x$ano
+        x$ano <- NULL
+      }
+      if (!"ano_ref" %in% names(x)) {
+        message("[", slug, "] regra `", regra, "` declarada, mas a tabela não ",
+                "tem `ano` nem `ano_ref`: nada a expandir.")
+      } else {
+        # Achados 10 e 34: as regras declaradas eram reduzidas a duas —
+        # `carry_forward` ou `replicar` — e `valor_unico_replicado` caía sempre
+        # em `replicar`, que só serve para RETRATO ÚNICO. O Atlas do IVS tem
+        # duas medições por município (2000 e 2010), e por isso a expansão fazia
+        # produto cartesiano e duplicava a chave.
+        #
+        # O despacho agora olha o dado, não só o rótulo.
+        x <- mape_expandir_por_regra(x, slug, regra)
+      }
     } else {
-      message("[", slug, "] a tabela já é município x ano; nada a expandir.")
+      # E a mensagem passa a dizer o que de fato ocorreu, em vez de afirmar que
+      # a tabela já é município x ano — o que era falso para toda tabela com
+      # regra declarada.
+      message("[", slug, "] `regra_preenchimento_temporal` é `",
+              if (is.na(regra)) "NA" else regra, "`: nada a expandir.")
     }
   }
 
@@ -361,6 +387,47 @@ mape_cobertura <- function(tabelas = NULL, por_ano = TRUE) {
             "existir.", call. = FALSE)
   }
   res[order(res$tabela, res$ano), ]
+}
+
+#' Expande uma tabela ao painel segundo a regra declarada no dicionário
+#'
+#' Achados 10 e 34. `regra_preenchimento_temporal` tem hoje três valores em uso:
+#'
+#' - `carry_forward` — cada medição vale até a próxima;
+#' - `valor_unico_replicado` — um retrato só, repetido na janela;
+#' - `mapa_censitario_legado` — a janela censitária do legado (censo de 2000
+#'   sobre 1996-2005, de 2010 sobre 2006-2015), que existia apenas em prosa e
+#'   numa função que ninguém chamava (`mape_mapa_censitario_legado()`).
+#'
+#' Quando a tabela declara `valor_unico_replicado` mas tem mais de uma medição
+#' por município, o rótulo está errado e o dado é que manda: a expansão vira
+#' `carry_forward`, e a função diz que fez isso.
+#'
+#' @param x Tabela com `ano_ref` e sem `ano`.
+#' @param slug Identificador da tabela, usado nas mensagens.
+#' @param regra Valor de `regra_preenchimento_temporal`.
+#' @return A tabela expandida.
+mape_expandir_por_regra <- function(x, slug, regra) {
+  if (identical(regra, "mapa_censitario_legado")) {
+    mapa <- mape_mapa_censitario_legado(col = "ano_ref")
+    return(mape_expandir_painel(x, de = "ano_ref", mapa = mapa))
+  }
+
+  medicoes <- if ("id_municipio" %in% names(x)) {
+    max(tapply(x$ano_ref, x$id_municipio, function(v) length(unique(v))), na.rm = TRUE)
+  } else length(unique(x$ano_ref))
+
+  metodo <- if (identical(regra, "carry_forward")) {
+    "carry_forward"
+  } else if (medicoes > 1) {
+    message("[", slug, "] a regra declarada é `", regra, "`, mas há até ",
+            medicoes, " medições por município. Expandindo por `carry_forward`: ",
+            "`replicar` faria produto cartesiano e duplicaria a chave.")
+    "carry_forward"
+  } else {
+    "replicar"
+  }
+  mape_expandir_painel(x, de = "ano_ref", metodo = metodo)
 }
 
 # Catálogo de indicadores derivados -------------------------------------------
