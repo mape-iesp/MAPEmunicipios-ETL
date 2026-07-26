@@ -1,0 +1,87 @@
+# Parâmetros do MAPEmunicipios
+#
+# Este arquivo é a única fonte de verdade para as constantes do pipeline. Tudo
+# que estiver aqui NUNCA deve ser reescrito dentro de um script — foi
+# exatamente a prática oposta que produziu, no legado, oito cópias da base do
+# deflator e quatro projetos de faturamento diferentes.
+#
+# Leia com mape_param("chave").
+
+# ---------------------------------------------------------------------------
+# Google Cloud
+# ---------------------------------------------------------------------------
+# Projeto oficial do MAPEmunicipios. Quem só consome os dados publicados não
+# precisa disto; a credencial só é exigida para atualizar fontes do BigQuery.
+# A variável de ambiente MAPE_GCP_BILLING, se definida, tem precedência.
+# Deixado em branco de propósito: o repositório é público.
+# Defina MAPE_GCP_BILLING no .Renviron (que o .gitignore cobre).
+gcp_billing: ~
+
+# ---------------------------------------------------------------------------
+# Painel
+# ---------------------------------------------------------------------------
+# Faixa de anos do esqueleto município × ano. O legado espalhava 1991:2023 por
+# cinco scripts, com variações não documentadas (2007:2023, 2010:2020).
+anos_painel: [1991, 2023]
+
+# Anos das eleições municipais efetivamente cobertos. Parametrizado mesmo
+# reproduzindo o comportamento atual: estender a série depois passa a ser
+# editar esta linha, e não mexer no script (o legado tem seq(2000, 2020, by = 4)
+# escrito dentro do código).
+anos_eleicao: [2000, 2004, 2008, 2012, 2016, 2020]
+
+# ---------------------------------------------------------------------------
+# Deflação
+# ---------------------------------------------------------------------------
+# Mês-base do IPCA para as colunas derivadas *_brl<ano>. O valor canônico
+# armazenado é sempre o NOMINAL; esta base gera apenas a coluna derivada.
+deflator_base: "12/2023"
+deflator_sufixo: brl2023
+
+# ---------------------------------------------------------------------------
+# Valores sentinela
+# ---------------------------------------------------------------------------
+# Strings e números que significam ausência de dado e precisam virar NA. A
+# lista vem de casos reais encontrados no legado: o AdaptaBrasil usa
+# "NaoDisponivel" numa coluna e deixa a coluna irmã numérica, e a MUNIC usa "-"
+# para "não se aplica".
+sentinelas:
+  texto: ["NaoDisponivel", "Nao Disponivel", "Não Disponível", "Ignorado",
+          "Nao informado", "Não informado", "Sem informacao", "Sem informação",
+          "-", "--", "", "NA", "N/A", "#N/D"]
+  numerico: [-999, -9999, -99999]
+
+# ---------------------------------------------------------------------------
+# Contrato de tipos das chaves
+# ---------------------------------------------------------------------------
+chaves:
+  id_municipio:
+    tipo: character
+    digitos: 7
+  id_municipio_6:
+    tipo: character
+    digitos: 6
+  ano:
+    tipo: integer
+
+# ---------------------------------------------------------------------------
+# Limiares de qualidade
+# ---------------------------------------------------------------------------
+# Regra geral: "erro" impede a publicação, "aviso" exige justificativa
+# registrada no campo observacoes da tabela. Um aviso sem justificativa vira
+# erro na publicação — sem isso, avisos viram paisagem.
+qa:
+  # Proporção máxima de chaves órfãs (fora do diretório) tolerada antes de
+  # a validação passar de aviso para erro.
+  max_prop_chave_orfa: 0.01
+  # Tolerância relativa nas comparações numéricas do teste de paridade.
+  tolerancia_paridade: 1.0e-9
+  # Tamanho máximo, em MB, de um arquivo que pode ser versionado no git.
+  max_mb_versionavel: 20
+
+# ---------------------------------------------------------------------------
+# Formatos
+# ---------------------------------------------------------------------------
+formatos:
+  canonico: parquet
+  exportacao: [csv.gz]

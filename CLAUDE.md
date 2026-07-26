@@ -34,7 +34,7 @@ cd "mape_municipios/2 Junção Bases" && quarto render municipalityBR.qmd
 
 Ambiente: R 4.5.2, quarto disponível. Não existe `renv`/lockfile — pacotes vêm da biblioteca global do usuário. Os principais são `tidyverse`, `openxlsx`, `basedosdados`, `here`, `rio`; análises usam `sf`/`geobr`, `fixest`/`plm`, `deflateBR`.
 
-**`basedosdados` exige autenticação no Google Cloud.** O projeto oficial é **`mapemunicipios`**, com faturamento habilitado. No legado há quatro projetos diferentes escritos dentro do código (`dados-importacao`, `base-dos-dados-429117`, `municipality-carlos`, `dissertacao-de-mestrado-399114`); nenhum sobrevive à migração. Em código novo, use `MAPE_GCP_BILLING` no `.Renviron`, nunca uma chamada literal a `set_billing_id`.
+**`basedosdados` exige autenticação no Google Cloud.** O projeto oficial do MAPEmunicipios existe e tem faturamento habilitado, mas o identificador dele **não é versionado** (o repositório é público). Ele vive no `.Renviron`, que o `.gitignore` cobre; use `.Renviron.exemplo` como molde. No legado há quatro projetos diferentes escritos dentro do código (`dados-importacao`, `base-dos-dados-429117`, `municipality-carlos`, `dissertacao-de-mestrado-399114`); nenhum sobrevive à migração. Em código novo, use `MAPE_GCP_BILLING` no `.Renviron`, nunca uma chamada literal a `set_billing_id`.
 
 **Quem apenas consome os dados publicados não precisa de conta no Google Cloud.** A credencial só é necessária para atualizar fontes que vêm do BigQuery. Cuidado ao rodar scripts legados: vários consultam o BigQuery sem filtro e geram cobrança real — o do SICONFI baixa 18,5 milhões de linhas, e há scripts que executam a consulta e descartam o resultado.
 

@@ -174,7 +174,7 @@ Este é o caso mais comum: o IBGE publica o PIB de 2022, ou o SNIS publica 2023.
 
 ```bash
 # Uma vez só, na primeira vez que você for atualizar qualquer coisa:
-echo 'MAPE_GCP_BILLING=mapemunicipios' >> .Renviron
+echo 'MAPE_GCP_BILLING=<seu-projeto-gcp>' >> .Renviron
 
 # Se o ano for novo para a base inteira, amplie a janela do painel em
 # config/parametros.yml:   anos_painel: [1991, 2024]
@@ -383,11 +383,12 @@ mais para quem chega ao projeto. É pouco perto de um pipeline que não roda.
 O `.Renviron` já está no `.gitignore`, então parte do caminho está andada. Basta uma linha:
 
 ```
-MAPE_GCP_BILLING=mapemunicipios
+MAPE_GCP_BILLING=<seu-projeto-gcp>
 ```
 
-O projeto oficial do Google Cloud para o MAPEmunicipios é **`mapemunicipios`**, e o faturamento
-nele já está habilitado. Ele substitui os quatro projetos hoje espalhados pelo código (`dados-importacao`, `municipality-carlos`,
+O projeto oficial do Google Cloud para o MAPEmunicipios existe e já tem faturamento habilitado. O
+identificador dele **não é versionado**, porque o repositório é público: ele vive no `.Renviron`, e
+`.Renviron.exemplo` serve de molde. Ele substitui os quatro projetos hoje espalhados pelo código (`dados-importacao`, `municipality-carlos`,
 `dissertacao-de-mestrado-399114` e `base-dos-dados-429117`), e nenhum deles deve sobreviver à
 migração. O valor entra também como padrão em `config/parametros.yml`, para que quem clonar o
 repositório e tiver acesso ao projeto não precise configurar nada.

@@ -50,7 +50,7 @@ genuíno do procedimento de atualização descrito na seção 8.1. É um teste m
 que eu pudesse desenhar, porque exercita o caminho completo com uma pessoa real tentando usá-lo.
 
 O custo de BigQuery durante a migração fica **próximo de zero**, o que também reduz a urgência de
-definir teto de orçamento no projeto `mapemunicipios`.
+definir teto de orçamento no projeto oficial.
 
 E as faixas de anos ficam **parametrizadas desde já**, mesmo quando o valor parametrizado reproduz o
 comportamento atual. O caso concreto é a dimensão de Eleições, onde `seq(2000, 2020, by = 4)` sai do
@@ -365,8 +365,9 @@ necessidade de depósito citável com DOI e simplificou a interface de consumo. 
 recomendação de adotar `renv` junto. E o **artigo ser editável** permitiu que as contagens passem a
 ser calculadas e que o texto publicado seja corrigido, em vez de tratado como imutável.
 
-O projeto oficial do Google Cloud é **`mapemunicipios`**, o que fecha a questão dos quatro projetos
-espalhados pelo código. Nenhum dos antigos sobrevive à migração.
+O projeto oficial do Google Cloud está definido, o que fecha a questão dos quatro projetos espalhados
+pelo código. Nenhum dos antigos sobrevive à migração. O identificador não aparece em nenhum arquivo
+versionado, porque o repositório é público.
 
 Uma segunda rodada de respostas fechou mais quatro pontos. A migração parte dos **artefatos
 existentes**, sem reextrair — princípio detalhado na seção 12.2, e que decorre de a atualização dos
@@ -381,7 +382,7 @@ teste e foi descartada, mas a fonte continua no escopo, porque alimenta 8 das 15
 **dimensão 16**, as duas fontes tiveram a procedência reconstruída: o arquivo do IBGE vem de uma
 publicação identificável, e o `data.csv` do artigo de Kustov e Pardelli, com DOI, ainda que sem
 pacote de replicação público — o arquivo local é mantido com a citação registrada. O **faturamento
-do projeto `mapemunicipios`** está habilitado, e **"Habitação e Zoneamento" passa a se chamar
+do projeto oficial** está habilitado, e **"Habitação e Zoneamento" passa a se chamar
 apenas "Habitação"**. As licenças pendentes ficam sob minha responsabilidade na Fase 3.
 
 ## Ainda em aberto
@@ -406,7 +407,7 @@ nascem os 54 registros duplicados que hoje corrompem o ano de fundação de 54 m
 Tocantins. Reescrever esse passo em código exige entender o que ele fez, e isso pode acabar sendo
 mais barato refazendo a derivação a partir do `original.xls` do que tentando reproduzir a edição.
 
-**Vale configurar um alerta de orçamento no projeto `mapemunicipios`** antes da segunda etapa do
+**Vale configurar um alerta de orçamento no projeto do GCP** antes da segunda etapa do
 trabalho, aquela em que os dados serão de fato atualizados. Durante a migração o custo é próximo de
 zero, porque não haverá reextração, mas a consulta do SICONFI baixa 18,5 milhões de linhas e a do
 SIM faz varredura nacional sem filtro — vale ter o alerta ligado antes de rodá-las pela primeira vez.

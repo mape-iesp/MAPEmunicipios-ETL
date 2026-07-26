@@ -1,0 +1,13 @@
+# Molde do .Renviron. Copie para .Renviron na raiz do repositório e preencha.
+#
+#   cp .Renviron.exemplo .Renviron
+#
+# O .Renviron real é coberto pelo .gitignore e nunca deve ser commitado. Este
+# repositório é público, então nenhum identificador de infraestrutura entra em
+# arquivo versionado.
+#
+# Só quem vai ATUALIZAR fontes que vêm do BigQuery precisa disto. Quem apenas
+# consome as tabelas publicadas não precisa de conta no Google Cloud nenhuma.
+
+# Projeto de faturamento do Google Cloud usado pelo pacote basedosdados.
+MAPE_GCP_BILLING=<seu-projeto-gcp>
