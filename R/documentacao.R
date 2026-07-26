@@ -164,11 +164,20 @@ mape_gerar_documentacao <- function(tabela, destino = NULL, recalcular = TRUE) {
 #'
 #' @param tabelas Slugs. NULL usa todas as publicadas.
 #' @return Invisivelmente, o vetor de caminhos escritos.
-mape_gerar_documentacao_completa <- function(tabelas = NULL) {
+mape_gerar_documentacao_completa <- function(tabelas = NULL,
+                                             gravar_dicionario = FALSE) {
   pub <- mape_tabelas_publicadas()
   if (is.null(tabelas)) tabelas <- pub$slug
 
-  mape_recalcular_campos(tabelas)
+  # Achado 69: aqui havia `mape_recalcular_campos(tabelas)`, que GRAVA
+  # dicionario/variaveis.csv — declarado como dependência do próprio alvo
+  # `documentacao` (`arquivo_dicionario`). O alvo reescrevia a sua entrada, e por
+  # isso o grafo ficava desatualizado logo depois de rodar: ele nunca convergia.
+  #
+  # O recálculo continua acontecendo, porque a documentação tem de descrever o
+  # dado de hoje — mas em memória. Para gravar o dicionário, use o comando
+  # próprio: Rscript tools/recalcular_dicionario.R
+  mape_recalcular_campos(tabelas, gravar = gravar_dicionario)
   escritos <- vapply(tabelas, function(t) {
     mape_gerar_documentacao(t, recalcular = FALSE)
   }, character(1))

@@ -29,6 +29,15 @@ for (f in list.files("R", pattern = "[.]R$", full.names = TRUE)) {
 #   colunas  — como localizar as colunas do bloco. Uma expressão regular sobre
 #              os nomes canônicos, para que acrescentar uma coluna nova à fonte
 #              não exija editar uma lista.
+#   n_colunas_esperado — quantas colunas de conteúdo a regex TEM de capturar.
+#              Achado 105: as regexes eram frágeis de dois jeitos opostos. A do
+#              AdaptaBrasil tinha três alternativas que já não casam com nada
+#              (`^capacidade_investimento_adaptacao`, `^indice_`,
+#              `^cidades_resilientes` descrevem nomes que a harmonização
+#              eliminou), e a do Atlas do IVS era `"."`, que casa TUDO. As duas
+#              falhavam em silêncio: a primeira capturando menos do que devia se
+#              o prefixo mudasse, a segunda capturando a dimensão inteira. Este
+#              campo transforma os dois modos de falha em erro na hora.
 #   metodo   — como desfazer a expansão. Ver mape_compactar_painel().
 #
 CONFIG <- list(
@@ -36,7 +45,11 @@ CONFIG <- list(
   list(
     slug = "03_meio_ambiente/adaptabrasil",
     dimensao = "03_meio_ambiente",
-    colunas = "^adapta_|^capacidade_investimento_adaptacao|^indice_|^cidades_resilientes",
+    # Os quatro prefixos antigos foram substituídos por um só: a harmonização
+    # renomeou todas as colunas do bloco para `adapta_*`, e as outras três
+    # alternativas não casavam mais nada.
+    colunas = "^adapta_",
+    n_colunas_esperado = 17L,
     metodo = "constante",
     ano_medicao = 2015L,
     nome_publicado = "AdaptaBrasil — risco climático, vulnerabilidade e capacidade adaptativa",
@@ -66,7 +79,10 @@ CONFIG <- list(
   list(
     slug = "05_sociedade/atlas_ivs",
     dimensao = "05_sociedade",
-    colunas = ".",
+    # Era `"."`, que casa qualquer nome — inclusive as chaves e qualquer coluna
+    # que a dimensão viesse a ganhar. A alternância explícita descreve o bloco.
+    colunas = "^(ivs_|idhm_|vulnerabilidade_socioeconomica|prosperidade_social)",
+    n_colunas_esperado = 7L,
     metodo = "ano_ref",
     ano_ref = "ano_ref_ivs",
     nome_publicado = "Atlas da Vulnerabilidade Social — IVS e IDHM",
@@ -239,6 +255,19 @@ registrar_e_publicar <- function(cfg) {
   chaves <- intersect(c("id_municipio", "ano"), names(dim_tab))
   candidatas <- setdiff(names(dim_tab), chaves)
   cols <- grep(cfg$colunas, candidatas, value = TRUE)
+
+  # Achado 105: a guarda de SUB-captura existia (`!length(cols)`) e a de
+  # SOBRE-captura não. A regex `"."` do Atlas do IVS casava a dimensão inteira e
+  # o fatiamento seguia em frente. Uma contagem esperada pega os dois lados.
+  if (!is.null(cfg$n_colunas_esperado) && length(cols) != cfg$n_colunas_esperado) {
+    stop("O padrão '", cfg$colunas, "' capturou ", length(cols),
+         " coluna(s) de '", cfg$dimensao, "' e o esperado é ",
+         cfg$n_colunas_esperado, ".\n",
+         "capturadas: ", paste(cols, collapse = ", "), "\n",
+         "Se o bloco mudou de propósito, atualize n_colunas_esperado no CONFIG ",
+         "no mesmo commit — é para isso que ele existe.", call. = FALSE)
+  }
+
   if (!length(cols)) {
     stop("Nenhuma coluna de '", cfg$dimensao, "' casa com o padrão '",
          cfg$colunas, "'.", call. = FALSE)
