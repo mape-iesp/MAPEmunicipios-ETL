@@ -1,5 +1,12 @@
 # 7. O contrato de documentação
 
+> **Redação de 26/07/2026.** Os identificadores de projeto do Google Cloud que
+> este documento citava foram substituídos por `<projeto-gcp-legado-N>`. O
+> diagnóstico é o mesmo — o legado usava quatro contas de faturamento
+> diferentes, três delas aparentemente pessoais, e por isso ninguém consegue
+> dizer quanto a base custou. Os nomes não acrescentam nada a esse argumento e
+> este repositório é público. Ver `auditoria/RELATORIO-FINAL.md`, § 7.
+
 ## 7.1 Invertendo o fluxo
 
 Hoje o dicionário é produzido depois da base e se alinha a ela por posição: a linha 27 descreve a
@@ -388,8 +395,8 @@ MAPE_GCP_BILLING=<seu-projeto-gcp>
 
 O projeto oficial do Google Cloud para o MAPEmunicipios existe e já tem faturamento habilitado. O
 identificador dele **não é versionado**, porque o repositório é público: ele vive no `.Renviron`, e
-`.Renviron.exemplo` serve de molde. Ele substitui os quatro projetos hoje espalhados pelo código (`dados-importacao`, `municipality-carlos`,
-`dissertacao-de-mestrado-399114` e `base-dos-dados-429117`), e nenhum deles deve sobreviver à
+`.Renviron.exemplo` serve de molde. Ele substitui os quatro projetos hoje espalhados pelo código (`<projeto-gcp-legado-4>`, `<projeto-gcp-legado-3>`,
+`<projeto-gcp-legado-1>` e `<projeto-gcp-legado-2>`), e nenhum deles deve sobreviver à
 migração. O valor entra também como padrão em `config/parametros.yml`, para que quem clonar o
 repositório e tiver acesso ao projeto não precise configurar nada.
 

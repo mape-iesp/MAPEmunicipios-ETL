@@ -1,5 +1,12 @@
 # Tarefa: elaborar um PLANO DETALHADO de reestruturação do ETL do MAPEmunicipios
 
+> **Redação de 26/07/2026.** Os identificadores de projeto do Google Cloud que
+> este documento citava foram substituídos por `<projeto-gcp-legado-N>`. O
+> diagnóstico é o mesmo — o legado usava quatro contas de faturamento
+> diferentes, três delas aparentemente pessoais, e por isso ninguém consegue
+> dizer quanto a base custou. Os nomes não acrescentam nada a esse argumento e
+> este repositório é público. Ver `auditoria/RELATORIO-FINAL.md`, § 7.
+
 **Você NÃO vai implementar nada nesta sessão.** Sua entrega é um documento de plano, bom o bastante para ser executado incrementalmente depois, por mim ou por outra pessoa, ao longo de várias sessões.
 
 ---
@@ -110,7 +117,7 @@ Legenda de `reprodutível`: **sim** = roda de novo sem intervenção; **parcial*
 
 | Dim | Fonte | Origem | Método | Anos | Reprod. | Obstáculo principal |
 |---|---|---|---|---|---|---|
-| 1 | `diretorios` | BD `br_bd_diretorios_brasil.municipio` | BigQuery | atemporal | parcial | `set_billing_id("dados-importacao")` (`diretorios.R:9`); nenhuma data de extração registrada |
+| 1 | `diretorios` | BD `br_bd_diretorios_brasil.municipio` | BigQuery | atemporal | parcial | `set_billing_id("<projeto-gcp-legado-4>")` (`diretorios.R:9`); nenhuma data de extração registrada |
 | 1 | `geolocalizacao` | IBGE via pacote `geobr` | pacote R | malhas 2010, 2018 | parcial | anos hardcoded; o `.RData` de 30,7 MB na pasta **não é gerado pelo script** (o `save()` só existe em `.Rhistory:504`) |
 | 2 | `populacao` | BD `br_ibge_populacao.municipio` | BigQuery | 1991-2022 | parcial | billing hardcoded; `ano`/`populacao` salvos como **integer64** — `as.numeric(ano)` devolve `9.83e-321` |
 | 2 | `populacao_2023.xlsx` | IBGE, estimativa 2023 | **arquivo local sem origem** | 2023 | **não** | Nenhum código. O merge com `diretorios.xlsx` foi feito **à mão no Excel** (33 colunas) |
@@ -120,7 +127,7 @@ Legenda de `reprodutível`: **sim** = roda de novo sem intervenção; **parcial*
 | 3 | Saneamento (SNIS) | BD `br_mdr_snis.municipio_agua_esgoto` | BigQuery | 1995-2022 | parcial | query com **133 colunas escritas à mão**, das quais 109 são descartadas |
 | 3 | Desmatamento (PRODES) | BD `br_inpe_prodes.municipio_bioma` + áreas IBGE | BigQuery + xlsx manual | 2000-2022 | parcial | `area_total.xlsx` é download manual (URL só num comentário, `desmatamento.R:34`); coluna `AR_MUN_2022` embute o ano |
 | 4 | PIB municipal | BD `br_ibge_pib.municipio` + `.municipio_antigo` + `br_ibge_populacao.municipio` | BigQuery (3 queries) | 1999-2021 | parcial | 3ª query é **cópia literal** da query de população da dim. 2 — mesma tabela faturada duas vezes |
-| 5 | IVS / Atlas Vulnerabilidade | IPEA via BD `br_ipea_avs.municipio` | BigQuery | 2000, 2010 | parcial | `set_billing_id("municipality-carlos")`; `setwd("G:/Drives compartilhados/...")`; grava `ivs_original.xlsx` (138 MB) e relê — hoje o arquivo dá **erro de unzip** |
+| 5 | IVS / Atlas Vulnerabilidade | IPEA via BD `br_ipea_avs.municipio` | BigQuery | 2000, 2010 | parcial | `set_billing_id("<projeto-gcp-legado-3>")`; `setwd("G:/Drives compartilhados/...")`; grava `ivs_original.xlsx` (138 MB) e relê — hoje o arquivo dá **erro de unzip** |
 | 5 | Templos/Igrejas (CNPJ RF) | CEM-USP NT20 + GitHub terceiro | **arquivo local sem origem** | 1922-2019 | **não** | `df_igrejas_nomes.csv` (48 MB) já vem pré-processado; **nenhum dos 3 scripts salva saída municipal** — nada disso entra em `sociedade.RData` |
 | 5 | `estimativas_pop.csv`, `evangelicos_censo2010.csv` | IBGE (inferido) | **arquivo local sem origem** | vários | **não** | CSVs soltos, sem URL, sem data; só alimentam saída por UF que ninguém lê |
 | 6 | SICONFI | BD `br_me_siconfi.municipio_receitas_orcamentarias` | BigQuery | 1989-2023 | parcial | baixa 18,5 M linhas (246 MB); receita própria classificada por **regex em texto livre** (`str_detect(conta, "IPTU|ITBI|ISS")`) |
@@ -132,7 +139,7 @@ Legenda de `reprodutível`: **sim** = roda de novo sem intervenção; **parcial*
 
 Resolver **estruturalmente**, não caso a caso. Números conferidos por grep sobre `*.R`/`*.qmd` do legado (excluindo `.Rhistory`):
 
-1. **Billing GCP hardcoded em 28 chamadas de `set_billing_id()`, com QUATRO projetos distintos:** `dados-importacao` (24), `base-dos-dados-429117` (`9 Energia e Internet/Internet Móvel/telefonia.R:13`, `.../Banda Larga/bandalarga.R:18`), `municipality-carlos` (`5 Sociedade/IVS/script_sociedade_ivs.R:31`), `dissertacao-de-mestrado-399114` (`12 Transportes/Script_MunicipalityBR.R:29`). Três scripts trazem o comentário `## Substituir para seu projeto` — o problema é conhecido e nunca foi resolvido. Nenhum `.Renviron` nem `config.yml` no legado. **Na árvore nova, `00_diretorios/R/script.R` já usa `billing_id = get_billing_id()` e o `.gitignore` já cobre `.Renviron`** — parte da solução já existe; avalie se basta (resolve configuração, mas não registra QUAL projeto/conta gerou cada extração).
+1. **Billing GCP hardcoded em 28 chamadas de `set_billing_id()`, com QUATRO projetos distintos:** `<projeto-gcp-legado-4>` (24), `<projeto-gcp-legado-2>` (`9 Energia e Internet/Internet Móvel/telefonia.R:13`, `.../Banda Larga/bandalarga.R:18`), `<projeto-gcp-legado-3>` (`5 Sociedade/IVS/script_sociedade_ivs.R:31`), `<projeto-gcp-legado-1>` (`12 Transportes/Script_MunicipalityBR.R:29`). Três scripts trazem o comentário `## Substituir para seu projeto` — o problema é conhecido e nunca foi resolvido. Nenhum `.Renviron` nem `config.yml` no legado. **Na árvore nova, `00_diretorios/R/script.R` já usa `billing_id = get_billing_id()` e o `.gitignore` já cobre `.Renviron`** — parte da solução já existe; avalie se basta (resolve configuração, mas não registra QUAL projeto/conta gerou cada extração).
 2. **Base de deflação IPCA `"12/2023"` hardcoded em 8 call sites de `ipca()`:** `desastres_ambientais.R:44`, `saneamento.R:191`, `pib_municipal.R:78`, `siconfi.R:122`, `Emendas/script.R:74`, `15 Corrupção/cgu/cgu.R:33`, `12 Transportes/Script_MunicipalityBR.R:58`, `13 Habitação e Zoneamento/habitacao.R:61` (mais 7 comentários com a mesma constante). Mudar em um só produz uma tabela com duas bases de deflação.
 3. **Nomes de arquivo com data/versão embutida e hardcoded** (`Emendas_CGU_8_10_2024.xlsx`, `BD_Atlas_1991_2023_v1.0_2024.04.29.xlsx`).
 4. **Nenhuma data de extração é registrada em lugar nenhum.** As tabelas da Base dos Dados mudam e o resultado muda em silêncio.

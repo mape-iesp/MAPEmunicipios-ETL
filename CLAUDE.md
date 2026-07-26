@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ETL em R que constrói o **MAPEmunicipios**: um painel dos 5.570 municípios brasileiros, de 1989 a 2024, em 17 eixos temáticos, 26 tabelas publicadas e 432 variáveis documentadas.
 
-A migração do legado terminou e as 26 tabelas estão publicadas em `dados/`. Mas **em 26/07/2026 uma auditoria independente levantou 105 grupos de defeito — sete deles críticos — e nenhum foi corrigido ainda.** Seis dos sete críticos são dado publicado errado; o outro é um comando que a versão anterior deste arquivo ensinava.
+A migração do legado terminou e as 26 tabelas estão publicadas em `dados/`. Em 26/07/2026 uma auditoria independente levantou **105 grupos de defeito**, sete deles críticos, e **os 105 foram trabalhados na mesma data**: 78 corrigidos, 19 mitigados (marcados e detectáveis, mas a correção de fundo depende do responsável ou de insumo que não está aqui) e 8 confirmados como não reproduzidos.
 
-> **`auditoria/CONSOLIDADO.md` é o documento mais atual do repositório.** Treze auditores de escopo exclusivo (`A1.md`–`A13.md`) produziram 122 achados brutos, agrupados em 105; um verificador adversarial reexecutou todos, instruído a derrubá-los, e só 8 grupos não se reproduziram (estão marcados `NÃO REPRODUZIDO`). Cada grupo traz reprodução em R e a saída observada.
+**O ponto de partida é `auditoria/RELATORIO-FINAL.md`**, que diz o que mudou, o que ficou aberto e o que depende de decisão. `auditoria/CORRECOES.csv` é o ledger, com uma linha por grupo. `Rscript tools/verificar_fechamento.R` confere mecanicamente se a rodada está fechada e sai com código diferente de zero se não estiver.
+
+> **`auditoria/CONSOLIDADO.md` continua sendo a evidência.** Treze auditores de escopo exclusivo (`A1.md`–`A13.md`) produziram 122 achados brutos, agrupados em 105; um verificador adversarial reexecutou todos, instruído a derrubá-los, e 8 grupos não se reproduziram. Cada grupo traz reprodução em R e a saída observada — e é por isso que ele é imutável: os números dele foram medidos **antes** das correções, e várias das reproduções agora não reproduzem mais, o que é o resultado desejado.
 >
-> Ele foi escrito **contra** o `README.md`, o `docs/` e este arquivo. Quando divergirem, a auditoria ganha — ela tem reprodução; os outros descrevem o estado pretendido. `auditoria/prompt-auditoria.md` guarda os briefings, se for rodar outra rodada.
->
-> **Se a tarefa for corrigir os achados, leia `auditoria/prompt-correcao.md` antes de qualquer coisa.** É a missão completa da rodada de correção — as decisões já tomadas, os treze critérios de aceitação da § 12, e o ponto de retomada se o contexto for compactado (ele mais `auditoria/CORRECOES.csv`). Ainda não está versionado.
+> **Não repita número do `CONSOLIDADO.md` como se fosse o estado atual.** Para o estado atual, meça — ou leia `auditoria/RELATORIO-FINAL.md`, que traz o antes e o depois lado a lado.
 
 Os demais documentos continuam úteis para entender **por que** as coisas são assim:
 
@@ -22,7 +22,7 @@ Os demais documentos continuam úteis para entender **por que** as coisas são a
 - [`plano/`](plano/) — o raciocínio por trás de cada decisão de desenho
 - [`pendencias/`](pendencias/) — as seis fontes que não migraram, com diagnóstico
 
-**A árvore legada foi removida do repositório em 26/07/2026.** Ela vive no Drive compartilhado do MAPE, em `mape_municipios/`. Só que a remoção não veio acompanhada da reescrita dos produtores: **16 tabelas não têm caminho de reconstrução nesta árvore** — 14 dimensões saíam de `migrar_dimensoes.R`, que lê do legado; `15_dados_historicos` não tem produtor nenhum; e `tratar_municipios()` ainda aponta para `01_dimensoes_individuais/00_diretorios/processed/diretorios.xlsx`, que não existe. Das 26 publicadas, **só 3 são reproduzidas como publicadas** por um alvo do grafo.
+**A árvore legada foi removida do repositório em 26/07/2026.** Ela vive no Drive compartilhado do MAPE, em `mape_municipios/`. A remoção não veio acompanhada da reescrita dos produtores, e **15 tabelas continuam sem caminho de reconstrução nesta árvore** — 14 dimensões saíam de `migrar_dimensoes.R`, que lê do legado, e `15_dados_historicos` não tem produtor nenhum. `tratar_municipios()` foi consertado (achado 9): o arquivo bruto voltou do histórico do git para `raw/`, com sha256 no manifesto, e a função reproduz o Parquet publicado exatamente.
 
 **O pacote R vive noutro repositório**: `mape-iesp/MAPEmunicipios`. Este aqui é interno, para quem atualiza dado; aquele é público, para quem consome. O único acoplamento é o release do GitHub.
 
@@ -65,7 +65,7 @@ Rscript -e 'targets::tar_manifest()'                  # os 14 alvos que existem
 Rscript -e 'targets::tar_outdated()'                  # devolve os 14: o grafo nunca fechou
 Rscript -e 'targets::tar_visnetwork()'                # desenha o grafo
 
-# Testes — 9 arquivos, 405 expectativas, segundos. Hoje: FAIL 0 | PASS 405
+# Testes — 9 arquivos, 413 expectativas, segundos. Hoje: FAIL 0 | PASS 413
 Rscript -e 'testthat::test_dir("tests/testthat")'
 Rscript -e 'testthat::test_file("tests/testthat/test-chaves.R")'      # um arquivo só
 Rscript -e 'testthat::test_dir("tests/testthat", filter = "painel")'  # por padrão no nome
@@ -85,42 +85,39 @@ Ambiente: R 4.5.2, fixado por `renv` (**147** pacotes no lockfile — README e a
 
 Todo `Rscript` imprime `The project is out-of-sync — use renv::status()`. **É ruído esperado**: pacotes do `tidyverse` estão instalados e no lockfile, mas nenhum código os usa. Não gaste tempo com isso.
 
-Dois efeitos colaterais que sujam a árvore versionada, e convém saber antes: `mape_validar_tabela()` grava em `qa/` incondicionalmente, e a suíte reescreve o carimbo de data de `qa/00_diretorios__municipios.md`, que é versionado. A suíte passa e o diff é só a linha `Gerado em`; `git checkout -- qa/00_diretorios__municipios.md` desfaz.
+**A suíte não suja mais a árvore versionada** (achados 59 e 87): `mape_validar_tabela()` ganhou `gravar =`, as fixtures deixaram de usar o slug de uma tabela publicada, e `git status --porcelain` fica limpo depois de `test_dir()`.
 
-`tar_make()` sai com código 0 mesmo quando um alvo falha, e `error = "abridge"` não faz o que o comentário de `_targets.R` diz. Não use o código de saída como sinal.
+`tar_make()` continua saindo com código 0 mesmo quando um alvo falha — use `Rscript tools/rodar_grafo.R`, que consulta `tar_meta()` e sai com código 1. Uma ressalva registrada: o comentário de `_targets.R:29` glosa `error = "abridge"` como "ramos independentes seguem", que é a semântica de `"trim"`. Não corrigi porque a rodada de correção proíbe editar `_targets.R` à mão; fica como decisão do responsável (achado 41).
 
-## Antes de repetir um número da documentação, confira
+## Antes de repetir um número, meça
 
-A auditoria falsificou boa parte das estatísticas que circulam em `README.md`, em `docs/` e na versão anterior deste arquivo. As mais fáceis de repetir por engano:
+A auditoria falsificou boa parte das estatísticas que circulavam aqui, e a rodada de correção as remediu. **A tabela de errata encolheu de dez linhas para três.** O que ainda é fácil de errar:
 
-| a documentação diz | o que é | achado |
-|---|---|---|
-| base larga com 440 colunas e as 16 dimensões | 423 colunas e 15 dimensões: `mape_montar_base_larga()` descarta `15_dados_historicos` com um `next` silencioso (`R/dimensao.R:103` e `:122`) porque ela não tem coluna `ano` | 11 |
-| a guarda de chave duplicada nomeia as duas responsáveis | nomeia só `06_financas`; as 54 duplicatas de `15_dados_historicos` nunca são vistas | 11 |
-| "erro impede a publicação, sem exceção" | nenhum caminho de escrita roda as checagens de erro: `mape_escrever_tabela()` chama `mape_validar_schema()`, não `mape_validar_tabela()`; 23 das 26 tabelas foram gravadas com validação desligada | 22 |
-| "aviso sem justificativa vira erro" | não existe em código | 38 |
-| as doze checagens | a checagem 12 ("descrições idênticas entre tabelas") nunca foi implementada — e o defeito que ela previne está publicado: sete variáveis de `06_financas` carregam descrição do bloco do PIB de `04_economia` | 23, 18 |
-| 2 erros e 23 avisos de validação | os `qa/*.md` gerados somam 25 avisos | 81 |
-| paridade com zero diferenças não explicadas | a paridade trata ausência como igualdade, não compara número de linhas, e o curinga `*` imuniza 52,5% das colunas; `15_dados_historicos` nunca passou e não pode passar | 24, 25, 66, 67 |
-| 128 pacotes no lockfile | 147 | 95 |
-| os `extrair_*.R` estão escritos | existe **um** (`fontes/00_diretorios/municipios/`), e nunca rodou | — |
-| `_brl2023` está em reais de dez/2023 | três colunas do IEPS em `10_saude` estão em reais de **dez/2021**, com `unidade` afirmando 2023 | 8 |
+| a documentação antiga dizia | o que é, medido em 26/07/2026 |
+|---|---|
+| base larga com 440 colunas e as 16 dimensões | **424 colunas** (439 com `flags = TRUE`), 200.520 linhas, **15 das 16** dimensões — `15_dados_historicos` é transversal e fica fora por desenho, e agora a função **avisa** quando isso acontece |
+| os `extrair_*.R` estão escritos | existe **um** (`fontes/00_diretorios/municipios/`), e ele nunca rodou. A primeira extração de verdade desta árvore foi a do PIB, em 26/07/2026, e ela é um cache pontual e não um `extrair_*.R` |
+| 16 tabelas não têm caminho de reconstrução | continua verdade para **15**: `00_diretorios/municipios` voltou a ser reconstruível (achado 9), e reproduz o publicado com `all.equal == TRUE`. As outras 15 dependem de reescrever os produtores |
 
-Regra prática: número que aparece em prosa neste repositório é afirmação a verificar, não fato. Meça no Parquet.
+Os números correntes, todos medidos: **26** tabelas publicadas, **432** variáveis no dicionário, **147** pacotes no lockfile, **413** expectativas na suíte, **0 erros e 120 avisos** de validação — todos com justificativa registrada.
+
+A regra prática não mudou, e é a lição central da auditoria: **número que aparece em prosa é afirmação a verificar, não fato.** Meça no Parquet. `Rscript tools/validar_tudo.R` e `Rscript tools/verificar_fechamento.R` medem por você.
 
 ## O grafo do `targets` é menor do que a árvore de dados sugere
 
 Esta é a coisa mais fácil de errar no repositório, e a que mais custa tempo.
 
-**Existem 26 tabelas em `dados/`, mas só 14 alvos no grafo** — e **5 desses 14 nunca foram construídos** (`dim_01_assistencia_social_dh`, `dim_09_educacao`, `dim_11_transportes`, `documentacao`, `base_larga`: não há registro deles em `_targets/meta/meta`). As tabelas fora do grafo foram produzidas por scripts de migração de uma vez só (`tools/migracao/migrar_dimensoes.R`, `tools/migracao/fatiar_fontes.R`) e **`tar_make()` não as reconstrói**. Elas estão versionadas e é assim que continuam existindo.
+**Existem 26 tabelas em `dados/`, mas só 14 alvos no grafo**, e 10 deles têm registro em `_targets/meta/meta`. As tabelas fora do grafo foram produzidas por scripts de migração de uma vez só (`tools/migracao/migrar_dimensoes.R`, `tools/migracao/fatiar_fontes.R`) e **`tar_make()` não as reconstrói**. Elas estão versionadas e é assim que continuam existindo.
+
+**Rode o grafo com `Rscript tools/rodar_grafo.R`, e não com `tar_make()` direto.** `tar_make()` sai com código 0 mesmo quando um alvo falha (achado 41); o wrapper consulta `tar_meta()` e sai com código 1, nomeando quem falhou.
 
 O que de fato está no grafo:
 
 | alvos | quais |
 |---|---|
-| `fonte_*` (3) | `00_diretorios_municipios` (falha: origem inexistente), `01_assistencia_social_dh_cadunico`, `01_assistencia_social_dh_disque100` |
+| `fonte_*` (3) | `00_diretorios_municipios`, `01_assistencia_social_dh_cadunico`, `01_assistencia_social_dh_disque100` — os três constroem |
 | `valida_*` (3) | um por fonte acima |
-| `dim_*` (3) | `dim_01_assistencia_social_dh`, `dim_09_educacao` ⛔, `dim_11_transportes` ⛔ |
+| `dim_*` (3) | `dim_01_assistencia_social_dh` (reproduz o publicado), `dim_09_educacao` e `dim_11_transportes` (**falham de propósito**: a guarda de perda barra a gravação, porque a consolidação das fontes não reproduz a dimensão publicada) |
 | arquivo/doc (5) | `arquivo_dicionario`, `arquivo_tabelas`, `arquivo_parametros`, `documentacao`, `base_larga` |
 
 Duas regras de geração explicam a lista, e ambas estão em [`_targets.R`](_targets.R):
@@ -128,9 +125,9 @@ Duas regras de geração explicam a lista, e ambas estão em [`_targets.R`](_tar
 - **Um alvo `fonte_<slug>` só nasce se a função `tratar_<nome>` existir.** Só três `tratar_*.R` existem (`fontes/*/*/R/`); as outras sete pastas de fonte têm apenas um README gerado.
 - **Um alvo `dim_<slug>` só nasce se a dimensão tiver ≥ 2 fontes publicadas em `dados/fonte/`.** Com uma fonte só, consolidar seria copiar.
 
-⚠️ **Seis comandos `tar_make()` da documentação não funcionam.** O README ensina uma receita com alvos que não existem (§ "Um ano novo numa fonte que já existe" manda rodar `tar_make(fonte_04_economia_ibge_pib)` e `tar_make(dim_04_economia)`; os dois falham com `Column doesn't exist`). A receita descreve o estado pretendido depois que a fonte tiver o seu `tratar_*.R`; hoje, para uma dimensão sem alvo, atualizar significa **escrever o `tratar_*.R` primeiro** (use `mape_nova_fonte()`). Rode `tar_manifest()` antes de invocar qualquer alvo pelo nome.
+**Rode `tar_manifest()` antes de invocar qualquer alvo pelo nome.** Para uma dimensão sem alvo — que é a maioria —, atualizar significa **escrever o `tratar_*.R` primeiro** (use `mape_nova_fonte()`). O critério 8 de `tools/verificar_fechamento.R` confere que todo alvo citado em bloco de código da documentação existe no grafo.
 
-O alvo `documentacao` grava a própria dependência, então o grafo não converge: ele fica desatualizado logo depois de rodar.
+O alvo `documentacao` **deixou de gravar a própria dependência** (achado 69): ele recalcula os campos do dicionário em memória, e gravá-los tem comando próprio, `Rscript tools/recalcular_dicionario.R`, que roda **a montante** do grafo.
 
 **Nunca edite `_targets.R`.** Os alvos são gerados a partir de `dicionario/tabelas.csv`. Acrescentar uma fonte é acrescentar uma linha lá e um `tratar_<nome>.R` — o grafo se ajusta sozinho.
 
@@ -142,12 +139,14 @@ for (f in list.files("R", pattern = "[.]R$", full.names = TRUE)) source(f, encod
 mape_tabelas_publicadas()                  # as 26 tabelas
 mape_ler("saude")                          # uma dimensão, pelo nome
 mape_ler("educacao/ideb", territorio = TRUE)
-mape_cobertura("14_corrupcao")             # cobertura declarada, não real (ver abaixo)
+mape_cobertura("14_corrupcao")             # duas colunas: presença de valor e valor informativo
 mape_derivadas("taxa_homicidios_p100k")    # indicador com o denominador visível
 mape_montar_base_larga(flags = TRUE, deduplicar = TRUE)
 ```
 
-Duas ressalvas que a auditoria confirmou: `mape_cobertura()` conta coluna preenchida com zero como dado, e chega a reportar 100% onde a cobertura real é de 27 municípios (achado 21); e **nenhum dos defeitos conhecidos do dado chega a quem consome por `mape_ler()`** (achado 32). Se for responder pergunta substantiva sobre uma dimensão, leia a seção dela no `CONSOLIDADO.md` antes.
+As duas ressalvas da auditoria foram corrigidas. `mape_cobertura()` deixou de contar `flag_*` e `ano_ref_*` como dado e passou a devolver **duas** medidas — `cobertura_pct` e `cobertura_substantiva_pct` (achado 21). E `mape_ler()` **avisa** quando a tabela pedida tem defeito declarado no dicionário, listando os primeiros e apontando para o `qa/` dela (achado 32).
+
+Mesmo assim: **antes de responder pergunta substantiva sobre uma dimensão, leia o campo `observacoes` dela em `dicionario/tabelas.csv`.** Dezenove grupos ficaram como `mitigado`, o que quer dizer marcados e detectáveis, mas com o defeito ainda no dado. Os mais consequentes estão em `04_economia` (a série de PIB tem um fator de bloco), `06_financas` (receita inflada em uma ordem de grandeza, e duas colunas quase todas zero) e `13_seguranca` (70 códigos não municipais, agora marcados por `flag_codigo_nao_municipal`).
 
 **Quem só consome os dados publicados não precisa de conta no Google Cloud.** A credencial só é exigida para reextrair uma fonte do BigQuery. Ela vive em `MAPE_GCP_BILLING`, no `.Renviron` (que o `.gitignore` cobre, porque o repositório é público). Use `.Renviron.exemplo` como molde, e nunca uma chamada literal a `set_billing_id`.
 

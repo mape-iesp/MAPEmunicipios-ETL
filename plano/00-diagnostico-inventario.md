@@ -1,5 +1,12 @@
 # 0. Sumário executivo
 
+> **Redação de 26/07/2026.** Os identificadores de projeto do Google Cloud que
+> este documento citava foram substituídos por `<projeto-gcp-legado-N>`. O
+> diagnóstico é o mesmo — o legado usava quatro contas de faturamento
+> diferentes, três delas aparentemente pessoais, e por isso ninguém consegue
+> dizer quanto a base custou. Os nomes não acrescentam nada a esse argumento e
+> este repositório é público. Ver `auditoria/RELATORIO-FINAL.md`, § 7.
+
 O MAPEmunicipios funciona. Ele publica uma base de 180.285 linhas por 451 colunas, é citado num
 artigo e alimenta três scripts de análise. O problema não é que ele esteja quebrado — é que não
 existe, em lugar nenhum do pipeline, uma declaração do que cada tabela promete entregar.
@@ -214,9 +221,9 @@ si mesmas. O mecanismo mais arriscado do pipeline existe para fazer 10% de traba
 ### Credencial e constante escritas dentro do código
 
 Há quatro projetos do Google Cloud diferentes espalhados pelo pipeline. O mais comum é
-`dados-importacao`, em cerca de vinte scripts. Mas `bandalarga.R:18` e `telefonia.R:13` usam
-`base-dos-dados-429117`; `script_sociedade_ivs.R:31` usa `municipality-carlos`; e
-`Script_MunicipalityBR.R:29` usa `dissertacao-de-mestrado-399114`, sendo também o único script que
+`<projeto-gcp-legado-4>`, em cerca de vinte scripts. Mas `bandalarga.R:18` e `telefonia.R:13` usam
+`<projeto-gcp-legado-2>`; `script_sociedade_ivs.R:31` usa `<projeto-gcp-legado-3>`; e
+`Script_MunicipalityBR.R:29` usa `<projeto-gcp-legado-1>`, sendo também o único script que
 abandona o pacote `basedosdados` e chama o `bigrquery` diretamente. Na prática, o custo de
 reconstruir a base está distribuído por quatro contas, três delas aparentemente pessoais.
 
@@ -442,7 +449,7 @@ quebra em `library(labelled)`, um pacote não instalado. **Nada dessa fonte cheg
 ### Dimensão 9 — Energia e Internet
 
 Quatro fontes vivas. **Banda Larga** (Anatel/SCM, 2007-2024) e **Telefonia Móvel** (Anatel,
-2019-2024) vêm do BigQuery com o projeto `base-dos-dados-429117`, diferente do resto do pipeline. O
+2019-2024) vêm do BigQuery com o projeto `<projeto-gcp-legado-2>`, diferente do resto do pipeline. O
 script de telefonia tem um defeito próprio: chama `write_xlsx()` sem carregar o pacote `writexl`.
 
 **Luz Para Todos** (2004-2020) depende do pacote `munifacil`, que não está no CRAN, e a subpasta tem
@@ -498,7 +505,7 @@ colaborativa viva (a aba "sobre" registra inclusões quase semanais) lida de um 
 data no nome, sem URL. A seleção de colunas é posicional: `select(-c(1, 3, 4, 7))`. Se a planilha
 mudar de ordem, e ela muda, o script passa a remover as colunas erradas.
 
-**Mobilidados** vem do BigQuery com o projeto pessoal `dissertacao-de-mestrado-399114` e cobre 2005 a
+**Mobilidados** vem do BigQuery com o projeto pessoal `<projeto-gcp-legado-1>` e cobre 2005 a
 2017 para exatamente 27 municípios.
 
 ### Dimensão 13 — Habitação
