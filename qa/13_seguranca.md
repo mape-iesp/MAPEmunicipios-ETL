@@ -1,6 +1,6 @@
 # QA — 13_seguranca
 
-Gerado em 2026-07-26 16:00:59.
+Gerado em 2026-07-26 16:12:30.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:59.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -21,6 +21,7 @@ Checagens executadas: 15.
 | zero_inflacao | aviso | sim_obitos_homicidio_branca_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 20 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 | zero_inflacao | aviso | sim_obitos_homicidio_parda_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 19 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 | licenca | aviso | licenca = 'A VERIFICAR — mistura o SIM/DATASUS (publico federal, uso livre com citacao) com o Anuario Brasileiro de Seguranca Publica, do Forum Brasileiro de Seguranca Publica, que e associacao privada. O Anuario e publicado sob CC BY-NC-ND em algumas edicoes, o que e INCOMPATIVEL com a redistribuicao sob CC BY 4.0 que o release faz. As colunas fbsp_* precisam de verificacao.': a tabela não declara sob que licença é publicada, e o release a distribui como CC BY 4.0. | As colunas fbsp_* vem do Anuario Brasileiro de Seguranca Publica, do Forum Brasileiro de Seguranca Publica, associacao privada. Algumas edicoes do Anuario saem sob CC BY-NC-ND, que e INCOMPATIVEL com a redistribuicao sob CC BY 4.0 que o release faz — o NC proibe uso comercial e o ND proibe obra derivada, e uma tabela derivada e exatamente uma obra derivada. Esta e a pendencia de licenca mais grave das tres. Grupo 45. |
+| continuidade_painel | aviso | o último ano (2021) tem 27 linha(s), 0.5% da mediana dos anos anteriores (5.565). Série temporal calculada sobre a tabela quebra no último ponto. | O ultimo ano (2021) tem 27 linhas contra 5.565 dos anteriores. As 27 sao os codigos de UF terminados em 00000 ('municipio ignorado' do SIM) — ver flag_codigo_nao_municipal. O SIM municipal termina em 2020 nesta extracao, e 2021 so trouxe as linhas agregadas por UF. Grupos 12 e 49. Filtre flag_codigo_nao_municipal == 0 e a serie termina em 2020, que e o fim real. |
 
 ## Defeitos declarados no dicionário
 

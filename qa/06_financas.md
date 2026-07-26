@@ -1,6 +1,6 @@
 # QA — 06_financas
 
-Gerado em 2026-07-26 16:00:54.
+Gerado em 2026-07-26 16:12:22.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:54.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -37,6 +37,7 @@ Checagens executadas: 15.
 | zero_inflacao | aviso | emendas_valor_encargos_especiais_brl2023: 6 ano(s) com 99% ou mais de zeros exatos (2014, 2015, 2016, 2017, 2018, 2019), enquanto 4 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | As emendas parlamentares por funcao orcamentaria so existem nos anos em que houve emenda naquela funcao para algum municipio. Ano inteiro zerado aqui significa que nenhuma emenda foi destinada aquela funcao naquele ano, o que e um fato e nao uma lacuna — encargos especiais so aparece de 2021 em diante, e 2024 esta incompleto porque o exercicio ainda corria quando a fonte foi extraida. Vale a ressalva geral de 06_financas: as emendas sao associadas ao municipio POR NOME, sem UF, e e dai que vem a chave duplicada. |
 | quebra_de_nivel | aviso | siconfi_receitas_totais_brl2023: salto de nível em 1990 (mediana x1.69), 1994 (mediana x2.25), 1995 (mediana x1.58), 1998 (mediana x1.59). Razão ano a ano igual para quase todos os municípios não é economia, é fator aplicado à série. | problema da variável siconfi_receitas_totais_brl2023: DEFEITO ABERTO (auditoria 26/07/2026, achado 3): INUTILIZAVEL EM NIVEL. A agregacao soma os tres estagios da receita do SICONFI (Previsao Inicial, Previsao Atualizada, Receitas Realizadas) E a hierarquia de contas, publicando totais e subtotais somados. Atribui a Sao Paulo R$ 791,8 bilhoes em 2023 e a Sao Joao de Meriti/RJ R$ 2.590,0 bilhoes no mesmo ano — o maximo publicado da coluna. A soma nacional da R$ 12,24 trilhoes, e a razao receita/PIB municipal sai com mediana 2,0 quando o plausivel e 0,15-0,30. NAO USE como receita municipal, nem em nivel, nem per capita, nem como denominador. |
 | quebra_de_nivel | aviso | siconfi_receitas_proprias_brl2023: salto de nível em 1990 (mediana x2.13), 1992 (mediana x0.55), 1993 (mediana x0.80), 1994 (mediana x4.37), 1995 (mediana x2.23). Razão ano a ano igual para quase todos os municípios não é economia, é fator aplicado à série. | problema da variável siconfi_receitas_proprias_brl2023: DEFEITO ABERTO (auditoria 26/07/2026, achado 5): BURACO DE QUATRO ANOS. A coluna vale exatamente zero em 22.159 das 22.352 linhas nao nulas de 2018 a 2021 (99,1%) e volta ao normal em 2022. O agregado nacional cai de R$ 152,3 bilhoes em 2017 para R$ 0,0 em 2018 e volta a R$ 111,0 bilhoes em 2022, enquanto o denominador (siconfi_receitas_brutas_brl2023) nao tem um unico zero nos mesmos anos. A causa e a classificacao de receita propria por str_detect sobre NOME de conta, que deixa de casar quando o plano de contas muda de versao — o certo seria mapear pelo CODIGO da conta (MSC/PCASP). Uma media 2015-2023 de receita propria municipal sai cerca de 44% menor do que deveria, e sao justamente os anos da pandemia. |
+| continuidade_painel | aviso | o último ano (2024) tem 297 linha(s), 5.6% da mediana dos anos anteriores (5.327). Série temporal calculada sobre a tabela quebra no último ponto. | O ultimo ano (2024) tem 297 linhas contra a mediana de 5.327 dos anteriores porque o exercicio de 2024 ainda corria quando o SICONFI foi extraido: so os municipios que ja haviam prestado contas aparecem. Nao e perda de dado, e cobertura parcial de um ano em curso. Grupo 49 da auditoria. ATENCAO: qualquer serie temporal calculada sobre a tabela despenca em 2024 por este motivo — corte em 2023 ou trate o ultimo ano a parte. |
 
 ## Defeitos declarados no dicionário
 

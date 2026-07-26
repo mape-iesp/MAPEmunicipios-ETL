@@ -1,6 +1,6 @@
 # QA — 10_saude
 
-Gerado em 2026-07-26 16:00:57.
+Gerado em 2026-07-26 16:12:27.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:57.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -37,8 +37,9 @@ Checagens executadas: 15.
 
 ## Defeitos declarados no dicionário
 
-Estes 38 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+Estes 39 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
 
+- (tabela) DEFEITO ABERTO (auditoria 26/07/2026, achado 27): as colunas pni_cobertura_* publicam 0% onde a vacina AINDA NAO EXISTIA no calendario nacional e onde o dado simplesmente falta.
 - (pni_cobertura_vacinal_agregada_pct) A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 51175%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem.
 - (pni_cobertura_bcg_pct) A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 13050%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem.
 - (pni_cobertura_dtp_pct) A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 2900%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem.

@@ -1,6 +1,6 @@
 # QA — 08_energia_internet
 
-Gerado em 2026-07-26 16:00:54.
+Gerado em 2026-07-26 16:12:23.
 
 ## Resumo
 
@@ -10,11 +10,14 @@ Gerado em 2026-07-26 16:00:54.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | schema | informativo | (tabela): 8 de 10 coluna(s) numérica(s) sem `dominio_valido` declarado (80%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| invariancia_temporal | aviso | lpt_domicilios_atendidos_acumulado_i: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável lpt_domicilios_atendidos_acumulado_i: Faixa de anos embutida no nome da coluna |
+| invariancia_temporal | aviso | censo_cobertura_eletricidade_2000_pct: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável censo_cobertura_eletricidade_2000_pct: O ano fica no nome porque a coluna é um retrato censitário replicado no painel, e não uma série. |
+| invariancia_temporal | aviso | censo_cobertura_eletricidade_2010_pct: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável censo_cobertura_eletricidade_2010_pct: O ano fica no nome porque a coluna é um retrato censitário replicado no painel, e não uma série. |
 
 ## Defeitos declarados no dicionário
 

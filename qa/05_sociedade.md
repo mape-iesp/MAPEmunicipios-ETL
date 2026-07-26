@@ -1,6 +1,6 @@
 # QA — 05_sociedade
 
-Gerado em 2026-07-26 16:00:51.
+Gerado em 2026-07-26 16:12:18.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 16:00:51.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | schema | informativo | (tabela): 1 de 7 coluna(s) numérica(s) sem `dominio_valido` declarado (14%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| invariancia_temporal | aviso | vulnerabilidade_socioeconomica_pct: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | DEFEITO CONFIRMADO, grupo 14 da auditoria: e UMA medicao publicada como se fossem os censos de 2000 e 2010. Medido: valor identico nos dois anos em 5.565 de 5.565 municipios, enquanto a coluna irma ivs_idx e identica em 1 municipio so. A variacao entre censos e sempre exatamente zero, e nao deve ser interpretada. O defeito vem da base do legado e recupera-lo exige reextrair o Atlas do IVS do Ipea separando 2000 de 2010 — a paridade contra o legado nao ajuda, porque o legado ja traz o defeito. |
 
 ## Defeitos declarados no dicionário
 

@@ -1,6 +1,6 @@
 # QA — 16_eleicoes
 
-Gerado em 2026-07-26 16:01:00.
+Gerado em 2026-07-26 16:12:32.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 16:01:00.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | schema | informativo | (tabela): 7 de 25 coluna(s) numérica(s) sem `dominio_valido` declarado (28%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| invariancia_temporal | aviso | turno_i: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável turno_i: Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada. |
 
 ## Defeitos declarados no dicionário
 

@@ -1,6 +1,6 @@
 # QA — 09_educacao
 
-Gerado em 2026-07-26 16:00:55.
+Gerado em 2026-07-26 16:12:24.
 
 ## Resumo
 
@@ -10,13 +10,14 @@ Gerado em 2026-07-26 16:00:55.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | schema | informativo | (tabela): 25 de 35 coluna(s) numérica(s) sem `dominio_valido` declarado (71%): a checagem de faixa não olhou essas. | — sem justificativa — |
 | zero_inflacao | aviso | censup_instituicoes_ensino_superior_i: 5 ano(s) com 99% ou mais de zeros exatos (2005, 2006, 2007, 2008, 2024), enquanto 15 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável censup_instituicoes_ensino_superior_i: ERRO DE DIGITACAO publicado (falta o 'i' de instituicoes) enquanto as nove colunas irmas escrevem certo; origem censo_educacao_superior.R:53, congelado em renomear_variaveis.R:93 |
 | zero_inflacao | aviso | censup_ies_privadas_particulares_i: 19 ano(s) com 99% ou mais de zeros exatos (2005, 2006, 2007, 2008, 2010, 2011, 2012, 2013, ...), enquanto 1 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | MUDANCA DE CLASSIFICACAO NA ORIGEM, em 2010. Ate 2009 o Censo da Educacao Superior classificava a instituicao privada como 'particular'; de 2010 em diante a categoria foi substituida pelo par 'com fins lucrativos' / 'sem fins lucrativos', mais 'comunitaria' e 'confessional'. Por isso censup_ies_privadas_particulares_i so tem dado em 2009 e as demais so a partir de 2010: os zeros marcam o regime em que a categoria nao existia, nao ausencia de instituicoes. NAO SOME as categorias ao longo do tempo sem tratar a quebra de 2010, e nao interprete a queda a zero de 'particulares' como fechamento de instituicoes. |
+| invariancia_temporal | aviso | ideb_meta_projetada_medio_idx: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | As METAS projetadas do IDEB para o ensino medio sao definidas pelo INEP por municipio e permanecem constantes ao longo do ciclo de projecao — diferentemente das notas OBSERVADAS, que variam a cada edicao. A invariancia e a propriedade correta de uma meta, e nao um defeito de replicacao. Este e um achado NOVO da checagem de invariancia temporal, e a inspecao mostrou que ele nao e defeito. |
 
 ## Defeitos declarados no dicionário
 

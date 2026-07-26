@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifa_zero
 
-Gerado em 2026-07-26 16:00:57.
+Gerado em 2026-07-26 16:12:28.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:57.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 16.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -20,7 +20,8 @@ Checagens executadas: 15.
 
 ## Defeitos declarados no dicionário
 
-Estes 1 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+Estes 2 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
 
+- (tabela) DEFEITO ABERTO (auditoria 26/07/2026, achado 33): esta tabela e declarada CANONICA — a camada que guarda o observado — e ja vem EXPANDIDA: 81,7% das suas linhas sao carry_forward a partir do ano de adocao, e a evidencia foi apagada nelas (ano_ref_inicio_tarifa_zero fica NA em 472 linhas, apesar de ser atributo constante por municipio).
 - (ano_ref_inicio_tarifa_zero) Ano de referência, não chave do painel: por isso o prefixo ano_ref_.
 

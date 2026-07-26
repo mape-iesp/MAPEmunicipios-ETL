@@ -1,6 +1,6 @@
 # QA — 01_assistencia_social_dh/disque100
 
-Gerado em 2026-07-26 16:00:45.
+Gerado em 2026-07-26 16:11:59.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:45.
 
 ## Checagens
 
-Nenhum problema automático: as 15 checagens executadas passaram.
+Nenhum problema automático: as 17 checagens executadas passaram.
 
 ## Defeitos declarados no dicionário
 

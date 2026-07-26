@@ -1,6 +1,6 @@
 # QA — 05_sociedade/atlas_ivs
 
-Gerado em 2026-07-26 16:00:51.
+Gerado em 2026-07-26 16:12:19.
 
 ## Resumo
 
@@ -10,7 +10,11 @@ Gerado em 2026-07-26 16:00:51.
 
 ## Checagens
 
-Nenhum problema automático: as 15 checagens executadas passaram.
+Checagens executadas: 17.
+
+| checagem | gravidade | descrição | justificativa |
+|---|---|---|---|
+| invariancia_temporal | aviso | vulnerabilidade_socioeconomica_pct: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | Ver a justificativa da dimensao 05_sociedade: uma medicao so, replicada nos dois anos censitarios. Grupo 14 da auditoria. |
 
 ## Defeitos declarados no dicionário
 

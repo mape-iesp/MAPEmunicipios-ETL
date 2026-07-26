@@ -1,6 +1,6 @@
 # QA — 15_dados_historicos
 
-Gerado em 2026-07-26 16:00:59.
+Gerado em 2026-07-26 16:12:30.
 
 ## Resumo
 

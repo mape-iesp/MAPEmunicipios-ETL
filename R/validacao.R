@@ -193,6 +193,55 @@ mape_quebras_de_nivel <- function(x, coluna, min_salto = 0.3) {
   if (nrow(fora)) fora else NULL
 }
 
+#' Colunas que não variam entre os anos medidos, num painel em que as irmãs variam
+#'
+#' Achado 14. Devolve, por coluna, a proporção de municípios em que o valor é
+#' idêntico em todos os anos em que a coluna tem valor. Só reporta quando a
+#' tabela tem colunas que VARIAM — numa tabela transversal replicada por desenho
+#' a invariância é esperada e não diz nada.
+#'
+#' @param x Data frame com id_municipio e ano.
+#' @param limiar Proporção mínima de municípios invariantes para reportar.
+#' @return Lista nomeada coluna -> proporção.
+mape_colunas_invariantes <- function(x, limiar = 0.95) {
+  anos <- unique(x$ano)
+  if (length(anos) < 2) return(list())
+
+  candidatas <- names(x)[vapply(x, is.numeric, logical(1))]
+  candidatas <- setdiff(candidatas, c("id_municipio", "ano"))
+  candidatas <- grep("^(flag_|ano_ref_)", candidatas, value = TRUE, invert = TRUE)
+  if (!length(candidatas)) return(list())
+
+  prop_invariante <- function(nm) {
+    v <- x[[nm]]
+    # Só entram municípios com mais de uma observação NÃO NULA E NÃO ZERO.
+    #
+    # Sem o "não zero", a checagem vira gerador de ruído: uma coluna esparsa é
+    # trivialmente invariante em todo município que só tem zero, e o zero
+    # constante não é evidência de replicação — é evidência de ausência. O caso
+    # que a checagem existe para pegar (o retrato do AdaptaBrasil repetido de
+    # 2010 a 2020) tem valores reais, não zeros.
+    ok <- !is.na(v) & v != 0
+    if (!any(ok)) return(NA_real_)
+    n_obs <- tapply(v[ok], x$id_municipio[ok], length)
+    mult <- unlist(n_obs) > 1
+    if (sum(mult) < 100) return(NA_real_)   # poucos municípios: não conclui
+    iguais <- tapply(v[ok], x$id_municipio[ok],
+                     function(z) length(unique(z)) == 1)
+    mean(unlist(iguais)[mult])
+  }
+
+  props <- vapply(candidatas, prop_invariante, numeric(1))
+  props <- props[!is.na(props)]
+  if (!length(props)) return(list())
+
+  # A comparação com as irmãs: se TODAS são invariantes, a tabela é transversal
+  # replicada por desenho e não há o que reportar.
+  if (all(props >= limiar)) return(list())
+
+  as.list(props[props >= limiar])
+}
+
 #' Descrições de uma tabela que se repetem noutra — a checagem 12
 #'
 #' Compara descrições normalizadas: minúsculas, sem acento, sem pontuação, sem
@@ -507,6 +556,55 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
                 "MANIFESTO.yml sem `url`: a origem do dado não está registrada.")
           }
         }
+      }
+    }
+  }
+
+  # -- 16. Invariância temporal ---------------------------------------------
+  # Achado 14: `vulnerabilidade_socioeconomica_pct` é UMA medição publicada como
+  # se fossem os censos de 2000 e 2010 — valor idêntico nos 5.565 municípios nos
+  # dois anos. A variação entre censos é sempre exatamente zero, e ninguém tem
+  # como saber disso olhando a tabela.
+  #
+  # O discriminante é a comparação com as colunas IRMÃS: numa tabela em que as
+  # outras colunas variam entre os dois anos, uma que não varia em quase nenhum
+  # município não está medindo duas vezes.
+  if ("ano" %in% names(x) && "id_municipio" %in% names(x)) {
+    rodou("invariancia_temporal")
+    inv <- tryCatch(mape_colunas_invariantes(x), error = function(e) NULL)
+    if (!is.null(inv) && length(inv)) {
+      for (nm in names(inv)) {
+        reg("invariancia_temporal", "aviso",
+            paste0(nm, ": idêntica em ", round(100 * inv[[nm]], 1),
+                   "% dos municípios entre os anos medidos, enquanto as colunas ",
+                   "irmãs variam. Provavelmente é uma medição só, replicada — ",
+                   "e a variação entre os anos é sempre zero por construção."))
+      }
+    }
+  }
+
+  # -- 17. Continuidade do painel -------------------------------------------
+  # Achado 49: quatro dimensões têm o último ano truncado a uma fração dos
+  # municípios, sem nenhuma marcação. Qualquer série temporal calculada sobre a
+  # tabela quebra no último ponto, e o gráfico despenca.
+  if ("ano" %in% names(x) && nrow(x) > 1000) {
+    rodou("continuidade_painel")
+    por_ano <- table(x$ano)
+    if (length(por_ano) >= 3) {
+      anos <- as.integer(names(por_ano))
+      ultimo <- length(por_ano)
+      mediana_anterior <- stats::median(as.numeric(por_ano[-ultimo]))
+      razao <- as.numeric(por_ano[ultimo]) / mediana_anterior
+      if (razao < 0.5) {
+        reg("continuidade_painel", "aviso",
+            paste0("o último ano (", anos[ultimo], ") tem ",
+                   formatC(as.numeric(por_ano[ultimo]), format = "d", big.mark = ".",
+                           decimal.mark = ","),
+                   " linha(s), ", round(100 * razao, 1),
+                   "% da mediana dos anos anteriores (",
+                   formatC(mediana_anterior, format = "d", big.mark = ".",
+                           decimal.mark = ","),
+                   "). Série temporal calculada sobre a tabela quebra no último ponto."))
       }
     }
   }

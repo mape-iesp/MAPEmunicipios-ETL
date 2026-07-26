@@ -1,6 +1,6 @@
 # QA — 02_populacao
 
-Gerado em 2026-07-26 16:00:45.
+Gerado em 2026-07-26 16:11:59.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:45.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -18,8 +18,9 @@ Checagens executadas: 15.
 
 ## Defeitos declarados no dicionário
 
-Estes 8 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+Estes 9 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
 
+- (tabela) DEFEITO ABERTO (auditoria 26/07/2026, achado 28): a serie intercensitaria de nove a dez municipios e FABRICADA por extrapolacao linear, e nao estimada pelo IBGE.
 - (ano) Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd
 - (populacao_residente_i) Generico; colide com a populacao da dim 4 (removida em municipalityBR.qmd:97) e semanticamente com populacao_atendida_agua/esgoto/urbana do SNIS
 - (censo_catolicos_prop) Prefixo prop_ em vez de sufixo de escala; declarada STRING no dicionario e numeric em populacao_brasileira.RData

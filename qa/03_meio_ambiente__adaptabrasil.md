@@ -1,6 +1,6 @@
 # QA — 03_meio_ambiente/adaptabrasil
 
-Gerado em 2026-07-26 16:00:49.
+Gerado em 2026-07-26 16:12:04.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:49.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

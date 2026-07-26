@@ -1,6 +1,6 @@
 # QA — 04_economia
 
-Gerado em 2026-07-26 16:00:50.
+Gerado em 2026-07-26 16:12:18.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:00:50.
 
 ## Checagens
 
-Checagens executadas: 15.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
