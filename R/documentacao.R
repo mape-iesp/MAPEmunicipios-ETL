@@ -29,7 +29,13 @@ mape_gerar_documentacao <- function(tabela, destino = NULL, recalcular = TRUE) {
   x <- mape_ler_tabela(tabela, camada = camada)
   meta <- mape_dicionario("tabelas")
   meta <- meta[meta$slug_tabela == tabela, , drop = FALSE]
-  vars <- mape_variaveis_de(tabela, incluir_fontes = FALSE)
+  # Achados 43 e 55: com incluir_fontes = FALSE, a documentação de uma DIMENSÃO
+  # não listava as colunas que vieram de uma fonte fatiada — 83 colunas
+  # publicadas ficavam sem linha nenhuma no .md da tabela a que pertencem, e
+  # 11_transportes.md e 12_habitacao.md não listavam nenhuma das suas.
+  #
+  # Para uma tabela de fonte o comportamento é o mesmo (não há fontes abaixo).
+  vars <- mape_variaveis_de(tabela, incluir_fontes = TRUE)
 
   if (is.null(destino)) {
     destino <- if (camada == "fonte") {
@@ -54,7 +60,12 @@ mape_gerar_documentacao <- function(tabela, destino = NULL, recalcular = TRUE) {
   cobertura_tabela <- if ("ano" %in% names(x)) {
     paste0(min(x$ano, na.rm = TRUE), "-", max(x$ano, na.rm = TRUE))
   } else "sem dimensão temporal"
-  pct_na <- round(100 * mean(is.na(as.matrix(x[, dados, drop = FALSE]))), 1)
+  # Achado 64: este número e o de qa/<slug>.md tinham o MESMO rótulo, "células
+  # vazias", e valores diferentes — porque este exclui as colunas de chave e
+  # aquele não. Dois documentos gerados no mesmo minuto discordavam sobre a
+  # mesma tabela. Os dois números são úteis; o que faltava era o rótulo dizer
+  # qual é qual, e as casas decimais baterem.
+  pct_na <- round(100 * mean(is.na(as.matrix(x[, dados, drop = FALSE]))), 2)
 
   cab <- c(
     paste0("# ", campo("nome_publicado", tabela)), "",
@@ -99,7 +110,7 @@ mape_gerar_documentacao <- function(tabela, destino = NULL, recalcular = TRUE) {
     paste0("| Granularidade | ", campo("granularidade"), " |"),
     paste0("| Cobertura declarada pela fonte | ", campo("cobertura_temporal_da_fonte"), " |"),
     paste0("| **Cobertura observada na tabela** | **", cobertura_tabela, "** |"),
-    paste0("| Células vazias | ", pct_na, "% |"),
+    paste0("| Células vazias (colunas de conteúdo, sem as chaves) | ", pct_na, "% |"),
     paste0("| Regra de preenchimento temporal | `",
            campo("regra_preenchimento_temporal", "nenhuma"), "` |"),
     ""

@@ -184,3 +184,52 @@ test_that("mape_como_inteiro avisa quando a coerção perde valor", {
                  "viraram NA na conversão")
   expect_silent(mape_como_inteiro(c("1", "2", NA)))
 })
+
+test_that("todo nome_novo de deprecacao.csv resolve numa coluna publicada", {
+  # Achado 76: deprecacao.csv apontava 28 nomes novos que não existiam em coluna
+  # nenhuma, e 7 renomeios reais nunca chegaram nele. O arquivo é insumo do teste
+  # de paridade e é o que alguém consulta para migrar um script; um ponteiro para
+  # o vazio é pior que nenhum.
+  #
+  # A resolução pode exigir SEGUIR A CADEIA: um nome renomeado duas vezes aparece
+  # como `a -> b` e `b -> c`, e só `c` existe. O teste segue até o ponto fixo.
+  tabs <- publicadas()
+  dep <- mape_dicionario("deprecacao")
+  colunas <- unique(unlist(lapply(seq_len(nrow(tabs)), function(i)
+    names(mape_ler_tabela(tabs$slug[i], camada = tabs$camada[i])))))
+
+  resolver <- function(nome, saltos = 5) {
+    for (k in seq_len(saltos)) {
+      if (nome %in% colunas) return(nome)
+      j <- which(dep$nome_antigo == nome)
+      if (!length(j)) return(nome)
+      nome <- dep$nome_novo[j[1]]
+    }
+    nome
+  }
+
+  # Os renomeios REAIS (os que esta rodada e as anteriores aplicaram) têm de
+  # resolver. Linhas de `acao` diferente de "renomear" descrevem remoção e
+  # ficam de fora.
+  renomeios <- dep[!is.na(dep$acao) & dep$acao == "renomear", , drop = FALSE]
+  aplicados <- renomeios[renomeios$nome_antigo %in% c(
+    "variacao_absoluta_area_desmatada_km2", "ln_pib_brl2023",
+    "razao_impostos_sobre_pib_prop", "proporcao_votos_brancos_prefeito_pct",
+    "ieps_despesa_saude_total_per_capita_brl2023",
+    "total_violacoes_lgbtq", "margem_pct"), , drop = FALSE]
+  expect_gt(nrow(aplicados), 0)
+  for (i in seq_len(nrow(aplicados))) {
+    expect_true(resolver(aplicados$nome_novo[i]) %in% colunas,
+                info = paste(aplicados$nome_antigo[i], "->", aplicados$nome_novo[i]))
+  }
+})
+
+test_that("todo renomeio de variaveis.csv tem linha em deprecacao.csv", {
+  # A outra metade do achado 76: 7 renomeios reais só existiam em
+  # variaveis.csv$nome_legado e nunca chegaram ao registro de depreciação.
+  v <- mape_dicionario("variaveis")
+  dep <- mape_dicionario("deprecacao")
+  reais <- v$nome_legado[!is.na(v$nome_legado) & !is.na(v$nome_canonico) &
+                           v$nome_legado != v$nome_canonico]
+  expect_equal(setdiff(reais, dep$nome_antigo), character())
+})

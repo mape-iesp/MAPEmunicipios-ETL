@@ -1,6 +1,6 @@
 # QA — 05_sociedade
 
-Gerado em 2026-07-26 16:12:18.
+Gerado em 2026-07-26 16:19:45.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:12:18.
 
 ## Checagens
 
-Checagens executadas: 17.
+Checagens executadas: 18.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

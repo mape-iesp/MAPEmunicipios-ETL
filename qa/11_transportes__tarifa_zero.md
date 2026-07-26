@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifa_zero
 
-Gerado em 2026-07-26 16:12:28.
+Gerado em 2026-07-26 16:19:54.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:12:28.
 
 ## Checagens
 
-Checagens executadas: 16.
+Checagens executadas: 17.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

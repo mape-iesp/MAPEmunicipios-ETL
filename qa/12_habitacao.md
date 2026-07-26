@@ -1,6 +1,6 @@
 # QA — 12_habitacao
 
-Gerado em 2026-07-26 16:12:28.
+Gerado em 2026-07-26 16:19:55.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:12:28.
 
 ## Checagens
 
-Checagens executadas: 17.
+Checagens executadas: 18.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

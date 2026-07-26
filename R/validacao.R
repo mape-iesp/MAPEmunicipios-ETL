@@ -609,6 +609,41 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
     }
   }
 
+  # -- 18. Cobertura temporal declarada contra observada ---------------------
+  # Achado 54: a `cobertura_temporal_da_fonte` digitada contradizia a observada
+  # em 12 das tabelas com coluna `ano`, e num caso os intervalos são DISJUNTOS:
+  # `11_transportes/tarifas` declarava 2018-2024 e publica 2005-2017. Um campo
+  # digitado apodrece; um campo digitado que ninguém confere apodrece em
+  # silêncio.
+  #
+  # Intervalos disjuntos são erro — não há leitura em que o declarado descreva o
+  # publicado. Divergência com regra de preenchimento declarada é silêncio, e o
+  # resto é aviso.
+  if ("ano" %in% names(x) && any(!is.na(x$ano)) && mape_tabela_no_dicionario(tabela)) {
+    rodou("cobertura_temporal")
+    tabs <- mape_dicionario("tabelas")
+    lin <- tabs[tabs$slug_tabela == tabela, , drop = FALSE]
+    dec <- as.character(lin$cobertura_temporal_da_fonte[1])
+    regra <- as.character(lin$regra_preenchimento_temporal[1])
+    anos_dec <- suppressWarnings(as.integer(regmatches(dec, gregexpr("[12][0-9]{3}", dec))[[1]]))
+    obs <- range(as.integer(as.character(x$ano)), na.rm = TRUE)
+    if (length(anos_dec)) {
+      dec_lo <- min(anos_dec); dec_hi <- max(anos_dec)
+      disjunto <- dec_hi < obs[1] || dec_lo > obs[2]
+      diverge <- dec_lo != obs[1] || dec_hi != obs[2]
+      tem_regra <- !is.na(regra) && nzchar(regra) && regra != "nenhuma"
+      if (disjunto) {
+        reg("cobertura_temporal", "erro",
+            paste0("a cobertura declarada (", dec, ") e a observada (", obs[1],
+                   "-", obs[2], ") são DISJUNTAS: não há um ano em comum."))
+      } else if (diverge && !tem_regra) {
+        reg("cobertura_temporal", "aviso",
+            paste0("cobertura declarada '", dec, "' contra observada ", obs[1],
+                   "-", obs[2], ", sem regra de preenchimento que explique."))
+      }
+    }
+  }
+
   rodou("sentinelas")
   sent <- mape_detectar_sentinelas(x)
   if (nrow(sent)) {

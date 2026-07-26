@@ -1,6 +1,6 @@
 # QA — 03_meio_ambiente
 
-Gerado em 2026-07-26 16:12:04.
+Gerado em 2026-07-26 16:19:30.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:12:04.
 
 ## Checagens
 
-Checagens executadas: 17.
+Checagens executadas: 18.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # QA — 13_seguranca
 
-Gerado em 2026-07-26 16:12:30.
+Gerado em 2026-07-26 16:19:56.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 16:12:30.
 
 ## Checagens
 
-Checagens executadas: 17.
+Checagens executadas: 18.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
