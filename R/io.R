@@ -148,8 +148,18 @@ mape_escrever_tabela <- function(x, tabela,
   # passar no schema (os tipos continuam certos) e ainda assim destruir o painel.
   mape_conferir_perda(x, tabela, camada, permitir_perda, motivo_perda)
 
-  if (validar && mape_tabela_no_dicionario(tabela)) {
-    mape_validar_schema(x, tabela)
+  # Achado 22: "erro impede a publicação, sem exceção" era falso em todos os
+  # caminhos de escrita, porque esta função chamava mape_validar_schema() — uma
+  # checagem de tipos — e nunca mape_validar_tabela(), que é a bateria de
+  # qualidade. As doze checagens existiam como função que ninguém invocava na
+  # publicação. Agora o portão é de verdade: erro não reivindicado para a
+  # gravação antes de qualquer write_parquet.
+  if (validar) {
+    if (mape_tabela_no_dicionario(tabela)) {
+      mape_validar_tabela(x, tabela, erro = TRUE)
+    } else {
+      mape_validar_schema(x, tabela)
+    }
   }
 
   canonico <- mape_caminho_tabela(tabela, mape_param("formatos.canonico"), camada)
@@ -173,13 +183,43 @@ mape_escrever_tabela <- function(x, tabela,
     escritos <- c(escritos, destino)
   }
 
-  # Conferência de equivalência entre formatos. Compara dimensões e nomes; os
-  # tipos do CSV são reconstruídos na leitura a partir do dicionário, então
-  # divergência de tipo aqui é esperada e não é erro.
-  relido <- arrow::read_parquet(canonico)
-  if (!identical(dim(relido), dim(x)) || !identical(names(relido), names(x))) {
-    stop("O Parquet relido não bate com o objeto original em '", tabela, "'.",
-         call. = FALSE)
+  # Conferência de equivalência entre formatos — a checagem 11 do plano.
+  #
+  # Achado 39: ela existia só no nome. O código relia o Parquet contra si mesmo
+  # e nunca abria nenhuma das exportações, então um csv.gz com coluna fantasma,
+  # truncado ou com aspas quebradas passava direto. A demonstração do verificador
+  # foi escrever o CSV sem row.names = FALSE: o CSV saiu com uma coluna "X" a
+  # mais e a guarda continuou dizendo que estava tudo bem.
+  #
+  # Agora TODOS os caminhos acumulados em `escritos` são relidos. O CSV é lido
+  # como texto (colClasses = "character") de propósito: os tipos do CSV são
+  # reconstruídos a partir do dicionário na leitura normal, então exigir tipo
+  # aqui seria exigir o impossível — mas número de linhas, nomes e ordem das
+  # colunas têm de bater, e é isso que pega truncamento, coluna fantasma e
+  # newline embutido.
+  for (caminho in escritos) {
+    relido <- if (grepl("[.]parquet$", caminho)) {
+      as.data.frame(arrow::read_parquet(caminho))
+    } else {
+      utils::read.csv(caminho, stringsAsFactors = FALSE, colClasses = "character",
+                      check.names = FALSE)
+    }
+    if (nrow(relido) != nrow(x)) {
+      stop("A releitura de '", basename(caminho), "' devolveu ", nrow(relido),
+           " linha(s), e o objeto tem ", nrow(x), ".", call. = FALSE)
+    }
+    if (!identical(names(relido), names(x))) {
+      so_no_arquivo <- setdiff(names(relido), names(x))
+      so_no_objeto <- setdiff(names(x), names(relido))
+      stop("A releitura de '", basename(caminho), "' não bate nos nomes de coluna.\n",
+           if (length(so_no_arquivo)) paste0("  só no arquivo: ",
+                                             paste(so_no_arquivo, collapse = ", "), "\n") else "",
+           if (length(so_no_objeto)) paste0("  só no objeto: ",
+                                            paste(so_no_objeto, collapse = ", "), "\n") else "",
+           if (!length(so_no_arquivo) && !length(so_no_objeto))
+             "  mesmos nomes, ordem diferente\n" else "",
+           call. = FALSE)
+    }
   }
 
   message("gravado: ", tabela, " (", nrow(x), " linhas x ", ncol(x),

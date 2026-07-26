@@ -1,14 +1,27 @@
 # QA — 02_populacao
 
-Gerado em 2026-07-26 01:47:16.
+Gerado em 2026-07-26 15:10:36.
 
 ## Resumo
 
 - linhas: 179.930
 - colunas: 9
-- células vazias: 25.68%
+- células vazias (todas as colunas): 25.68%
 
 ## Checagens
 
-Nenhum problema. As doze checagens passaram.
+Nenhum problema automático: as 11 checagens executadas passaram.
+
+## Defeitos declarados no dicionário
+
+Estes 8 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+
+- (ano) Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd
+- (populacao_residente_i) Generico; colide com a populacao da dim 4 (removida em municipalityBR.qmd:97) e semanticamente com populacao_atendida_agua/esgoto/urbana do SNIS
+- (censo_catolicos_prop) Prefixo prop_ em vez de sufixo de escala; declarada STRING no dicionario e numeric em populacao_brasileira.RData
+- (censo_evangelicos_pentecostais_prop) Prefixo prop_ sem sufixo de escala (0-1)
+- (censo_evangelicos_missao_prop) Prefixo prop_ sem sufixo de escala (0-1)
+- (censo_espiritas_prop) Prefixo prop_ sem sufixo de escala (0-1)
+- (censo_matriz_africana_prop) Prefixo prop_ sem sufixo de escala (0-1)
+- (ano_ref_censo_religiao) Generico: nao diz que e o ano do Censo de religiao (2000/2010) replicado sobre 1996-2015; mesmo padrao de ano_avs, ano_ideb, ano_eleicao, ano_inicio
 

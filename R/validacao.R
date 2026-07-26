@@ -1,13 +1,139 @@
 # Validação e controle de qualidade ------------------------------------------
 #
-# As doze checagens da seção 11.2 do plano. Cada uma nasceu de um defeito real
+# As checagens da seção 11.2 do plano. Cada uma nasceu de um defeito real
 # encontrado no levantamento do legado, e por isso o comentário de cada bloco
 # diz o que ela previne.
 #
-# Regra de bloqueio: um ERRO impede a publicação, sem exceção. Um AVISO entra no
-# relatório e exige justificativa registrada no campo observacoes da tabela. Um
-# aviso sem justificativa vira erro na publicação — sem isso, avisos viram
-# paisagem em poucas semanas e o sistema inteiro perde utilidade.
+# Regra de bloqueio, e desta vez ela é EXECUTADA e não só declarada:
+#
+#   - um ERRO impede a publicação, a menos que esteja reivindicado de antemão em
+#     qa/erros_aceitos.csv, com justificativa;
+#   - um AVISO exige justificativa registrada — em qa/justificativas.csv, ou no
+#     campo `problema` da variável que ele nomeia;
+#   - um aviso SEM justificativa vira erro.
+#
+# A auditoria de 26/07/2026 mostrou que nada disso era executado: o achado 22
+# mediu que nenhum caminho de escrita chamava esta função, e o achado 38 mediu
+# que a cláusula "aviso sem justificativa vira erro" não existia em código
+# nenhum. As duas frases estavam escritas em cinco arquivos e valiam zero.
+#
+# O número de checagens não é mais digitado. mape_validar_tabela() conta quantas
+# de fato rodaram e o relatório imprime esse número — porque a checagem 3 e a 6
+# desaparecem quando o diretório de municípios não pode ser lido (achado 83), e
+# antes disso o relatório dizia "as doze checagens passaram" mesmo assim.
+
+#' Lê o livro-caixa de justificativas de aviso
+#'
+#' @return Data frame com slug_tabela, checagem, coluna, justificativa.
+mape_justificativas <- function() {
+  caminho <- mape_caminho("qa", "justificativas.csv")
+  vazio <- data.frame(slug_tabela = character(), checagem = character(),
+                      coluna = character(), justificativa = character(),
+                      stringsAsFactors = FALSE)
+  if (!file.exists(caminho)) return(vazio)
+  r <- utils::read.csv(caminho, stringsAsFactors = FALSE, encoding = "UTF-8")
+  if (!nrow(r)) return(vazio)
+  r
+}
+
+#' Lê o livro-caixa de erros reivindicados
+#'
+#' Um erro só deixa de bloquear se estiver aqui, nomeado por tabela e checagem,
+#' com justificativa. É o análogo de qa/paridade_esperada.csv: reivindicar antes,
+#' nunca depois de ver o resultado.
+#'
+#' @return Data frame com slug_tabela, checagem, justificativa.
+mape_erros_aceitos <- function() {
+  caminho <- mape_caminho("qa", "erros_aceitos.csv")
+  vazio <- data.frame(slug_tabela = character(), checagem = character(),
+                      justificativa = character(), stringsAsFactors = FALSE)
+  if (!file.exists(caminho)) return(vazio)
+  r <- utils::read.csv(caminho, stringsAsFactors = FALSE, encoding = "UTF-8")
+  if (!nrow(r)) return(vazio)
+  r
+}
+
+#' Anexa a justificativa de cada achado, e promove aviso sem justificativa a erro
+#'
+#' Três fontes de justificativa, nesta ordem:
+#'   1. qa/justificativas.csv, casando tabela + checagem (+ coluna, se declarada);
+#'   2. o campo `problema` da variável nomeada no achado, em variaveis.csv;
+#'   3. qa/erros_aceitos.csv, que rebaixa um erro reivindicado a aviso justificado.
+#'
+#' O campo `observacoes` da tabela NÃO conta como justificativa de aviso, de
+#' propósito: texto livre no nível da tabela não prova que *este* aviso foi
+#' justificado, que é a crítica do achado 38. Ele continua valendo como contexto
+#' e é impresso no relatório.
+#'
+#' @param res Data frame de achados.
+#' @param tabela Identificador da tabela.
+#' @return O mesmo data frame, com as colunas justificada e justificativa, e as
+#'   gravidades já ajustadas.
+mape_aplicar_justificativas <- function(res, tabela) {
+  if (!nrow(res)) {
+    res$justificada <- logical(0)
+    res$justificativa <- character(0)
+    return(res)
+  }
+  res$justificada <- FALSE
+  res$justificativa <- NA_character_
+
+  just <- mape_justificativas()
+  aceitos <- mape_erros_aceitos()
+  vars <- tryCatch(mape_dicionario("variaveis"), error = function(e) NULL)
+
+  # A descrição de um achado de schema começa com "<coluna>: ...".
+  coluna_do_achado <- function(desc) {
+    m <- regmatches(desc, regexpr("^[a-z][a-z0-9_]*(?=:)", desc, perl = TRUE))
+    if (length(m)) m else NA_character_
+  }
+
+  for (i in seq_len(nrow(res))) {
+    col <- coluna_do_achado(res$descricao[i])
+
+    # 1. livro-caixa de justificativas
+    j <- just[just$slug_tabela == tabela & just$checagem == res$checagem[i], , drop = FALSE]
+    if (nrow(j)) {
+      j <- j[is.na(j$coluna) | j$coluna == "*" | j$coluna == "" |
+               (!is.na(col) & j$coluna == col), , drop = FALSE]
+    }
+    if (nrow(j)) {
+      res$justificada[i] <- TRUE
+      res$justificativa[i] <- j$justificativa[1]
+      next
+    }
+
+    # 2. campo `problema` da variável nomeada
+    if (!is.na(col) && !is.null(vars)) {
+      linha <- vars[vars$nome_canonico == col, , drop = FALSE]
+      prob <- linha$problema[nzchar(trimws(as.character(linha$problema)))]
+      prob <- prob[!is.na(prob)]
+      if (length(prob)) {
+        res$justificada[i] <- TRUE
+        res$justificativa[i] <- paste0("problema da variável ", col, ": ", prob[1])
+        next
+      }
+    }
+
+    # 3. erro reivindicado
+    if (res$gravidade[i] == "erro") {
+      a <- aceitos[aceitos$slug_tabela == tabela & aceitos$checagem == res$checagem[i], ,
+                   drop = FALSE]
+      if (nrow(a)) {
+        res$justificada[i] <- TRUE
+        res$justificativa[i] <- a$justificativa[1]
+        res$gravidade[i] <- "aviso"   # reivindicado: deixa de bloquear
+      }
+    }
+  }
+
+  # A cláusula que faltava: aviso sem justificativa vira erro.
+  promove <- res$gravidade == "aviso" & !res$justificada
+  res$gravidade[promove] <- "erro"
+  res$descricao[promove] <- paste0(res$descricao[promove],
+                                   " [aviso sem justificativa registrada]")
+  res
+}
 
 #' Roda todas as checagens sobre uma tabela
 #'
@@ -17,9 +143,11 @@
 #' @param diretorio Diretório de municípios. Se NULL, lê o publicado, exceto
 #'   quando a própria tabela for o diretório.
 #' @param erro Se TRUE, falha ao encontrar problema bloqueante.
+#' @param gravar Se TRUE, escreve qa/<slug>.md. Passe FALSE para validar sem
+#'   sujar a árvore versionada (achado 59).
 #' @return Invisivelmente, um data frame com uma linha por problema.
 mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
-                                erro = TRUE) {
+                                erro = TRUE, gravar = TRUE) {
   achados <- list()
   reg <- function(checagem, gravidade, descricao) {
     achados[[length(achados) + 1]] <<- data.frame(
@@ -27,6 +155,10 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
       descricao = descricao, stringsAsFactors = FALSE
     )
   }
+  # Quantas checagens de fato rodaram. O relatório imprime este número em vez
+  # de afirmar doze — ver o cabeçalho e o achado 83.
+  executadas <- character()
+  rodou <- function(...) executadas <<- unique(c(executadas, c(...)))
 
   # A chave primária vem do dicionário; digitar de novo aqui seria repetir a
   # fonte de verdade.
@@ -44,6 +176,7 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
   # -- 1. Unicidade da chave primária ---------------------------------------
   # Previne: 222 chaves duplicadas em Finanças, 54 nos dados históricos.
   if (length(chaves)) {
+    rodou("chave_unica", "chave_sem_na")
     d <- tryCatch(mape_validar_chave(x, chaves, erro = FALSE),
                   warning = function(w) suppressWarnings(
                     mape_validar_chave(x, chaves, erro = FALSE)))
@@ -71,6 +204,7 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
       TRUE
     }, error = function(e) FALSE)
     if (dir_ok) {
+      rodou("dominio_chave", "cobertura_municipios")
       dd <- suppressWarnings(
         mape_validar_dominio_chave(x, diretorio = diretorio, erro_se_exceder = FALSE)
       )
@@ -91,11 +225,17 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
                    round(100 * dd$cobertura_municipios, 1),
                    "% dos municípios do diretório"))
       }
+    } else {
+      # Achado 83: sem esta linha, as checagens 3 e 6 sumiam sem deixar rastro e
+      # o relatório continuava dizendo que tudo passou.
+      reg("dominio_chave", "aviso",
+          "diretório de municípios indisponível: as checagens de domínio de chave e de cobertura de municípios NÃO rodaram")
     }
   }
 
   # -- 4, 9, 10. Tipos, domínio de valor e coerência sufixo/escala ----------
   if (mape_tabela_no_dicionario(tabela)) {
+    rodou("tipos", "dominio_valor", "sufixo_escala")
     prob <- tryCatch(
       suppressWarnings(mape_validar_schema(x, tabela, erro = FALSE)),
       error = function(e) NULL
@@ -114,6 +254,7 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
   # -- 5. Faixa de anos declarada contra observada --------------------------
   # Previne: cinco bases anunciando 2024 num painel que termina em 2023.
   if ("ano" %in% names(x) && any(!is.na(x$ano))) {
+    rodou("faixa_anos")
     obs <- range(x$ano, na.rm = TRUE)
     painel <- mape_param("anos_painel")
     if (obs[1] < painel[1] || obs[2] > painel[2]) {
@@ -127,6 +268,7 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
   # Previne: pontos (ln.pc.receita1920.sd), Title Case com acento
   # (Comércio.e.serviços), maiúsculas (NM_UF) e os prefixos genéricos total_ e
   # quantidade_, usados em sete dimensões para coisas sem relação entre si.
+  rodou("nomes_colunas")
   ruins <- names(x)[!grepl("^[a-z][a-z0-9_]*$", names(x))]
   if (length(ruins)) {
     reg("nomes_colunas", "erro",
@@ -141,6 +283,7 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
   }
 
   # -- 8. Sentinelas não convertidos ----------------------------------------
+  rodou("sentinelas")
   sent <- mape_detectar_sentinelas(x)
   if (nrow(sent)) {
     reg("sentinelas", "erro",
@@ -153,6 +296,7 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
   # Previne: log10() aplicado sem tratar zeros. No dado publicado hoje isso não
   # se manifesta, porque nenhum município-ano tem PIB igual a zero, mas o
   # defeito é latente e reapareceria numa reextração.
+  rodou("valores_infinitos")
   for (nm in names(x)) {
     if (is.numeric(x[[nm]]) && any(is.infinite(x[[nm]]))) {
       reg("valores_infinitos", "erro",
@@ -165,11 +309,16 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
                gravidade = character(), descricao = character(),
                stringsAsFactors = FALSE)
 
-  mape_gravar_relatorio_qa(res, tabela, x)
+  # É aqui que a regra declarada passa a valer: aviso justificado continua
+  # aviso, erro reivindicado vira aviso, e aviso sem justificativa vira erro.
+  res <- mape_aplicar_justificativas(res, tabela)
+
+  if (gravar) mape_gravar_relatorio_qa(res, tabela, x, length(executadas))
 
   n_erro  <- sum(res$gravidade == "erro")
   n_aviso <- sum(res$gravidade == "aviso")
-  message(sprintf("[QA] %s: %d erro(s), %d aviso(s)", tabela, n_erro, n_aviso))
+  message(sprintf("[QA] %s: %d erro(s), %d aviso(s), %d checagem(ns) executada(s)",
+                  tabela, n_erro, n_aviso, length(executadas)))
   if (n_aviso) {
     for (i in which(res$gravidade == "aviso")) {
       message("      aviso  ", res$checagem[i], ": ", res$descricao[i])
@@ -179,9 +328,49 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
     stop("Validação bloqueou a publicação de '", tabela, "':\n",
          paste0("  - ", res$checagem[res$gravidade == "erro"], ": ",
                 res$descricao[res$gravidade == "erro"], collapse = "\n"),
+         "\n\nUm aviso sem justificativa aparece aqui como erro. Registre a ",
+         "justificativa em qa/justificativas.csv (ou no campo `problema` da ",
+         "variável), ou reivindique o erro em qa/erros_aceitos.csv.",
          call. = FALSE)
   }
   invisible(res)
+}
+
+#' Defeitos declarados de uma tabela, lidos do dicionário
+#'
+#' Achado 31: nenhum dos defeitos que o próprio repositório declara era detectado
+#' por checagem automática, e cinco das sete tabelas afetadas recebiam o atestado
+#' "as doze checagens passaram". As checagens continuam não detectando o que não
+#' sabem procurar — mas o relatório passa a dizer o que a tabela declara.
+#'
+#' @param tabela Identificador da tabela.
+#' @return Vetor de textos, possivelmente vazio.
+mape_defeitos_declarados <- function(tabela) {
+  out <- character()
+
+  tabs <- tryCatch(mape_dicionario("tabelas"), error = function(e) NULL)
+  if (!is.null(tabs) && tabela %in% tabs$slug_tabela) {
+    obs <- tabs$observacoes[tabs$slug_tabela == tabela][1]
+    if (!is.na(obs) && nzchar(trimws(obs))) {
+      # Os marcadores em aberto são os que não estão marcados CORRIGIDO.
+      pedacos <- unlist(strsplit(obs, "(?<=[.])\\s+(?=[A-ZÀ-Ú])", perl = TRUE))
+      abertos <- pedacos[grepl("DEFEITO|LIMITA|ATEN|RESSALVA|PROBLEMA", pedacos) &
+                           !grepl("CORRIGIDO", pedacos)]
+      if (length(abertos)) out <- c(out, paste0("(tabela) ", abertos))
+    }
+  }
+
+  vars <- tryCatch(mape_dicionario("variaveis"), error = function(e) NULL)
+  if (!is.null(vars)) {
+    v <- vars[vars$tabela == tabela, , drop = FALSE]
+    if (nrow(v)) {
+      tem <- !is.na(v$problema) & nzchar(trimws(as.character(v$problema)))
+      if (any(tem)) {
+        out <- c(out, paste0("(", v$nome_canonico[tem], ") ", v$problema[tem]))
+      }
+    }
+  }
+  out
 }
 
 #' Grava o relatório de qualidade de uma tabela
@@ -189,8 +378,10 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
 #' @param res Data frame de problemas.
 #' @param tabela Identificador da tabela.
 #' @param x A tabela validada, usada para o resumo quantitativo.
+#' @param n_checagens Quantas checagens de fato rodaram. O relatório imprime
+#'   este número; antes ele afirmava doze mesmo quando duas não tinham rodado.
 #' @return Invisivelmente, o caminho do relatório.
-mape_gravar_relatorio_qa <- function(res, tabela, x = NULL) {
+mape_gravar_relatorio_qa <- function(res, tabela, x = NULL, n_checagens = NA_integer_) {
   destino <- mape_caminho("qa", paste0(gsub("/", "__", tabela), ".md"))
   dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
 
@@ -203,19 +394,50 @@ mape_gravar_relatorio_qa <- function(res, tabela, x = NULL) {
       "## Resumo", "",
       paste0("- linhas: ", formatC(nrow(x), format = "d", big.mark = ".", decimal.mark = ",")),
       paste0("- colunas: ", ncol(x)),
-      paste0("- células vazias: ",
+      # Achado 64: o rótulo diz agora QUAL das duas medidas de vazio é esta. A
+      # outra, sobre colunas de conteúdo, fica no .md da dimensão.
+      paste0("- células vazias (todas as colunas): ",
              round(100 * mean(is.na(x)), 2), "%"),
       "")
   }
+
   linhas <- c(linhas, "## Checagens", "")
+  quantas <- if (is.na(n_checagens)) "as" else paste("as", n_checagens)
   if (!nrow(res)) {
-    linhas <- c(linhas, "Nenhum problema. As doze checagens passaram.", "")
+    linhas <- c(linhas,
+                paste0("Nenhum problema automático: ", quantas,
+                       " checagens executadas passaram."), "")
   } else {
-    linhas <- c(linhas, "| checagem | gravidade | descrição |",
-                "|---|---|---|",
-                paste0("| ", res$checagem, " | ", res$gravidade, " | ",
-                       gsub("[|]", "/", res$descricao), " |"), "")
+    tem_just <- "justificativa" %in% names(res)
+    linhas <- c(linhas,
+      paste0("Checagens executadas: ", if (is.na(n_checagens)) "?" else n_checagens, "."), "",
+      if (tem_just) "| checagem | gravidade | descrição | justificativa |" else
+        "| checagem | gravidade | descrição |",
+      if (tem_just) "|---|---|---|---|" else "|---|---|---|",
+      paste0("| ", res$checagem, " | ", res$gravidade, " | ",
+             gsub("[|]", "/", res$descricao),
+             if (tem_just) paste0(" | ", gsub("[|]", "/", ifelse(is.na(res$justificativa),
+                                                                 "— sem justificativa —",
+                                                                 res$justificativa))) else "",
+             " |"), "")
   }
+
+  # Achado 31: o que a tabela declara sobre si mesma, ao lado do que as
+  # checagens acharam. Sem esta seção, uma tabela com defeito conhecido e
+  # declarado recebia um relatório que só dizia "passou".
+  declarados <- tryCatch(mape_defeitos_declarados(tabela), error = function(e) character())
+  linhas <- c(linhas, "## Defeitos declarados no dicionário", "")
+  if (!length(declarados)) {
+    linhas <- c(linhas, "Nenhum.", "")
+  } else {
+    linhas <- c(linhas,
+      paste0("Estes ", length(declarados), " defeito(s) estão declarados no ",
+             "dicionário e **não** são detectados pelas checagens automáticas ",
+             "acima. Um relatório limpo não significa uma tabela sem defeito."),
+      "",
+      paste0("- ", gsub("\n", " ", declarados)), "")
+  }
+
   writeLines(linhas, destino, useBytes = TRUE)
   invisible(destino)
 }

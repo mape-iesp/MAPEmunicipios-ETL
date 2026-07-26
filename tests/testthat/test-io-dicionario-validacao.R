@@ -105,10 +105,14 @@ test_that("mape_campos_calculados devolve uma linha por coluna", {
 
 # ---- Validação --------------------------------------------------------------
 
-test_that("a tabela do diretório passa nas doze checagens", {
+test_that("a tabela do diretório passa em todas as checagens executadas", {
   skip_if_not(tabela_existe())
   x <- mape_ler_tabela("00_diretorios/municipios")
-  res <- mape_validar_tabela(x, "00_diretorios/municipios", erro = FALSE)
+  # gravar = FALSE: sem isto, a suíte reescrevia qa/00_diretorios__municipios.md,
+  # que é versionado, a cada execução (achado 59). O nome do teste também dizia
+  # "doze checagens", número que o código nunca executou.
+  res <- suppressMessages(
+    mape_validar_tabela(x, "00_diretorios/municipios", erro = FALSE, gravar = FALSE))
   expect_equal(sum(res$gravidade == "erro"), 0)
 })
 
@@ -116,38 +120,145 @@ test_that("a validação bloqueia nome de coluna fora do padrão", {
   x <- data.frame(id_municipio = "1100015", `ln.pc.receita1920.sd` = 1,
                   check.names = FALSE, stringsAsFactors = FALSE)
   res <- suppressWarnings(
-    mape_validar_tabela(x, "00_diretorios/municipios", chaves = "id_municipio",
-                        erro = FALSE)
+    mape_validar_tabela(x, "teste/sintetico", chaves = "id_municipio",
+                        erro = FALSE, gravar = FALSE)
   )
   expect_true(any(res$checagem == "nomes_colunas" & res$gravidade == "erro"))
 })
 
-test_that("a validação sinaliza os prefixos genéricos banidos", {
+test_that("a validação sinaliza os prefixos genéricos banidos, e sem justificativa isso bloqueia", {
   x <- data.frame(id_municipio = "1100015", total_desastres = 1,
                   quantidade_estupro = 2, stringsAsFactors = FALSE)
-  res <- suppressWarnings(
-    mape_validar_tabela(x, "00_diretorios/municipios", chaves = "id_municipio",
-                        erro = FALSE)
-  )
-  expect_true(any(res$checagem == "nomes_colunas" & res$gravidade == "aviso"))
+  res <- suppressWarnings(suppressMessages(
+    mape_validar_tabela(x, "teste/sintetico", chaves = "id_municipio",
+                        erro = FALSE, gravar = FALSE)
+  ))
+  expect_true(any(res$checagem == "nomes_colunas"))
+
+  # Achado 38: a regra "aviso sem justificativa vira erro" estava escrita em
+  # cinco arquivos e não existia em código. Agora existe: este aviso não tem
+  # linha em qa/justificativas.csv, então ele sobe para erro e bloqueia.
+  i <- which(res$checagem == "nomes_colunas")
+  expect_equal(res$gravidade[i], "erro")
+  expect_false(res$justificada[i])
+  expect_match(res$descricao[i], "sem justificativa registrada")
+})
+
+test_that("o mesmo aviso, uma vez justificado, deixa de bloquear", {
+  raiz <- withr::local_tempdir()
+  dir.create(file.path(raiz, "config"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(raiz, "qa"), recursive = TRUE, showWarnings = FALSE)
+  file.copy(here::here("config", "parametros.yml"), file.path(raiz, "config"))
+  utils::write.csv(
+    data.frame(slug_tabela = "teste/sintetico", checagem = "nomes_colunas",
+               coluna = "*", justificativa = "nomes herdados da fonte, renomeio agendado",
+               stringsAsFactors = FALSE),
+    file.path(raiz, "qa", "justificativas.csv"), row.names = FALSE)
+  withr::local_options(mape.raiz = raiz)
+  rm(list = ls(.mape_cache_param), envir = .mape_cache_param)
+  withr::defer(rm(list = ls(.mape_cache_param), envir = .mape_cache_param))
+
+  x <- data.frame(id_municipio = "1100015", total_desastres = 1,
+                  stringsAsFactors = FALSE)
+  res <- suppressWarnings(suppressMessages(
+    mape_validar_tabela(x, "teste/sintetico", chaves = "id_municipio",
+                        erro = FALSE, gravar = FALSE)
+  ))
+  i <- which(res$checagem == "nomes_colunas")
+  expect_equal(res$gravidade[i], "aviso")
+  expect_true(res$justificada[i])
+  expect_match(res$justificativa[i], "renomeio agendado")
+})
+
+test_that("um erro reivindicado em qa/erros_aceitos.csv deixa de bloquear", {
+  raiz <- withr::local_tempdir()
+  dir.create(file.path(raiz, "config"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(raiz, "qa"), recursive = TRUE, showWarnings = FALSE)
+  file.copy(here::here("config", "parametros.yml"), file.path(raiz, "config"))
+  withr::local_options(mape.raiz = raiz)
+  rm(list = ls(.mape_cache_param), envir = .mape_cache_param)
+  withr::defer(rm(list = ls(.mape_cache_param), envir = .mape_cache_param))
+
+  x <- data.frame(id_municipio = c("1100015", "1100015"),
+                  stringsAsFactors = FALSE)
+
+  # Sem reivindicação: a chave duplicada bloqueia.
+  res <- suppressWarnings(suppressMessages(
+    mape_validar_tabela(x, "teste/sintetico", chaves = "id_municipio",
+                        erro = FALSE, gravar = FALSE)))
+  expect_equal(res$gravidade[res$checagem == "chave_unica"], "erro")
+
+  # Com reivindicação: vira aviso justificado, e a justificativa aparece.
+  utils::write.csv(
+    data.frame(slug_tabela = "teste/sintetico", checagem = "chave_unica",
+               justificativa = "duplicata herdada da fonte, mantida de proposito",
+               stringsAsFactors = FALSE),
+    file.path(raiz, "qa", "erros_aceitos.csv"), row.names = FALSE)
+  res <- suppressWarnings(suppressMessages(
+    mape_validar_tabela(x, "teste/sintetico", chaves = "id_municipio",
+                        erro = FALSE, gravar = FALSE)))
+  i <- which(res$checagem == "chave_unica")
+  expect_equal(res$gravidade[i], "aviso")
+  expect_match(res$justificativa[i], "mantida de proposito")
 })
 
 test_that("a validação detecta chave duplicada e chave nula", {
   x <- data.frame(id_municipio = c("1100015", "1100015", NA),
                   stringsAsFactors = FALSE)
   res <- suppressWarnings(
-    mape_validar_tabela(x, "00_diretorios/municipios", chaves = "id_municipio",
-                        erro = FALSE)
+    mape_validar_tabela(x, "teste/sintetico", chaves = "id_municipio",
+                        erro = FALSE, gravar = FALSE)
   )
   expect_true(any(res$checagem == "chave_unica" & res$gravidade == "erro"))
   expect_true(any(res$checagem == "chave_sem_na" & res$gravidade == "erro"))
 })
 
-test_that("a validação grava o relatório em qa/", {
-  skip_if_not(tabela_existe())
-  x <- mape_ler_tabela("00_diretorios/municipios")
-  suppressWarnings(mape_validar_tabela(x, "00_diretorios/municipios", erro = FALSE))
-  expect_true(file.exists(here::here("qa", "00_diretorios__municipios.md")))
+test_that("a validação grava o relatório em qa/, e o conteúdo depende da tabela", {
+  # Achado 60: este teste era vácuo — asserta file.exists() sobre um arquivo
+  # VERSIONADO, então passava com a gravação inteiramente desligada.
+  # Achado 59: e, ao rodar, reescrevia o relatório publicado do diretório com o
+  # conteúdo de uma fixture, sujando a árvore a cada execução da suíte.
+  # Agora grava num tempdir, sob um slug de teste, e confere o conteúdo.
+  raiz <- withr::local_tempdir()
+  dir.create(file.path(raiz, "config"), recursive = TRUE, showWarnings = FALSE)
+  file.copy(here::here("config", "parametros.yml"), file.path(raiz, "config"))
+  withr::local_options(mape.raiz = raiz)
+  rm(list = ls(.mape_cache_param), envir = .mape_cache_param)
+  withr::defer(rm(list = ls(.mape_cache_param), envir = .mape_cache_param))
+
+  x <- data.frame(id_municipio = c("1100015", "3304557", "3550308"),
+                  ano = c(2020L, 2020L, 2020L), valor_i = c(1L, 2L, 3L),
+                  stringsAsFactors = FALSE)
+  destino <- file.path(raiz, "qa", "teste__sintetico.md")
+  expect_false(file.exists(destino))
+
+  suppressWarnings(suppressMessages(
+    mape_validar_tabela(x, "teste/sintetico", chaves = c("id_municipio", "ano"),
+                        erro = FALSE)))
+
+  expect_true(file.exists(destino))
+  conteudo <- readLines(destino, warn = FALSE)
+  # O relatório mede a tabela que recebeu: 3 linhas, 3 colunas.
+  expect_true(any(grepl("linhas: 3", conteudo)))
+  expect_true(any(grepl("colunas: 3", conteudo)))
+})
+
+test_that("gravar = FALSE valida sem escrever nada", {
+  # Achado 59: mape_validar_tabela() gravava em qa/ incondicionalmente, então
+  # não havia como rodar a validação sem sujar a árvore versionada.
+  raiz <- withr::local_tempdir()
+  dir.create(file.path(raiz, "config"), recursive = TRUE, showWarnings = FALSE)
+  file.copy(here::here("config", "parametros.yml"), file.path(raiz, "config"))
+  withr::local_options(mape.raiz = raiz)
+  rm(list = ls(.mape_cache_param), envir = .mape_cache_param)
+  withr::defer(rm(list = ls(.mape_cache_param), envir = .mape_cache_param))
+
+  x <- data.frame(id_municipio = "1100015", ano = 2020L, valor_i = 1L,
+                  stringsAsFactors = FALSE)
+  suppressWarnings(suppressMessages(
+    mape_validar_tabela(x, "teste/sintetico", chaves = c("id_municipio", "ano"),
+                        erro = FALSE, gravar = FALSE)))
+  expect_false(file.exists(file.path(raiz, "qa", "teste__sintetico.md")))
 })
 
 # ---- Parâmetros -------------------------------------------------------------

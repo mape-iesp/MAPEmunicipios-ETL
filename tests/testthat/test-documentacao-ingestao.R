@@ -9,8 +9,12 @@ test_that("mape_recalcular_campos mede o arquivo e não confia no declarado", {
   vars <- mape_recalcular_campos("02_populacao", gravar = FALSE)
   x <- mape_ler_tabela("02_populacao", camada = "dimensao")
 
+  # Achado 60: aqui havia skip_if(length(j) != 1), condicionado ao RESULTADO da
+  # função sob teste. Se mape_recalcular_campos() devolvesse lixo, o teste
+  # pulava em silêncio em vez de falhar. Uma variável publicada que sumiu do
+  # dicionário é regressão, não motivo de pular.
   j <- which(vars$nome_canonico == "populacao_residente_i")
-  skip_if(length(j) != 1, "variável não encontrada no dicionário")
+  expect_equal(length(j), 1)
 
   expect_equal(vars$tipo_real[j], class(x$populacao_residente_i)[1])
   expect_equal(vars$pct_na[j],
@@ -70,12 +74,25 @@ test_that("mape_nova_fonte cria o esqueleto completo", {
   skip_if(is.na(col), "dicionário de dimensões sem coluna de slug")
   d <- dims[[col]][1]
 
+  # Achado 87: este teste setava MAPE_RAIZ, que NÃO era lido por lugar nenhum do
+  # código, e por isso criava fontes/00_diretorios/fonte_de_teste_tmp/ dentro do
+  # repositório real. O isolamento era só aparente — pior que nenhum, porque um
+  # leitor futuro confiaria nele. Agora mape_caminho() tem âncora de verdade.
   raiz <- withr::local_tempdir()
-  withr::local_envvar(MAPE_RAIZ = raiz)
-  # mape_caminho() ancora na raiz do repositório; para não sujar a árvore real,
-  # o teste cria e apaga a pasta no fim.
+  dir.create(file.path(raiz, "config"), recursive = TRUE, showWarnings = FALSE)
+  file.copy(here::here("config", "parametros.yml"), file.path(raiz, "config"))
+  dir.create(file.path(raiz, "dicionario"), recursive = TRUE, showWarnings = FALSE)
+  for (f in list.files(here::here("dicionario"), pattern = "[.]csv$", full.names = TRUE)) {
+    file.copy(f, file.path(raiz, "dicionario"))
+  }
+  withr::local_options(mape.raiz = raiz)
+  rm(list = ls(.mape_cache_param), envir = .mape_cache_param)
+  withr::defer(rm(list = ls(.mape_cache_param), envir = .mape_cache_param))
+
   pasta <- mape_caminho("fontes", d, "fonte_de_teste_tmp")
-  withr::defer(unlink(pasta, recursive = TRUE))
+  # A pasta tem de nascer DENTRO do tempdir. Se a âncora deixar de funcionar,
+  # este teste falha em vez de sujar a árvore de novo.
+  expect_true(startsWith(pasta, raiz))
 
   suppressMessages(mape_nova_fonte(d, "fonte_de_teste_tmp"))
 
