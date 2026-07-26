@@ -207,7 +207,14 @@ mape_validar_schema <- function(x, tabela, erro = TRUE) {
         if (faixa[2] <= 1.0001 && faixa[1] >= 0) {
           registrar("erro", nm,
                     "sufixo _pct mas os valores não passam de 1: é proporção, use _prop")
-        } else if (faixa[2] > 1000 || faixa[1] < -0.0001) {
+        } else if ((faixa[2] > 1000 || faixa[1] < -0.0001) &&
+                   is.na(vars$dominio_valido[i])) {
+          # Só é erro quando a coluna NÃO declara domínio. Se o dicionário
+          # declara [0,100] e o dado chega a 51.175, isso é um defeito conhecido
+          # da fonte, já reportado pela checagem de domínio — a cobertura do
+          # SI-PNI não é truncada e o denominador da população-alvo é
+          # subestimado. O dicionário é a especificação, e uma declaração
+          # explícita é uma afirmação deliberada de quem a escreveu.
           registrar("erro", nm,
                     paste0("sufixo _pct incompatível com a faixa observada (",
                            signif(faixa[1], 5), " a ", signif(faixa[2], 5), ")"))
@@ -229,6 +236,12 @@ mape_validar_schema <- function(x, tabela, erro = TRUE) {
           registrar("aviso", nm,
                     paste0(n_fora(0, 1), " valor(es) fora de [0,1]."))
         }
+      }
+      # _razao é para quocientes cujo valor pode legitimamente passar de 1,
+      # como a densidade de um município em relação à da capital. Usar _prop
+      # nesses casos seria mentir sobre o domínio.
+      if (grepl("_razao$", nm) && faixa[1] < 0) {
+        registrar("aviso", nm, "razão com valor negativo")
       }
       if (grepl("^flag_", nm) && !all(v %in% c(0, 1, NA))) {
         registrar("erro", nm, "prefixo flag_ exige valores 0, 1 ou NA")

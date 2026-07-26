@@ -1,0 +1,13 @@
+dimensao,coluna,motivo
+13_seguranca,*,"Recuperação de tipo. As colunas quantidade_* do Anuário FBSP estão como TEXTO na base publicada, porque seguranca.R:35 converte para numérico apenas as colunas 3 a 38 de um objeto que tem 68. A migração recupera o tipo numérico, e por isso os valores comparam diferente contra a referência textual."
+11_transportes,municipio_tarifa_zero,"Coluna removida de propósito: é o nome do município, redundante com nome_municipio de 00_diretorios, e estava preenchida em apenas 10 linhas. O bloco territorial passa a existir só no diretório."
+04_economia,populacao,"Coluna removida de propósito: é uma segunda extração da mesma tabela do IBGE já publicada em 02_populacao, idêntica em 100% das linhas comparáveis. A duplicação fazia a mesma consulta ser faturada duas vezes."
+04_economia,id_municipio_nome,"Coluna removida de propósito: é o nome do município com prefixo id_, redundante com nome_municipio de 00_diretorios."
+08_energia_internet,nome_municipio,"Coluna removida de propósito: pertence ao bloco territorial, que passa a existir só em 00_diretorios."
+10_saude,nome,"Coluna removida de propósito: vazou do IEPS por ausência de select em saude.R e é redundante com nome_municipio de 00_diretorios."
+10_saude,sigla_uf,"Coluna removida de propósito: é a origem do defeito de sigla_uf na base publicada, que tem apenas 33.420 valores preenchidos porque vem do IEPS em vez do diretório."
+13_seguranca,sigla_uf_nome,"Coluna removida de propósito: o prefixo sigla_ está num campo que contém o NOME da UF por extenso, e ela é redundante com nome_uf de 00_diretorios."
+13_seguranca,id_municipio_nome,"Coluna removida de propósito: nome do município com prefixo id_, redundante com o diretório."
+02_populacao,*,"42 linhas com id_municipio nulo eliminadas na origem. São linhas fantasma que atravessavam o pipeline e das quais 13 sobreviviam no artefato publicado."
+07_recursos_humanos,*,"81 linhas com id_municipio nulo eliminadas na origem. São as 80 linhas fantasma da planilha MUNIC de 2019, que contêm apenas o caractere '-', mais uma linha de 2011."
+08_energia_internet,*,"137 linhas com ano nulo eliminadas na origem."

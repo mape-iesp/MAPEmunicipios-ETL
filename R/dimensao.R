@@ -130,6 +130,22 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
     stop("Base de referência não encontrada: ", referencia, call. = FALSE)
   }
 
+  # As correções são reivindicadas ANTES de rodar, em qa/paridade_esperada.csv.
+  # Um teste em que se pode justificar qualquer diferença depois de ver o
+  # resultado não testa nada. A linha com coluna "*" vale para a dimensão
+  # inteira, e serve para correções que afetam muitas colunas de uma vez, como
+  # a recuperação de tipo na Segurança.
+  if (is.null(esperadas)) {
+    arq <- mape_caminho("qa", "paridade_esperada.csv")
+    if (file.exists(arq)) {
+      todas <- utils::read.csv(arq, stringsAsFactors = FALSE, encoding = "UTF-8")
+      esperadas <- todas[todas$dimensao == dimensao, c("coluna", "motivo")]
+    }
+  }
+  curinga <- if (!is.null(esperadas) && "*" %in% esperadas$coluna) {
+    esperadas$motivo[esperadas$coluna == "*"][1]
+  } else NA_character_
+
   amb <- new.env()
   nome <- load(referencia, envir = amb)
   antiga <- get(nome, envir = amb)
@@ -159,8 +175,14 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
   for (col_antiga in cols_antigas) {
     col_nova <- mapa[[col_antiga]]
     if (!col_nova %in% names(nova)) {
-      reg(col_antiga, "c_nao_explicada",
-          paste0("coluna ausente na tabela nova (esperava '", col_nova, "')"))
+      motivo_aus <- if (!is.null(esperadas) && col_antiga %in% esperadas$coluna) {
+        esperadas$motivo[esperadas$coluna == col_antiga][1]
+      } else NA_character_
+      reg(col_antiga,
+          if (is.na(motivo_aus)) "c_nao_explicada" else "a_correcao_reivindicada",
+          if (is.na(motivo_aus))
+            paste0("coluna ausente na tabela nova (esperava '", col_nova, "')")
+          else paste0("removida de propósito: ", motivo_aus))
       next
     }
     if (col_antiga != col_nova) {
@@ -189,7 +211,7 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
     if (n_dif > 0) {
       motivo <- if (!is.null(esperadas) && col_antiga %in% esperadas$coluna) {
         esperadas$motivo[esperadas$coluna == col_antiga][1]
-      } else NA_character_
+      } else curinga
       reg(col_antiga,
           if (is.na(motivo)) "c_nao_explicada" else "a_correcao_reivindicada",
           paste0(n_dif, " de ", nrow(m), " valores diferem",
