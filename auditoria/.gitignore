@@ -1,0 +1,7 @@
+# Não versionar
+
+# Detalhes do vazamento, mantidos só localmente
+*.local.md
+
+# Rascunhos das seções: o conteúdo íntegro já está em CONSOLIDADO.md
+secoes/
