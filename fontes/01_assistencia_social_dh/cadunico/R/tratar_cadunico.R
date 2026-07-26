@@ -17,13 +17,16 @@
 #   interpretação da série e por isso está na descrição das variáveis.
 
 tratar_cadunico <- function(origem = NULL) {
-  if (is.null(origem)) {
-    origem <- file.path(
-      mape_caminho("mape_municipios", "1 Dimensões Individuais",
-                   "8 Assistência Social e Direitos Humanos - Códigos e Dados"),
-      "CadUnico", "2_output", "cadunico.csv"
-    )
-  }
+  # O slug fica DENTRO da função, e não numa constante global. Com `FONTE` no
+  # topo do arquivo, carregar dois scripts de tratamento na mesma sessão faz o
+  # segundo sobrescrever o primeiro em silêncio — e o `targets` carrega todos.
+  fonte <- "01_assistencia_social_dh/cadunico"
+
+  # O bruto vive em raw/, sob manifesto, e não mais dentro da árvore legada.
+  # Enquanto a leitura apontava para o legado, apagar os 18 GB quebrava este
+  # alvo — o que na prática amarrava o repositório a uma pasta que ele existe
+  # para substituir.
+  if (is.null(origem)) origem <- mape_verificar_raw(fonte, "cadunico.csv")
   bruto <- utils::read.csv(origem, stringsAsFactors = FALSE, encoding = "UTF-8")
   message("bruto: ", nrow(bruto), " linhas x ", ncol(bruto), " colunas")
 

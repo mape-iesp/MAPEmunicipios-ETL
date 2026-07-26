@@ -1,0 +1,24 @@
+fonte: cadunico
+dimensao: 01_assistencia_social_dh
+orgao: MDS/SAGI — Secretaria de Avaliacao e Gestao da Informacao
+url: https://aplicacoes.mds.gov.br/sagi/vis/data3/
+arquivo_local: cadunico.csv
+versao_fonte: ~
+data_download: ~
+baixado_por: ~
+sha256: 69411825f679c1f585eb62f3f00abf99b8bcabceb478283e4b2359271db6a942
+licenca: dados publicos federais, compativeis com atribuicao
+automatizavel: parcial
+nota: >
+  A origem desta fonte esteve perdida. O inventario a registrava como "arquivo
+  local sem origem", e uma busca por 'cadun', 'anomes_s' e 'http' em toda a
+  arvore legada nao retornava nada. Foi identificada durante o planejamento
+  como o indicador IN004 do Cadastro Unico, publicado pela SAGI.
+
+  O arquivo veio da arvore legada em 26/07/2026, de
+  "1 Dimensoes Individuais/8 Assistencia Social e Direitos Humanos - Codigos e
+  Dados/CadUnico/2_output/cadunico.csv", e passou a viver aqui para que o
+  tratamento nao dependa mais do legado. O sha256 acima e o do arquivo copiado.
+
+  A data e a versao ficam em branco de proposito: nao se sabe quando o arquivo
+  original foi baixado. Na primeira reextracao, preencher os dois.

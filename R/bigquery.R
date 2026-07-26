@@ -155,7 +155,11 @@ mape_verificar_raw <- function(fonte, arquivo = NULL) {
          "  esperado: ", esperado, "\n  observado: ", observado, "\n",
          "O arquivo mudou desde que o manifesto foi escrito.", call. = FALSE)
   }
-  invisible(TRUE)
+  # Devolve o CAMINHO, e não TRUE: assim o script de tratamento escreve
+  #   origem <- mape_verificar_raw(FONTE, "arquivo.csv")
+  # em vez de verificar e montar o caminho de novo, o que duplicaria a
+  # convenção de onde o bruto vive.
+  caminho
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a

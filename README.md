@@ -45,7 +45,7 @@ bash tools/hooks/instalar.sh      # hook que barra arquivo grande e caminho do l
 
 O `renv::restore()` demora alguns minutos na primeira vez e nunca mais. O hook é
 rápido e evita dois erros que já aconteceram: commitar um Parquet de centenas de
-megabytes, e commitar um caminho de dentro de `mape_municipios/`.
+megabytes, e commitar um caminho de dentro da árvore legada.
 
 Para conferir que está tudo de pé:
 
@@ -117,7 +117,7 @@ tests/testthat/            154 testes
 plano/                     o raciocínio por trás de cada decisão
 docs/                      o registro do que foi feito e por quê
 pendencias/                fontes que não migraram, com diagnóstico
-mape_municipios/           o legado, 18 GB, NUNCA versionado
+qa/referencia/             base do pipeline antigo, p/ paridade (não versionada)
 ```
 
 ### A convenção de nomes
@@ -279,7 +279,13 @@ Rscript -e '
 '
 ```
 
-Resultado atual: **16 dimensões, zero diferenças não explicadas**.
+Resultado atual: **zero diferenças não explicadas**.
+
+A referência vive em `qa/referencia/base_municipios_brasileiros.RDa` e **não é
+versionada** — são 56 MB, acima do limiar. Ela está no Drive compartilhado do
+MAPE, em `mape_municipios/4 Base completa/`; copie de lá se for rodar a paridade.
+Sem ela a validação continua funcionando; só a comparação contra o pipeline
+antigo fica indisponível.
 
 Uma ressalva honesta sobre o alcance dele. O teste é conclusivo *para a
 migração*, porque ela partiu dos artefatos que já existiam, sem reextrair — com o
@@ -318,6 +324,27 @@ Tabelas processadas **são** versionadas abaixo de 20 MB, o que cobre todas as 2
 barra qualquer coisa acima do limiar.
 
 ---
+
+## Onde está a árvore legada
+
+Ela **saiu do repositório em 26 de julho de 2026**, depois que a última
+dependência de execução foi cortada. Eram 18 GB para 638 MB.
+
+O original vive no **Drive compartilhado do MAPE**, em `mape_municipios/` — e é
+mais completo que a cópia que estava aqui, com 736 arquivos contra 511. Baixe de
+lá se precisar consultar como o pipeline antigo fazia alguma coisa.
+
+O que dependia dele, e agora não depende mais:
+
+| o quê | antes | agora |
+|---|---|---|
+| `tratar_cadunico.R` | lia de `mape_municipios/.../CadUnico/2_output/` | `fontes/.../cadunico/raw/`, sob manifesto |
+| `tratar_disque100.R` | lia de `mape_municipios/.../Disque 100/` | `fontes/.../disque100/raw/`, sob manifesto |
+| `mape_paridade()` | lia a base de `mape_municipios/4 Base completa/` | `qa/referencia/`, 56 MB |
+
+Os scripts em `tools/migracao/` continuam citando caminhos do legado. Eles são
+registro histórico de como a migração foi feita e não são executados pelo
+pipeline; se você rodar um deles, vai precisar do legado de volta.
 
 ## Armadilhas que já custaram caro
 

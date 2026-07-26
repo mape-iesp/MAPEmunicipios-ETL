@@ -1,9 +1,9 @@
 # Paridade — 03_meio_ambiente
 
-Gerado em 2026-07-26 01:28:59.
+Gerado em 2026-07-26 09:41:13.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
-Colunas comparadas: 77. Diferenças não explicadas: 0.
+Colunas comparadas: 75. Diferenças não explicadas: 0.
 
 | coluna | classe | descrição |
 |---|---|---|
@@ -58,9 +58,28 @@ Colunas comparadas: 77. Diferenças não explicadas: 0.
 | `desmatado_total_municipio` | b_renomeacao | renomeada para 'area_desmatada_municipio_km2' |
 | `desmatado_total_amazonia` | b_renomeacao | renomeada para 'area_desmatada_bioma_amazonia_km2' |
 | `desmatado_total_caatinga` | b_renomeacao | renomeada para 'area_desmatada_bioma_caatinga_km2' |
+| `desmatado_total_cerrado` | b_renomeacao | renomeada para 'area_desmatada_bioma_cerrado_km2' |
+| `desmatado_total_mata_atlantica` | b_renomeacao | renomeada para 'area_desmatada_bioma_mata_atlantica_km2' |
+| `desmatado_total_pampa` | b_renomeacao | renomeada para 'area_desmatada_bioma_pampa_km2' |
+| `desmatado_total_pantanal` | b_renomeacao | renomeada para 'area_desmatada_bioma_pantanal_km2' |
 | `proporcao_desmatado` | b_renomeacao | renomeada para 'area_desmatada_sobre_area_municipio_razao' |
-| `lag_total_desmatado` | b_renomeacao | renomeada para 'area_desmatada_municipio_km2_lag1' |
+| `lag_total_desmatado` | b_renomeacao | renomeada para 'area_desmatada_municipio_lag1_km2' |
 | `taxa_crescimento_desmatamento_abs` | b_renomeacao | renomeada para 'variacao_absoluta_area_desmatada_km2' |
 | `id` | b_renomeacao | renomeada para 'adapta_id_indicador' |
-| `cidades_resilientes` | b_renomeacao | renomeada para 'adapta_indice_adesao_programa_cidades_resilientes' |
+| `capacidade_investimento_adaptacao` | b_renomeacao | renomeada para 'adapta_capacidade_investimento_idx' |
+| `capacidade_investimento_adaptacao_classe` | b_renomeacao | renomeada para 'adapta_capacidade_investimento_cat' |
+| `indice_capacidade_adaptacao_inundacoes_enxurradas` | b_renomeacao | renomeada para 'adapta_capacidade_adaptacao_inundacoes_idx' |
+| `indice_capacidade_adaptacao_inundacoes_enxurradas_classe` | b_renomeacao | renomeada para 'adapta_capacidade_adaptacao_inundacoes_cat' |
+| `indice_risco_inundacoes_enxurradas` | b_renomeacao | renomeada para 'adapta_risco_inundacoes_idx' |
+| `indice_risco_inundacoes_enxurradas_classe` | b_renomeacao | renomeada para 'adapta_risco_inundacoes_cat' |
+| `indice_vulnerabilidade_inundacoes_enxurradas` | b_renomeacao | renomeada para 'adapta_vulnerabilidade_inundacoes_idx' |
+| `indice_vulnerabilidade_inundacoes_enxurradas_classe` | b_renomeacao | renomeada para 'adapta_vulnerabilidade_inundacoes_cat' |
+| `cidades_resilientes` | b_renomeacao | renomeada para 'adapta_adesao_cidades_resilientes_idx' |
+| `cidades_resilientes_classe` | b_renomeacao | renomeada para 'adapta_adesao_cidades_resilientes_cat' |
+| `indice_capacidade_adaptativa_recursos_hidricos` | b_renomeacao | renomeada para 'adapta_capacidade_recursos_hidricos_idx' |
+| `indice_capacidade_adaptativa_recursos_hidricos_classe` | b_renomeacao | renomeada para 'adapta_capacidade_recursos_hidricos_cat' |
+| `indice_risco_seca` | b_renomeacao | renomeada para 'adapta_risco_seca_idx' |
+| `indice_risco_seca_classe` | b_renomeacao | renomeada para 'adapta_risco_seca_cat' |
+| `indice_vulnerabilidade_seca` | b_renomeacao | renomeada para 'adapta_vulnerabilidade_seca_idx' |
+| `indice_vulnerabilidade_seca_classe` | b_renomeacao | renomeada para 'adapta_vulnerabilidade_seca_cat' |
 

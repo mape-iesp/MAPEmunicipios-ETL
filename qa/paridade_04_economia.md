@@ -1,6 +1,6 @@
 # Paridade — 04_economia
 
-Gerado em 2026-07-26 01:29:06.
+Gerado em 2026-07-26 09:41:21.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 17. Diferenças não explicadas: 0.

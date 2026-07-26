@@ -1,22 +1,25 @@
 # Plano de Reestruturação do ETL do MAPEmunicipios
 
-Este é um documento de plano. Nada foi implementado, e ele foi escrito para ser executado aos
-poucos, ao longo de várias sessões, tanto por quem já conhece o projeto quanto por quem chegar
-depois sem contexto nenhum.
+> **Este plano foi executado.** Ele está preservado como escrito, porque é o registro do
+> raciocínio que produziu a estrutura atual — cada decisão, com o argumento e a evidência que a
+> sustentaram.
+>
+> Para o que foi de fato entregue, leia [`docs/fechamento-etl.md`](../docs/fechamento-etl.md). Para
+> operar o ETL no dia a dia, leia o [`README.md`](../README.md) da raiz.
+>
+> Onde o plano e o repositório divergirem, **o repositório manda**. Algumas coisas mudaram durante
+> a execução, e as mudanças estão registradas em `docs/`.
 
 ## Por onde começar
 
-Se você tem quinze minutos, leia o **sumário executivo** e as **oito decisões estruturais**. Eles
-contêm tudo que muda; o resto do documento é a justificativa e o detalhamento.
-
-Se você vai executar, comece pela **Fase 0**. Ela leva menos de uma hora, não depende de nenhuma
-decisão pendente, e resolve dois problemas urgentes: a árvore legada de 18 GB está desprotegida
-contra um `git add` distraído, e o diretório `.git` carrega 15 GB de lixo recuperável.
+Se você quer entender por que o ETL é como é, leia o **sumário executivo** e as **oito decisões
+estruturais**. Eles contêm tudo que mudou; o resto é a justificativa e o detalhamento.
 
 ## Os arquivos
 
 | Arquivo | Conteúdo |
 |---|---|
+| [prompt-original.md](prompt-original.md) | A especificação que originou este plano, preservada como foi escrita. Serve para conferir o que foi pedido contra o que foi entregue |
 | [00-diagnostico-inventario.md](00-diagnostico-inventario.md) | Sumário executivo, diagnóstico do que verifiquei e onde o inventário anterior estava errado, e o levantamento das 17 dimensões |
 | [01-modelo-e-convencoes.md](01-modelo-e-convencoes.md) | As oito decisões estruturais sobre o modelo de dados, a árvore de diretórios, a camada de funções comuns e a nomenclatura de colunas |
 | [02-documentacao-e-atualizacao.md](02-documentacao-e-atualizacao.md) | O contrato de documentação, os procedimentos de atualização e a orquestração com `targets` |

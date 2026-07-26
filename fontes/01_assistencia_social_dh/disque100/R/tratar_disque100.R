@@ -14,13 +14,12 @@
 # incompatíveis com o mesmo nome, e o prefixo de fonte resolve.
 
 tratar_disque100 <- function(origem = NULL) {
-  if (is.null(origem)) {
-    origem <- file.path(
-      mape_caminho("mape_municipios", "1 Dimensões Individuais",
-                   "8 Assistência Social e Direitos Humanos - Códigos e Dados"),
-      "Disque 100", "disque100.xlsx"
-    )
-  }
+  # O slug fica dentro da função: uma constante global no topo do arquivo seria
+  # sobrescrita pelo próximo script de tratamento carregado na mesma sessão.
+  fonte <- "01_assistencia_social_dh/disque100"
+
+  # O bruto vive em raw/, sob manifesto, e não mais dentro da árvore legada.
+  if (is.null(origem)) origem <- mape_verificar_raw(fonte, "disque100.xlsx")
   bruto <- as.data.frame(openxlsx::read.xlsx(origem))
   message("bruto: ", nrow(bruto), " linhas x ", ncol(bruto), " colunas")
 

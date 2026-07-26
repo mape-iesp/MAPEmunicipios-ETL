@@ -84,3 +84,9 @@ dados/derivado/
 # dados/ e dicionario/, montada por tools/publicar_release.R para subir ao
 # GitHub. Versioná-la duplicaria 137 MB sem acrescentar informação.
 dist/
+
+# Referência do teste de paridade: a base publicada pelo pipeline antigo.
+# 56 MB, acima do limiar de versionamento. Vive no Drive compartilhado do MAPE,
+# em "mape_municipios/4 Base completa/". Copie para qa/referencia/ se for rodar
+# mape_paridade().
+qa/referencia/

@@ -14,7 +14,9 @@ ETL em R que constrói o **MAPEmunicipios**: um painel dos 5.570 municípios bra
 > - [`docs/decisao-dois-repositorios.md`](docs/decisao-dois-repositorios.md) — por que o pacote R fica noutro repositório
 > - [`plano/`](plano/) — o raciocínio por trás de cada decisão de desenho
 >
-> O legado em `mape_municipios/` (18 GB) continua sendo a referência de como cada número foi produzido, e é o alvo do teste de paridade. **Nunca é tocado nem versionado.**
+> **A árvore legada foi removida do repositório em 26/07/2026.** Ela vive no Drive compartilhado do MAPE, em `mape_municipios/`, e nada aqui depende mais dela: os scripts de fonte leem de `raw/` local, e o teste de paridade lê de `qa/referencia/` (56 MB, não versionado, também no Drive).
+>
+> Se você for reextrair uma fonte e precisar consultar como o legado fazia, baixe do Drive. Os scripts em `tools/migracao/` registram o que era lido de onde.
 
 **O pacote R vive noutro repositório**: `mape-iesp/MAPEmunicipios`. Este aqui é interno, para quem atualiza dado; aquele é público, para quem consome. O único acoplamento é o release do GitHub.
 
@@ -84,7 +86,7 @@ qa/                        relatórios de qualidade e de paridade
 tools/                     migração, hooks, publicar_release.R
 tests/testthat/            154 testes
 docs/ plano/ pendencias/   documentação
-mape_municipios/           legado, 18 GB, NUNCA versionado
+qa/referencia/             base do pipeline antigo, p/ paridade (não versionada)
 ```
 
 ### Contrato de dados

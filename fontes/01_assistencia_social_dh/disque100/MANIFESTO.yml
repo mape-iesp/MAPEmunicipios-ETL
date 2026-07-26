@@ -1,0 +1,23 @@
+fonte: disque100
+dimensao: 01_assistencia_social_dh
+orgao: MDH — Ministerio dos Direitos Humanos e da Cidadania (Ouvidoria Nacional)
+url: https://www.gov.br/mdh/pt-br/ouvidoria/dados-do-disque-100
+arquivo_local: disque100.xlsx
+versao_fonte: ~
+data_download: ~
+baixado_por: ~
+sha256: fd299eeeddafb8926aacd9e6ebd29610ba903fb020dec71036c22abf167857a6
+licenca: dados publicos federais, compativeis com atribuicao
+automatizavel: nao
+nota: >
+  Denuncias de violacoes de direitos humanos recebidas pelo Disque 100,
+  agregadas por municipio e ano.
+
+  O arquivo veio da arvore legada em 26/07/2026, de
+  "1 Dimensoes Individuais/8 Assistencia Social e Direitos Humanos - Codigos e
+  Dados/Disque 100/disque100.xlsx", e passou a viver aqui para que o tratamento
+  nao dependa mais do legado. O sha256 acima e o do arquivo copiado.
+
+  O portal publica os dados em planilhas anuais separadas, com layout que muda
+  entre edicoes. Por isso automatizavel: nao — o passo de consolidacao exige
+  conferir o cabecalho de cada ano.

@@ -157,8 +157,27 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
 #' @return Invisivelmente, o relatório de diferenças.
 mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL) {
   if (is.null(referencia)) {
-    referencia <- mape_caminho("mape_municipios", "4 Base completa",
-                               "base_municipios_brasileiros.RDa")
+    # A referência vive em qa/referencia/, e não mais dentro da árvore legada.
+    # São 56 MB contra os 18 GB do legado inteiro — a paridade nunca precisou
+    # de mais que este arquivo, e enquanto ela apontava para lá dentro o
+    # repositório ficava amarrado a uma pasta que ele existe para substituir.
+    #
+    # O caminho antigo continua sendo tentado, para que quem ainda tenha o
+    # legado na máquina não precise fazer nada.
+    candidatos <- c(
+      mape_caminho("qa", "referencia", "base_municipios_brasileiros.RDa"),
+      mape_caminho("mape_municipios", "4 Base completa",
+                   "base_municipios_brasileiros.RDa")
+    )
+    referencia <- candidatos[file.exists(candidatos)][1]
+    if (is.na(referencia)) {
+      stop("Base de referência do teste de paridade não encontrada.\n",
+           "Procurei em:\n  ", paste(candidatos, collapse = "\n  "), "\n\n",
+           "Ela não é versionada (56 MB) e vive no Drive compartilhado do MAPE,\n",
+           "em 'mape_municipios/4 Base completa/'. Copie-a para qa/referencia/.\n",
+           "Sem ela, a validação continua funcionando; só a paridade contra o\n",
+           "pipeline antigo fica indisponível.", call. = FALSE)
+    }
   }
   if (!file.exists(referencia)) {
     stop("Base de referência não encontrada: ", referencia, call. = FALSE)
