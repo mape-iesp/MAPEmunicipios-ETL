@@ -284,5 +284,44 @@ distribui um defeito crítico confirmado contra a origem. O comando está no fim
 ## 9. A saída de `tools/verificar_fechamento.R`
 
 ```
-{{SAIDA}}
+There were 50 or more warnings (use warnings() to see the first 50)
+
+==============================================================================
+VERIFICACAO DE FECHAMENTO — auditoria/prompt-correcao.md, secao 12
+==============================================================================
+
+1.   OK     CORRECOES.csv tem 105 linhas, de 1 a 105, sem furo nem repeticao
+          105 linha(s), 105 distinta(s)
+2.   OK     nenhuma linha com status = pendente
+          0 pendente(s); corrigido=78, mitigado=19, nao-confirmado-pela-auditoria=8
+3.   OK     todo corrigido/mitigado tem reproducao antes, depois e commit existente
+          97 grupo(s), 0 com campo vazio, 0 sha inexistente
+4.   OK     todo bloqueado/nao-reproduz/nao-confirmado tem observacao
+          8 grupo(s), 0 sem observacao
+5.   OK     a suite passa e tem mais expectativas que o baseline (154)
+          PASS 413 (baseline 154), FAIL 0
+6.   OK     as 26 tabelas validam sem erro e todo aviso tem justificativa
+          26 tabela(s): 0 erro(s), 120 aviso(s), 0 sem justificativa
+7.   OK     nenhuma tabela perdeu linha, coluna, chave ou municipio vs BASELINE
+          26 tabela(s) conferida(s), nenhuma perda
+8.   OK     todo comando tar_make(...) da documentacao executa sem erro
+          1 alvo(s) citado(s) na documentacao; todos existem no grafo
+9.   OK     nenhum identificador GCP legado em arquivo versionado
+          4 identificador(es) conferido(s); 0 com ocorrencia versionada
+10.  OK     working tree limpo e ha commit citando cada grupo corrigido
+          0 arquivo(s) sujo(s); 0 grupo(s) sem commit que os cite
+11.  OK     FECHAMENTO.md, BASELINE.md e RELATORIO-FINAL.md existem e estao completos
+          os tres, completos
+12.  OK     CLAUDE.md descreve o estado atual: numeros conferidos por medicao
+          147 pacotes, 432 variaveis, 26 tabelas, 413 expectativas
+13.  OK     este script existe, cobre os doze acima e sai com codigo nao zero
+          12 criterios verificados acima
+
+------------------------------------------------------------------------------
+Os 13 criterios passaram.
 ```
+
+---
+
+*Gerado ao fim da rodada de correção, em 26/07/2026. Os 13 critérios da § 12 de
+`auditoria/prompt-correcao.md` passaram. `HEAD` no início da rodada: `0526316`.*
