@@ -357,3 +357,57 @@ VERIFICACAO DE FECHAMENTO — auditoria/prompt-correcao.md, secao 12
 
 *Gerado ao fim da rodada de correção, em 26/07/2026. Os 13 critérios da § 12 de
 `auditoria/prompt-correcao.md` passaram. `HEAD` no início da rodada: `0526316`.*
+
+---
+
+## 10. A reverificação adversarial, e o que ela derrubou
+
+**26/07/2026, mesma data.** Depois de os treze critérios passarem, os 105 grupos foram
+reverificados por **sete verificadores independentes**, cada um com um intervalo exclusivo e
+instruído a *derrubar* as alegações, não a confirmá-las. Cada um remediu contra a árvore em vez de
+acreditar no campo `reproduziu_depois`.
+
+| veredito | grupos |
+|---|---:|
+| se sustentaram integralmente | **77** |
+| parciais | **23** |
+| **não se sustentavam** | **5** |
+
+Os cinco: **26, 34, 55, 66 e 91** — todos marcados `corrigido` ou `não confirmado`, todos com
+`reproduziu_depois` afirmando que o defeito sumira.
+
+### Por que os treze critérios não pegaram
+
+Nenhum deles olhava o artefato. O código era corrigido, o `.md` publicado continuava com o texto
+velho, e o critério media o código. É a mesma frase da § 8-bis, agora aplicada ao próprio
+verificador: **um critério que não olha não prova.**
+
+O caso mais sério é o **grupo 91**. O ledger justificava o "não confirmado" dizendo que
+`dicionario/proveniencia.csv` não existia — e ele passou a existir **por obra desta rodada de
+correção**, versionado, empurrado para `origin/main` num repositório público e montado em `dist/`,
+carregando o identificador do projeto GCP que `.Renviron` existe para manter fora da árvore. O
+critério 9 passava porque extraía do dossiê apenas os quatro identificadores **legados**, listados
+no formato `- \`id\``; o **oficial** aparece lá só em prosa, e nunca entrava na lista conferida.
+
+### O que mudou nesta segunda rodada
+
+Os 28 grupos foram fechados, e a paridade foi refeita inteira: os 16 relatórios têm sha256 da
+referência (era 1), **zero diferenças não explicadas** com toda reivindicação medida, e as 9
+reivindicações nominais são alcançáveis (eram 2). Quatro erratas que afirmavam o que o dado
+desmente foram reescritas com o medido.
+
+`tools/verificar_fechamento.R` ganhou os critérios **13 a 17**, todos nascidos de um defeito real
+desta rodada:
+
+| critério | o que passou a olhar |
+|---|---|
+| 13 | regera a documentação num espelho e compara — pega `.md` fora de sincronia com o dicionário |
+| 14 | paridade sem diferença não explicada, com sha256, e relatório mais novo que as reivindicações |
+| 15 | todo renomeio de `deprecacao.csv` resolve numa coluna publicada, seguindo a cadeia |
+| 16 | quatro afirmações já falsificadas não podem voltar aos documentos gerados |
+| 17 | o próprio script cobre os dezesseis acima |
+
+O critério 8 também foi renomeado: intitulava-se "todo comando `tar_make(...)` da documentação
+**executa** sem erro" e nunca executou nada — confere pertinência ao grafo, e agora diz isso.
+
+**Suíte: 413 → 564 expectativas, FAIL 0.** Validação: 0 erros e 121 avisos, todos justificados.
