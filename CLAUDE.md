@@ -11,28 +11,45 @@ O repositório está em transição entre duas estruturas:
 - **`01_dimensoes_individuais/`** — estrutura nova, versionada, em construção. Hoje contém apenas `00_diretorios/`.
 - **`mape_municipios/`** — árvore legada (~18 GB), agora **coberta pelo `.gitignore`**. Contém o pipeline completo original e é a referência canônica de como cada dimensão foi produzida. Leia à vontade; não versione.
 
-> ⚠️ **Leia [`plano/`](plano/) antes de escrever código novo.** A reestruturação do ETL está planejada
-> em detalhe, e várias convenções descritas mais abaixo neste arquivo **vão mudar** — a estrutura de
-> diretórios, o nome dos scripts, o formato de saída e a política de versionamento de dados. O
-> [índice do plano](plano/README.md) diz o que muda em cada fase. As seções abaixo descrevem o estado
-> **atual**, que ainda é majoritariamente o legado.
+> ✅ **A migração está feita.** As 16 dimensões com dado foram migradas, validadas e publicadas em
+> `dados/`. Leia [`docs/encerramento-migracao.md`](docs/encerramento-migracao.md) para o estado final
+> e [`plano/`](plano/) para o raciocínio por trás das decisões.
+>
+> O legado em `mape_municipios/` continua sendo a referência de como cada número foi produzido, e é
+> o alvo do teste de paridade. Ele não é tocado.
 
 ## Comandos
 
-Não há build, testes nem linter configurados. O trabalho é executar scripts R individualmente.
-
 ```bash
-# Scripts da estrutura nova — sempre a partir da raiz do repositório (usam here())
-Rscript "01_dimensoes_individuais/00_diretorios/R/script.R"
+# Primeira vez, depois de clonar:
+Rscript -e 'renv::restore()'
+bash tools/hooks/instalar.sh
 
-# Scripts legados — usam caminhos relativos ao próprio diretório, então é preciso entrar nele
-cd "mape_municipios/1 Dimensões Individuais/11 Saúde - Códigos e Dados" && Rscript saude.R
+# Rodar o pipeline
+Rscript -e 'targets::tar_make()'                          # o que estiver desatualizado
+Rscript -e 'targets::tar_make(fonte_00_diretorios_municipios)'   # uma fonte só
+Rscript -e 'targets::tar_visnetwork()'                    # desenha o grafo
 
-# Etapa de junção legada (Quarto)
-cd "mape_municipios/2 Junção Bases" && quarto render municipalityBR.qmd
+# Testes
+Rscript -e 'testthat::test_dir("tests/testthat")'
+
+# Migrar ou remigrar uma dimensão a partir do legado
+Rscript tools/migracao/migrar_dimensoes.R 03_meio_ambiente
 ```
 
-Ambiente: R 4.5.2, quarto disponível. Não existe `renv`/lockfile — pacotes vêm da biblioteca global do usuário. Os principais são `tidyverse`, `openxlsx`, `basedosdados`, `here`, `rio`; análises usam `sf`/`geobr`, `fixest`/`plm`, `deflateBR`.
+Ambiente: R 4.5.2, fixado por `renv` (137 pacotes no lockfile). Quarto disponível.
+
+## Consumir os dados
+
+```r
+for (f in list.files("R", pattern = "[.]R$", full.names = TRUE)) source(f, encoding = "UTF-8")
+
+x <- mape_ler_tabela("03_meio_ambiente", camada = "dimensao")   # uma dimensão
+d <- mape_ler_tabela("00_diretorios/municipios")                # uma fonte
+b <- mape_montar_base_larga(flags = TRUE, deduplicar = TRUE)    # a base larga
+```
+
+**Quem só consome os dados publicados não precisa de conta no Google Cloud.**
 
 **`basedosdados` exige autenticação no Google Cloud.** O projeto oficial do MAPEmunicipios existe e tem faturamento habilitado, mas o identificador dele **não é versionado** (o repositório é público). Ele vive no `.Renviron`, que o `.gitignore` cobre; use `.Renviron.exemplo` como molde. No legado há quatro projetos diferentes escritos dentro do código (`dados-importacao`, `base-dos-dados-429117`, `municipality-carlos`, `dissertacao-de-mestrado-399114`); nenhum sobrevive à migração. Em código novo, use `MAPE_GCP_BILLING` no `.Renviron`, nunca uma chamada literal a `set_billing_id`.
 
