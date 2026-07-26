@@ -185,18 +185,50 @@ mape_validar_schema <- function(x, tabela, erro = TRUE) {
       }
     }
 
-    # Coerência entre sufixo do nome e escala observada
+    # Coerência entre sufixo do nome e escala observada.
+    #
+    # A checagem distingue dois problemas que não são o mesmo:
+    #
+    #   ESCALA ERRADA é erro. Uma coluna _pct cujo máximo não passa de 1 é, na
+    #   verdade, uma proporção com o sufixo trocado; uma cujo máximo passa de
+    #   1.000 está noutra unidade. Nos dois casos o nome mente sobre o
+    #   conteúdo, e é isso que o vocabulário de sufixos existe para impedir.
+    #
+    #   VALOR FORA DA FAIXA é aviso. Uma taxa de atualização cadastral que
+    #   chega a 128% em 59 municípios de 2016 continua sendo um percentual: o
+    #   numerador e o denominador foram medidos em momentos diferentes. O dado
+    #   é publicável, desde que a limitação esteja registrada no campo
+    #   observacoes da tabela — que é a regra de "aviso exige justificativa".
     if (is.numeric(v) && any(!is.na(v))) {
       faixa <- range(v, na.rm = TRUE)
-      if (grepl("_pct$", nm) && (faixa[1] < 0 || faixa[2] > 100)) {
-        registrar("erro", nm,
-                  paste0("sufixo _pct exige escala 0-100; observado ",
-                         signif(faixa[1], 5), " a ", signif(faixa[2], 5)))
+      n_fora <- function(lo, hi) sum(!is.na(v) & (v < lo | v > hi))
+
+      if (grepl("_pct$", nm)) {
+        if (faixa[2] <= 1.0001 && faixa[1] >= 0) {
+          registrar("erro", nm,
+                    "sufixo _pct mas os valores não passam de 1: é proporção, use _prop")
+        } else if (faixa[2] > 1000 || faixa[1] < -0.0001) {
+          registrar("erro", nm,
+                    paste0("sufixo _pct incompatível com a faixa observada (",
+                           signif(faixa[1], 5), " a ", signif(faixa[2], 5), ")"))
+        } else if (n_fora(0, 100) > 0 && is.na(vars$dominio_valido[i])) {
+          # Só avisa se a coluna não declarar domínio próprio; quando declara,
+          # a checagem de domínio acima já reportou, e repetir vira ruído.
+          registrar("aviso", nm,
+                    paste0(n_fora(0, 100), " valor(es) fora de [0,100], até ",
+                           signif(faixa[2], 5),
+                           ". Registre a justificativa em observacoes."))
+        }
       }
-      if (grepl("_prop$", nm) && (faixa[1] < 0 || faixa[2] > 1)) {
-        registrar("erro", nm,
-                  paste0("sufixo _prop exige escala 0-1; observado ",
-                         signif(faixa[1], 5), " a ", signif(faixa[2], 5)))
+      if (grepl("_prop$", nm)) {
+        if (faixa[2] > 1.5) {
+          registrar("erro", nm,
+                    paste0("sufixo _prop mas o máximo é ", signif(faixa[2], 5),
+                           ": provavelmente é percentual, use _pct"))
+        } else if (n_fora(0, 1) > 0) {
+          registrar("aviso", nm,
+                    paste0(n_fora(0, 1), " valor(es) fora de [0,1]."))
+        }
       }
       if (grepl("^flag_", nm) && !all(v %in% c(0, 1, NA))) {
         registrar("erro", nm, "prefixo flag_ exige valores 0, 1 ou NA")

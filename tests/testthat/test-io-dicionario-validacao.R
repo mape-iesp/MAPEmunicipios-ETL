@@ -54,25 +54,45 @@ test_that("mape_tipo_de usa o vocabulário fechado", {
   expect_equal(mape_tipo_de(Sys.Date()), "date")
 })
 
-test_that("mape_validar_schema recusa escala incoerente com o sufixo", {
+test_that("mape_validar_schema separa escala errada de valor fora da faixa", {
   skip_if_not(file.exists(here::here("dicionario", "variaveis.csv")))
-  # Uma coluna _pct com valor 250 é o erro que o vocabulário de sufixos existe
-  # para tornar detectável.
-  x <- data.frame(id_municipio = "1100015", cobertura_teste_pct = 250,
-                  stringsAsFactors = FALSE)
-  vars <- data.frame(
-    tabela = "teste", nome_canonico = "cobertura_teste_pct",
-    nome_na_fonte = "cobertura_teste_pct", tipo = "double",
-    dominio_valido = NA, obrigatoria = FALSE, stringsAsFactors = FALSE
-  )
+
   # Como o projeto é um conjunto de scripts e não um pacote, o
   # local_mocked_bindings do testthat não se aplica: a substituição é feita
   # direto no ambiente global, com restauração garantida no fim do teste.
-  original <- mape_variaveis_de
-  assign("mape_variaveis_de", function(tabela) vars, envir = globalenv())
-  on.exit(assign("mape_variaveis_de", original, envir = globalenv()), add = TRUE)
+  usar_vars <- function(vars) {
+    original <- mape_variaveis_de
+    assign("mape_variaveis_de", function(tabela) vars, envir = globalenv())
+    withr::defer(assign("mape_variaveis_de", original, envir = globalenv()),
+                 envir = parent.frame())
+  }
+  fazer_vars <- function(nome) data.frame(
+    tabela = "teste", nome_canonico = nome, nome_na_fonte = nome,
+    tipo = "double", dominio_valido = NA, obrigatoria = FALSE,
+    stringsAsFactors = FALSE
+  )
 
-  expect_error(mape_validar_schema(x, "teste"), "_pct exige escala 0-100")
+  # ESCALA ERRADA é erro: uma coluna _pct cujos valores não passam de 1 é, na
+  # verdade, uma proporção com o sufixo trocado. É o caso que produz hoje, na
+  # base publicada, proporcao_* em escala 0-100 e pct_* em escala 0-1.
+  usar_vars(fazer_vars("cobertura_teste_pct"))
+  x_prop <- data.frame(id_municipio = "1100015",
+                       cobertura_teste_pct = c(0.2, 0.9),
+                       stringsAsFactors = FALSE)
+  expect_error(mape_validar_schema(x_prop, "teste"), "é proporção, use _prop")
+
+  # Ordem de grandeza incompatível também é erro.
+  x_absurdo <- data.frame(id_municipio = "1100015",
+                          cobertura_teste_pct = c(50, 13050),
+                          stringsAsFactors = FALSE)
+  expect_error(mape_validar_schema(x_absurdo, "teste"), "incompatível com a faixa")
+
+  # VALOR FORA DA FAIXA é só aviso: uma taxa que chega a 128% continua sendo um
+  # percentual. É o caso real da Taxa de Atualização Cadastral em 2016.
+  x_fora <- data.frame(id_municipio = "1100015",
+                       cobertura_teste_pct = c(80, 128.8),
+                       stringsAsFactors = FALSE)
+  expect_warning(mape_validar_schema(x_fora, "teste"), "fora de \\[0,100\\]")
 })
 
 test_that("mape_campos_calculados devolve uma linha por coluna", {

@@ -1,6 +1,6 @@
 # QA — 00_diretorios/municipios
 
-Gerado em 2026-07-26 00:14:50.
+Gerado em 2026-07-26 00:25:52.
 
 ## Resumo
 
