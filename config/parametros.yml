@@ -17,6 +17,26 @@
 # Defina MAPE_GCP_BILLING no .Renviron (que o .gitignore cobre).
 gcp_billing: ~
 
+# Freio de custo do BigQuery. Antes destes tetos, mape_query() chamava
+# basedosdados::read_sql() direto: sem dry-run, sem teto, sem registro. Uma
+# consulta mal escrita custava dinheiro real e ninguém sabia quanto até a fatura.
+#
+# O modelo on-demand cobra por byte ESCANEADO, não por byte devolvido: um
+# LIMIT 10 sobre uma tabela grande custa o mesmo que sem LIMIT. Por isso o
+# dry-run vem sempre antes — ele mede exato e é gratuito.
+#
+# 1 TiB por mês é gratuito por conta de faturamento; acima disso, US$ 6,25/TiB.
+bq:
+  # Teto por consulta. Recusa antes de executar. As consultas pretendidas são
+  # pequenas (br_ibge_pib.municipio dá ~3 MB no dry-run), então 64 GiB é folga
+  # de três ordens de grandeza sobre o uso real — é rede de contenção, não
+  # orçamento. Em GiB porque o YAML do R estoura o int32 no valor em bytes.
+  teto_gib_consulta: 64
+  # Teto acumulado da sessão, somado em qa/custo_bigquery.csv. Metade da cota
+  # grátis mensal: no pior caso de a cota do mês já estar consumida, custaria
+  # US$ 3,13.
+  teto_gib_sessao: 512
+
 # ---------------------------------------------------------------------------
 # Painel
 # ---------------------------------------------------------------------------

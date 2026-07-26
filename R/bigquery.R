@@ -1,10 +1,13 @@
 # Acesso ao BigQuery e registro de proveniência ------------------------------
 #
-# O legado tem quatro projetos de faturamento diferentes escritos dentro do
-# código, em cerca de 28 chamadas: dados-importacao, base-dos-dados-429117,
-# municipality-carlos e dissertacao-de-mestrado-399114. Três deles são
-# aparentemente pessoais, o que significa que o custo de reconstruir a base está
-# espalhado por quatro contas.
+# O legado tem QUATRO projetos de faturamento diferentes escritos dentro do
+# código, em cerca de 28 chamadas. Três deles são aparentemente pessoais, o que
+# significa que o custo de reconstruir a base está espalhado por quatro contas,
+# e que ninguém consegue dizer quanto a base custou. É isto que mape_billing_id()
+# existe para resolver: um projeto só, resolvido fora do código.
+#
+# Os quatro identificadores não são reproduzidos aqui de propósito. Este
+# repositório é público, e o diagnóstico não depende dos nomes.
 #
 # Além de resolver a configuração, estas funções registram QUEM gerou cada
 # extração. Hoje nenhuma data de extração existe em lugar nenhum do projeto, e
@@ -52,31 +55,196 @@ mape_billing_id <- function() {
   )
 }
 
-#' Executa uma consulta no BigQuery e registra a proveniência
+#' Teto de bytes do BigQuery, lido em GiB de config/parametros.yml
+#'
+#' O YAML é declarado em GiB porque o leitor de YAML do R converte inteiros
+#' acima de 2^31 para NA em silêncio — foi o primeiro modo de falha que este
+#' freio encontrou, e ele teria desligado o teto sem dizer nada.
+#'
+#' @param qual "consulta" ou "sessao".
+#' @return Bytes, como numeric.
+mape_teto_bq <- function(qual = c("consulta", "sessao")) {
+  qual <- match.arg(qual)
+  gib <- mape_param(paste0("bq.teto_gib_", qual))
+  stopifnot(is.numeric(gib), length(gib) == 1, !is.na(gib), gib > 0)
+  as.numeric(gib) * 1024^3
+}
+
+#' Bytes já escaneados nesta sessão, segundo qa/custo_bigquery.csv
+#'
+#' @return Numeric com o total acumulado de bytes cobrados.
+mape_custo_bigquery <- function() {
+  caminho <- mape_caminho("qa", "custo_bigquery.csv")
+  if (!file.exists(caminho)) return(0)
+  reg <- utils::read.csv(caminho, stringsAsFactors = FALSE)
+  if (!nrow(reg)) return(0)
+  sum(as.numeric(reg$bytes_cobrados), na.rm = TRUE)
+}
+
+#' Formata bytes de um jeito legível
+#' @param b Bytes.
+#' @return Texto.
+mape_formatar_bytes <- function(b) {
+  u <- c("B", "KiB", "MiB", "GiB", "TiB")
+  i <- if (b <= 0) 1 else min(length(u), floor(log(b, 1024)) + 1)
+  sprintf("%.2f %s", b / 1024^(i - 1), u[i])
+}
+
+#' Executa uma consulta no BigQuery, com dry-run, teto e registro de custo
+#'
+#' O freio tem quatro partes, e nenhuma é opcional:
+#'
+#' 1. **Dry-run sempre primeiro.** `bq_perform_query_dry_run()` mede exatamente
+#'    quantos bytes a consulta escaneia e não custa nada. Sem ele, o custo só
+#'    aparece na fatura.
+#' 2. **Teto por consulta.** Acima de `bq.teto_gib_consulta`, a consulta é
+#'    recusada aqui, antes de sair da máquina.
+#' 3. **`maximum_bytes_billed`.** É o que faz o servidor do Google matar a
+#'    consulta em vez de cobrá-la, caso o dry-run tenha subestimado.
+#' 4. **Acumulado da sessão.** Cada execução soma uma linha em
+#'    `qa/custo_bigquery.csv`, e o total é confrontado com
+#'    `bq.teto_gib_sessao`.
+#'
+#' O modelo on-demand cobra por byte escaneado, não por byte devolvido: um
+#' `LIMIT 10` sobre uma tabela grande custa o mesmo que a consulta sem `LIMIT`.
+#' Por isso a agregação tem de ser feita no servidor, com `GROUP BY`, e nunca
+#' num laço por município ou por ano.
 #'
 #' @param sql Consulta.
 #' @param fonte Identificador da fonte, usado no registro.
 #' @param billing Projeto de faturamento; se NULL, resolve sozinho.
 #' @param registrar Se TRUE, grava uma linha em dicionario/proveniencia.csv.
-#' @return Data frame com o resultado.
-mape_query <- function(sql, fonte, billing = NULL, registrar = TRUE) {
+#' @param so_estimar Se TRUE, roda apenas o dry-run e devolve os bytes, sem
+#'   executar. Use para dimensionar uma consulta nova.
+#' @return Data frame com o resultado, ou os bytes estimados se so_estimar.
+mape_query <- function(sql, fonte, billing = NULL, registrar = TRUE,
+                       so_estimar = FALSE) {
   if (is.null(billing)) billing <- mape_billing_id()
 
+  teto_consulta <- mape_teto_bq("consulta")
+  teto_sessao <- mape_teto_bq("sessao")
+
+  # -- 1. Dry-run, sempre ----------------------------------------------------
+  bytes <- tryCatch(
+    as.numeric(bigrquery::bq_perform_query_dry_run(sql, billing = billing)),
+    error = function(e) {
+      stop("O dry-run falhou, então a consulta não roda.\n",
+           "Sem a medição prévia não há como saber quanto ela custaria.\n\n",
+           conditionMessage(e), call. = FALSE)
+    }
+  )
+  message("[bq] dry-run de ", fonte, ": ", mape_formatar_bytes(bytes))
+  if (so_estimar) return(bytes)
+
+  # -- 2. Teto por consulta --------------------------------------------------
+  if (bytes > teto_consulta) {
+    stop("Consulta recusada: escanearia ", mape_formatar_bytes(bytes),
+         ", acima do teto de ", mape_formatar_bytes(teto_consulta),
+         " por consulta (bq.teto_gib_consulta).\n",
+         "Reduza o escopo — selecione menos colunas, filtre no servidor, ",
+         "agregue com GROUP BY — ou suba o teto de propósito em ",
+         "config/parametros.yml.", call. = FALSE)
+  }
+
+  # -- 4a. Teto acumulado da sessão -----------------------------------------
+  gasto <- mape_custo_bigquery()
+  if (gasto + bytes > teto_sessao) {
+    stop("Consulta recusada pelo teto acumulado: já foram escaneados ",
+         mape_formatar_bytes(gasto), " e esta somaria ",
+         mape_formatar_bytes(bytes), ", passando de ",
+         mape_formatar_bytes(teto_sessao), " (bq.teto_gib_sessao).\n",
+         "O acumulado está em qa/custo_bigquery.csv.", call. = FALSE)
+  }
+
+  # -- 3. Executa com maximum_bytes_billed ----------------------------------
+  # É este argumento que transforma o teto de intenção em garantia: o servidor
+  # mata a consulta em vez de cobrá-la.
   inicio <- Sys.time()
-  resultado <- basedosdados::read_sql(sql, billing_project_id = billing)
+  tarefa <- bigrquery::bq_project_query(
+    billing, sql,
+    quiet = TRUE,
+    maximum_bytes_billed = format(teto_consulta, scientific = FALSE)
+  )
+  resultado <- as.data.frame(bigrquery::bq_table_download(tarefa, quiet = TRUE))
   fim <- Sys.time()
+
+  cobrados <- tryCatch({
+    meta <- bigrquery::bq_job_meta(tarefa)
+    as.numeric(meta$statistics$query$totalBytesBilled)
+  }, error = function(e) bytes)
+  if (!length(cobrados) || is.na(cobrados)) cobrados <- bytes
+
+  # -- 4b. Registro do custo -------------------------------------------------
+  destino <- mape_caminho("qa", "custo_bigquery.csv")
+  dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
+  linha <- data.frame(
+    data = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+    fonte = fonte,
+    sql_resumo = substr(gsub("[[:space:]]+", " ", sql), 1, 160),
+    hash_consulta = substr(digest::digest(sql, algo = "sha256"), 1, 16),
+    bytes_dry_run = format(bytes, scientific = FALSE),
+    bytes_cobrados = format(cobrados, scientific = FALSE),
+    n_linhas = nrow(resultado),
+    segundos = round(as.numeric(difftime(fim, inicio, units = "secs")), 1),
+    stringsAsFactors = FALSE
+  )
+  utils::write.table(linha, destino, sep = ",", row.names = FALSE,
+                     col.names = !file.exists(destino), append = file.exists(destino),
+                     qmethod = "double", fileEncoding = "UTF-8")
+  message("[bq] ", fonte, ": ", nrow(resultado), " linhas, cobrados ",
+          mape_formatar_bytes(cobrados), " (acumulado: ",
+          mape_formatar_bytes(gasto + cobrados), ")")
 
   if (registrar) {
     mape_registrar_proveniencia(
       fonte = fonte,
       metodo = "bigquery",
-      detalhe = paste0("projeto=", billing),
+      detalhe = paste0("projeto=", billing, "; bytes=", format(cobrados, scientific = FALSE)),
       hash_consulta = substr(digest::digest(sql, algo = "sha256"), 1, 16),
       n_linhas = nrow(resultado),
       segundos = round(as.numeric(difftime(fim, inicio, units = "secs")), 1)
     )
   }
-  as.data.frame(resultado)
+  resultado
+}
+
+#' Baixa uma consulta uma vez e a guarda em raw/, com sha256 no manifesto
+#'
+#' O cache é o que garante que nenhuma consulta rode duas vezes. Se o arquivo
+#' já existe, a função nem chama o BigQuery.
+#'
+#' @param sql Consulta.
+#' @param fonte Caminho da fonte, relativo a fontes/ (ex.: "04_economia/ibge_pib").
+#' @param arquivo Nome do arquivo em raw/.
+#' @param billing Projeto de faturamento.
+#' @param forcar Se TRUE, reconsulta mesmo com o cache presente.
+#' @return Data frame.
+mape_baixar_cache <- function(sql, fonte, arquivo, billing = NULL, forcar = FALSE) {
+  destino <- mape_caminho("fontes", fonte, "raw", arquivo)
+  dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
+
+  if (file.exists(destino) && !forcar) {
+    message("[bq] cache: ", destino, " (nenhuma consulta)")
+    return(as.data.frame(arrow::read_parquet(destino)))
+  }
+
+  resultado <- mape_query(sql, fonte = fonte, billing = billing)
+  arrow::write_parquet(resultado, destino)
+
+  # O sha256 vai para o MANIFESTO.yml, que é o que fica versionado — o raw/ não.
+  sha <- digest::digest(destino, algo = "sha256", file = TRUE)
+  manifesto_path <- mape_caminho("fontes", fonte, "MANIFESTO.yml")
+  manifesto <- if (file.exists(manifesto_path)) yaml::read_yaml(manifesto_path) else list()
+  manifesto$arquivo_local <- arquivo
+  manifesto$sha256 <- sha
+  manifesto$metodo_acesso <- "bigquery"
+  manifesto$sql_hash <- substr(digest::digest(sql, algo = "sha256"), 1, 16)
+  manifesto$data_download <- format(Sys.Date(), "%Y-%m-%d")
+  dir.create(dirname(manifesto_path), recursive = TRUE, showWarnings = FALSE)
+  yaml::write_yaml(manifesto, manifesto_path)
+  message("[bq] cache gravado: ", destino, " (sha256 ", substr(sha, 1, 12), "...)")
+
+  resultado
 }
 
 #' Registra uma extração em dicionario/proveniencia.csv
