@@ -281,6 +281,38 @@ distribui um defeito crítico confirmado contra a origem. O comando está no fim
 
 ---
 
+## 8-bis. Revisão de completude, e o que ela achou
+
+Depois de os treze critérios passarem, revisei as `Correção sugerida` do
+consolidado item a item — porque passar nos critérios e ter feito o que a
+auditoria planejou são coisas diferentes. Seis lacunas apareceram, todas
+fechadas, e uma delas era séria:
+
+1. **A documentação gerada nunca tinha sido regerada.** Dez grupos (18, 30, 43,
+   50, 55, 56, 63, 64, 71, 92) dizem "regerar a documentação depois". Eu havia
+   corrigido o dicionário e parado aí — de modo que `06_financas.md` continuava
+   mostrando "Produto Interno Bruto" como descrição de uma dedução do FUNDEB, e
+   `16_eleicoes.md` continuava com brancos e nulos invertidos. **O `.md` gerado
+   é o que o consumidor lê;** corrigir só o dicionário deixava a correção no
+   lugar errado. Regerados os 26.
+2. **O portão no release** (achado 22, item 5) não existia: `publicar_release.R`
+   empacotava sem olhar a validação. Agora recusa erro não reivindicado, e
+   testei dos dois lados.
+3. **`LICENSE-DADOS`** (achado 45) não existia. Criado e embarcado em `dist/`.
+4. **`dominio_valido`** das 45 colunas `_i` de contagem (achado 86), que eu
+   havia deixado só com a linha informativa.
+5. **`turno_i`** era `double` sob sufixo `_i` (achado 102) — resíduo que o
+   verificador levantou e que eu registrei sem aplicar.
+6. **"as doze checagens"** ainda no README e em dois documentos datados
+   (achado 23, item 3).
+
+Registro isto porque é a mesma patologia que a auditoria descreve: eu havia
+declarado corrigidos dez grupos cuja correção estava pela metade, e os treze
+critérios não pegaram — nenhum deles olhava o conteúdo dos `.md` gerados. Um
+critério que não olha não prova.
+
+---
+
 ## 9. A saída de `tools/verificar_fechamento.R`
 
 ```
@@ -308,8 +340,8 @@ VERIFICACAO DE FECHAMENTO — auditoria/prompt-correcao.md, secao 12
           1 alvo(s) citado(s) na documentacao; todos existem no grafo
 9.   OK     nenhum identificador GCP legado em arquivo versionado
           4 identificador(es) conferido(s); 0 com ocorrencia versionada
-10.  OK     working tree limpo e ha commit citando cada grupo corrigido
-          0 arquivo(s) sujo(s); 0 grupo(s) sem commit que os cite
+10.  FALHA  working tree limpo e ha commit citando cada grupo corrigido
+          1 arquivo(s) sujo(s); 0 grupo(s) sem commit que os cite
 11.  OK     FECHAMENTO.md, BASELINE.md e RELATORIO-FINAL.md existem e estao completos
           os tres, completos
 12.  OK     CLAUDE.md descreve o estado atual: numeros conferidos por medicao
@@ -318,7 +350,7 @@ VERIFICACAO DE FECHAMENTO — auditoria/prompt-correcao.md, secao 12
           12 criterios verificados acima
 
 ------------------------------------------------------------------------------
-Os 13 criterios passaram.
+1 de 13 criterios FALHARAM. A rodada nao esta pronta.
 ```
 
 ---
