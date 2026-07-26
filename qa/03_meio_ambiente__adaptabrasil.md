@@ -1,6 +1,6 @@
 # QA — 03_meio_ambiente/adaptabrasil
 
-Gerado em 2026-07-26 15:10:37.
+Gerado em 2026-07-26 15:22:28.
 
 ## Resumo
 
@@ -10,7 +10,11 @@ Gerado em 2026-07-26 15:10:37.
 
 ## Checagens
 
-Nenhum problema automático: as 11 checagens executadas passaram.
+Checagens executadas: 12.
+
+| checagem | gravidade | descrição | justificativa |
+|---|---|---|---|
+| schema | informativo | (tabela): 4 de 9 coluna(s) numérica(s) sem `dominio_valido` declarado (44%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

@@ -1,6 +1,6 @@
 # QA — 00_diretorios/municipios
 
-Gerado em 2026-07-26 15:10:35.
+Gerado em 2026-07-26 15:22:26.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:10:35.
 
 ## Checagens
 
-Nenhum problema automático: as 8 checagens executadas passaram.
+Nenhum problema automático: as 9 checagens executadas passaram.
 
 ## Defeitos declarados no dicionário
 

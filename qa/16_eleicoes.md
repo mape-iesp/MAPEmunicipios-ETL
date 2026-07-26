@@ -1,6 +1,6 @@
 # QA — 16_eleicoes
 
-Gerado em 2026-07-26 15:10:42.
+Gerado em 2026-07-26 15:22:33.
 
 ## Resumo
 
@@ -10,7 +10,11 @@ Gerado em 2026-07-26 15:10:42.
 
 ## Checagens
 
-Nenhum problema automático: as 11 checagens executadas passaram.
+Checagens executadas: 12.
+
+| checagem | gravidade | descrição | justificativa |
+|---|---|---|---|
+| schema | informativo | (tabela): 7 de 25 coluna(s) numérica(s) sem `dominio_valido` declarado (28%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

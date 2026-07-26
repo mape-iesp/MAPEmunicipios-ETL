@@ -19,10 +19,13 @@
 #' @param converter_numerico Se TRUE, tenta converter para numérico as colunas
 #'   de texto que, depois de removidos os sentinelas, só contêm números. É isso
 #'   que recupera o tipo de indice_risco_inundacoes_enxurradas.
+#' @param preservar_chaves Se TRUE (o padrão), as colunas de chave declaradas em
+#'   config/parametros.yml ficam fora da varredura.
 #' @return O objeto com os sentinelas trocados por NA.
 mape_tratar_sentinelas <- function(x, cols = NULL, texto = NULL,
                                    numerico = NULL,
-                                   converter_numerico = TRUE) {
+                                   converter_numerico = TRUE,
+                                   preservar_chaves = TRUE) {
   if (is.null(texto))    texto    <- mape_param("sentinelas.texto")
   if (is.null(numerico)) numerico <- mape_param("sentinelas.numerico")
 
@@ -51,6 +54,21 @@ mape_tratar_sentinelas <- function(x, cols = NULL, texto = NULL,
   if (!is.data.frame(x)) return(limpar_vetor(x))
 
   alvos <- if (is.null(cols)) names(x) else intersect(cols, names(x))
+
+  # Achado 20: id_municipio é texto de 7 dígitos e a conversão numérica o
+  # transformava em double, apagando o zero à esquerda de forma irreversível —
+  # "1100015" vira 1100015, e o código de Rondônia "1100015" ainda sobrevive,
+  # mas os de Acre e Alagoas, que começam com dígito baixo, não. Pior: o
+  # scaffold oficial de mape_nova_fonte() produzia exatamente esta chamada, o
+  # que espalhava o defeito para toda fonte nova.
+  #
+  # A chave é estrutural e não é dado de conteúdo. Ela nunca traz sentinela, e
+  # por isso não há nada a ganhar em varrê-la.
+  if (preservar_chaves) {
+    chaves <- tryCatch(names(mape_param("chaves")), error = function(e) character())
+    alvos <- setdiff(alvos, chaves)
+  }
+
   for (nm in alvos) x[[nm]] <- limpar_vetor(x[[nm]])
   x
 }

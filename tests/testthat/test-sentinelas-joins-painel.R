@@ -127,3 +127,65 @@ test_that("mape_mapa_censitario_legado reproduz o mapeamento do legado", {
   expect_equal(sort(unique(mapa$ano_ref_censo)), c(2000L, 2010L))
   expect_equal(range(mapa$ano), c(1996, 2015))
 })
+
+# ---- Interação chave × sentinela — achado 20 --------------------------------
+
+test_that("mape_tratar_sentinelas não toca nas colunas de chave", {
+  # Achado 20: a conversão numérica transformava id_municipio de texto em
+  # double, e o scaffold oficial de mape_nova_fonte() produzia exatamente essa
+  # chamada — o que espalhava o defeito para toda fonte nova. Os quatro testes
+  # que já existiam usavam data frames SEM coluna de chave, e por isso nunca
+  # exercitaram este caminho.
+  x <- data.frame(id_municipio = c("1100015", "1200013"),
+                  id_municipio_6 = c("110001", "120001"),
+                  ano = c(2020L, 2021L),
+                  indice = c("1,5", "NaoDisponivel"),
+                  stringsAsFactors = FALSE)
+  y <- mape_tratar_sentinelas(x)
+
+  expect_type(y$id_municipio, "character")
+  expect_equal(y$id_municipio, c("1100015", "1200013"))
+  expect_type(y$id_municipio_6, "character")
+  expect_type(y$ano, "integer")
+
+  # E a coluna de conteúdo continua sendo tratada: o sentinela vira NA e o
+  # tipo é recuperado.
+  expect_type(y$indice, "double")
+  expect_equal(y$indice, c(1.5, NA))
+})
+
+test_that("preservar_chaves = FALSE reproduz o comportamento antigo", {
+  # O defeito continua alcançável de propósito, para quem souber o que quer.
+  x <- data.frame(id_municipio = c("1100015", "1200013"), stringsAsFactors = FALSE)
+  y <- mape_tratar_sentinelas(x, preservar_chaves = FALSE)
+  expect_type(y$id_municipio, "double")
+})
+
+test_that("o scaffold gerado trata sentinelas ANTES de normalizar a chave", {
+  raiz <- withr::local_tempdir()
+  dir.create(file.path(raiz, "config"), recursive = TRUE, showWarnings = FALSE)
+  file.copy(here::here("config", "parametros.yml"), file.path(raiz, "config"))
+  dir.create(file.path(raiz, "dicionario"), recursive = TRUE, showWarnings = FALSE)
+  for (f in list.files(here::here("dicionario"), pattern = "[.]csv$", full.names = TRUE)) {
+    file.copy(f, file.path(raiz, "dicionario"))
+  }
+  withr::local_options(mape.raiz = raiz)
+  rm(list = ls(.mape_cache_param), envir = .mape_cache_param)
+  withr::defer(rm(list = ls(.mape_cache_param), envir = .mape_cache_param))
+
+  dims <- mape_dicionario("dimensoes")
+  col <- intersect(c("slug", "slug_dimensao", "dimensao"), names(dims))[1]
+  d <- dims[[col]][1]
+  suppressMessages(mape_nova_fonte(d, "fonte_ordem_tmp"))
+
+  linhas <- readLines(mape_caminho("fontes", d, "fonte_ordem_tmp", "R",
+                                   "tratar_fonte_ordem_tmp.R"))
+  # Casa a CHAMADA, não o comentário que a explica.
+  i_sent <- grep("^\\s+x <- mape_tratar_sentinelas", linhas)
+  i_chave <- grep("^\\s+x <- mape_normalizar_chaves", linhas)
+  expect_length(i_sent, 1)
+  expect_length(i_chave, 1)
+  expect_lt(i_sent, i_chave)
+  # E com o argumento explícito, que é o que impede a conversão da chave.
+  expect_match(linhas[i_sent], "converter_numerico = FALSE")
+})

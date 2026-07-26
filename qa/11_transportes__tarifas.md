@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifas
 
-Gerado em 2026-07-26 15:10:41.
+Gerado em 2026-07-26 15:22:31.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 15:10:41.
 
 ## Checagens
 
-Checagens executadas: 11.
+Checagens executadas: 12.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | cobertura_municipios | aviso | a tabela cobre apenas 0.5% dos municípios do diretório | A tabela cobre 27 dos 5.570 municipios (0,5%) porque o levantamento de tarifas de transporte publico so abrange as capitais e algumas regioes metropolitanas. E uma amostra declarada pela origem, nao uma perda desta migracao. ATENCAO ao consumir: qualquer agregado nacional calculado sobre esta tabela descreve 27 municipios, e mape_cobertura() nao deixava isso visivel (grupo 21 da auditoria). |
+| schema | informativo | (tabela): 1 de 3 coluna(s) numérica(s) sem `dominio_valido` declarado (33%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

@@ -1,6 +1,6 @@
 # QA — 05_sociedade
 
-Gerado em 2026-07-26 15:10:38.
+Gerado em 2026-07-26 15:22:29.
 
 ## Resumo
 
@@ -10,7 +10,11 @@ Gerado em 2026-07-26 15:10:38.
 
 ## Checagens
 
-Nenhum problema automático: as 11 checagens executadas passaram.
+Checagens executadas: 12.
+
+| checagem | gravidade | descrição | justificativa |
+|---|---|---|---|
+| schema | informativo | (tabela): 1 de 7 coluna(s) numérica(s) sem `dominio_valido` declarado (14%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

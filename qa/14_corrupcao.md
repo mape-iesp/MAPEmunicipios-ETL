@@ -1,6 +1,6 @@
 # QA — 14_corrupcao
 
-Gerado em 2026-07-26 15:10:41.
+Gerado em 2026-07-26 15:22:32.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 15:10:41.
 
 ## Checagens
 
-Checagens executadas: 11.
+Checagens executadas: 12.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | cobertura_municipios | aviso | a tabela cobre apenas 24.3% dos municípios do diretório | A tabela cobre 1.352 dos 5.570 municipios (24,3%) porque a base de Kustov & Pardelli deriva do sorteio de auditorias da CGU, que e amostral por construcao. Municipio ausente nao e municipio sem corrupcao: e municipio nao sorteado. Qualquer inferencia sobre o universo dos municipios a partir desta tabela precisa tratar a selecao. |
+| schema | informativo | (tabela): 2 de 6 coluna(s) numérica(s) sem `dominio_valido` declarado (33%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

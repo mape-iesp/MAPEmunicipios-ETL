@@ -1,6 +1,6 @@
 # QA — 10_saude
 
-Gerado em 2026-07-26 15:10:40.
+Gerado em 2026-07-26 15:22:31.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:10:40.
 
 ## Checagens
 
-Checagens executadas: 11.
+Checagens executadas: 12.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -30,6 +30,7 @@ Checagens executadas: 11.
 | schema | aviso | pni_cobertura_triplice_bacteriana_pct: 13556 valor(es) fora do domínio [0,100] (observado: 0 a 9000) | problema da variável pni_cobertura_triplice_bacteriana_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 9000%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
 | schema | aviso | pni_cobertura_triplice_viral_dose1_pct: 62946 valor(es) fora do domínio [0,100] (observado: 0 a 9550) | problema da variável pni_cobertura_triplice_viral_dose1_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 9550%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
 | schema | aviso | pni_cobertura_triplice_viral_d2_pct: 12450 valor(es) fora do domínio [0,100] (observado: 0 a 7400) | problema da variável pni_cobertura_triplice_viral_d2_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 7400%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
+| schema | informativo | (tabela): 32 de 63 coluna(s) numérica(s) sem `dominio_valido` declarado (51%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

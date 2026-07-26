@@ -29,7 +29,24 @@ mape_como_inteiro <- function(x) {
     x <- trimws(x)
     x[x == ""] <- NA_character_
   }
-  suppressWarnings(as.integer(x))
+  # Achado 19: este suppressWarnings engolia a perda. Sete colunas de dinheiro
+  # de 04_economia estavam declaradas `integer` e estouram o int32, e 23.761
+  # células viravam NA aqui, em silêncio, no caminho do csv.gz. O aviso do R
+  # ("NAs introduced by coercion") era exatamente a informação que faltava.
+  #
+  # Continua suprimido o aviso genérico do R, que não diz quantas nem quais,
+  # mas a perda passa a ser medida e reportada.
+  antes_na <- is.na(x)
+  y <- suppressWarnings(as.integer(x))
+  perdidos <- sum(!antes_na & is.na(y))
+  if (perdidos > 0) {
+    warning(perdidos, " valor(es) viraram NA na conversão para integer. ",
+            "Se são valores grandes, o tipo declarado no dicionário deveria ser ",
+            "`double`: o int32 para em ",
+            format(.Machine$integer.max, scientific = FALSE), ".",
+            call. = FALSE)
+  }
+  y
 }
 
 #' Converte um código de município para texto com zeros à esquerda

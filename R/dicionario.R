@@ -173,11 +173,17 @@ mape_recalcular_campos <- function(tabelas = NULL, gravar = TRUE) {
   pub <- mape_tabelas_publicadas()
   if (is.null(tabelas)) tabelas <- pub$slug
 
-  calculados <- c("tipo_real", "pct_na", "n_distintos", "minimo", "maximo",
-                  "n_infinito")
+  # pct_zero e janela_efetiva são campos calculados NOVOS, pedidos pelos achados
+  # 4 e 21. O pct_na sozinho mentia: ele dizia que
+  # siconfi_receitas_realizadas_brl2023 estava 99,74% completa, e ela é 97% zero
+  # — zero que significa "não medido". Um campo mede ausência declarada; o outro,
+  # ausência disfarçada de valor.
+  calculados <- c("tipo_real", "pct_na", "pct_zero", "n_distintos", "minimo",
+                  "maximo", "n_infinito", "janela_efetiva")
   for (cl in calculados) if (!cl %in% names(vars)) vars[[cl]] <- NA
 
   n_tocadas <- 0
+  nao_medidas <- character()
   for (t in tabelas) {
     camada <- pub$camada[match(t, pub$slug)]
     if (is.na(camada)) next
@@ -188,18 +194,63 @@ mape_recalcular_campos <- function(tabelas = NULL, gravar = TRUE) {
                    (vars$tabela == t | startsWith(t, paste0(vars$tabela, "/"))))
       # Uma variável pode aparecer na fonte e na dimensão que a contém. Medir
       # na fonte é o certo: é lá que ela é observada.
+      #
+      # Achado 36: aqui havia um fallback — se o casamento por (nome, tabela)
+      # não achasse exatamente uma linha, o código caía para o casamento só por
+      # nome e escrevia na PRIMEIRA linha encontrada, que é a de outra tabela.
+      # Era assim que os campos calculados de `id_municipio` e `ano` acabavam
+      # descrevendo 16_eleicoes: as duas colunas existem em quase toda tabela, e
+      # a primeira linha do dicionário ganhava a medição de todas elas.
+      #
+      # Adivinhar a linha é pior que não medir. Agora pula, e registra.
       if (length(j) != 1) {
-        j <- which(vars$nome_canonico == nm)
-        if (length(j) != 1) next
+        if (length(j) > 1) {
+          nao_medidas <- c(nao_medidas, paste0(t, "/", nm, " (", length(j),
+                                                " linhas no dicionário)"))
+        } else if (any(vars$nome_canonico == nm)) {
+          nao_medidas <- c(nao_medidas, paste0(t, "/", nm,
+                                                " (a linha existe, mas declara outra tabela)"))
+        }
+        next
       }
       v <- x[[nm]]
       vars$tipo_real[j] <- class(v)[1]
       vars$pct_na[j] <- round(100 * mean(is.na(v)), 4)
       vars$n_distintos[j] <- length(unique(v[!is.na(v)]))
+
+      # Achado 4: pct_zero e janela_efetiva. O pct_na dizia que
+      # siconfi_receitas_realizadas_brl2023 estava 99,74% completa; ela é 97%
+      # zero, e o zero ali significa "não medido". Sem estas duas colunas, a
+      # especificação afirmava completude onde havia buraco.
+      if ("pct_zero" %in% names(vars)) {
+        vars$pct_zero[j] <- if (is.numeric(v) && any(!is.na(v))) {
+          round(100 * mean(v == 0, na.rm = TRUE), 4)
+        } else NA_real_
+      }
+      if ("janela_efetiva" %in% names(vars) && "ano" %in% names(x)) {
+        # Os anos em que a coluna tem ao menos um valor não nulo e não zero.
+        informativo <- !is.na(v) & (!is.numeric(v) | v != 0)
+        anos_com_dado <- sort(unique(suppressWarnings(
+          as.integer(as.character(x$ano[informativo])))))
+        anos_com_dado <- anos_com_dado[!is.na(anos_com_dado)]
+        vars$janela_efetiva[j] <- if (length(anos_com_dado)) {
+          paste0(min(anos_com_dado), "-", max(anos_com_dado))
+        } else NA_character_
+      }
+
       if (is.numeric(v) && any(!is.na(v))) {
         finito <- v[is.finite(v)]
-        vars$minimo[j] <- if (length(finito)) min(finito) else NA_real_
-        vars$maximo[j] <- if (length(finito)) max(finito) else NA_real_
+        # Achado 35: min()/max() sobre integer64 devolvem o PADRÃO DE BITS, não
+        # o valor — foi assim que o dicionário passou a declarar
+        # minimo = 2,61e-317 para o PIB municipal. bit64 guarda um inteiro de 64
+        # bits dentro de um double, e reduzir sem converter reinterpreta os bits
+        # como ponto flutuante. A conversão por character é a que não perde
+        # dígito no caminho.
+        como_numero <- function(z) {
+          if (inherits(z, "integer64")) as.numeric(as.character(z)) else as.numeric(z)
+        }
+        vars$minimo[j] <- if (length(finito)) min(como_numero(finito)) else NA_real_
+        vars$maximo[j] <- if (length(finito)) max(como_numero(finito)) else NA_real_
         vars$n_infinito[j] <- sum(is.infinite(v))
       } else {
         vars$minimo[j] <- NA_real_
@@ -208,6 +259,15 @@ mape_recalcular_campos <- function(tabelas = NULL, gravar = TRUE) {
       }
       n_tocadas <- n_tocadas + 1
     }
+  }
+
+  if (length(nao_medidas)) {
+    warning("Campos calculados NÃO atualizados em ", length(nao_medidas),
+            " coluna(s), porque a linha do dicionário é ambígua:\n  ",
+            paste(utils::head(nao_medidas, 12), collapse = "\n  "),
+            if (length(nao_medidas) > 12) "\n  ..." else "",
+            "\nCada coluna publicada precisa de exatamente uma linha que declare ",
+            "a tabela dela.", call. = FALSE)
   }
 
   if (gravar) {
@@ -344,9 +404,116 @@ mape_validar_schema <- function(x, tabela, erro = TRUE) {
       if (grepl("_razao$", nm) && faixa[1] < 0) {
         registrar("aviso", nm, "razão com valor negativo")
       }
-      if (grepl("^flag_", nm) && !all(v %in% c(0, 1, NA))) {
-        registrar("erro", nm, "prefixo flag_ exige valores 0, 1 ou NA")
+
+      # Achado 73: a prova prometida pelo vocabulário fechado existia para 4 dos
+      # 15 tokens. Contagem, taxa por população e distância física não podem ser
+      # negativas — é a asserção mais barata do conjunto e faltava inteira.
+      if (grepl("(_i|_p100k|_p1k|_p100dom|_km|_km2)$", nm) && faixa[1] < 0) {
+        registrar("erro", nm,
+                  paste0("sufixo de contagem/taxa/distância exige valor não ",
+                         "negativo, e o mínimo observado é ", signif(faixa[1], 5)))
       }
+
+      # Achado 19: sete colunas de dinheiro declaradas `integer` estouram o
+      # int32, e 23.761 células viravam NA em silêncio no caminho do csv.gz,
+      # porque mape_como_inteiro() tem suppressWarnings. A checagem confronta a
+      # magnitude observada com o limite do tipo declarado.
+      if (!is.na(esperado) && esperado == "integer" &&
+          max(abs(faixa), na.rm = TRUE) > .Machine$integer.max) {
+        registrar("erro", nm,
+                  paste0("declarada `integer` mas o máximo observado é ",
+                         format(faixa[2], scientific = FALSE),
+                         ", acima do teto do int32 (",
+                         format(.Machine$integer.max, scientific = FALSE),
+                         "): a releitura do csv.gz devolve NA em silêncio"))
+      }
+    }
+
+    # Achado 80: as checagens de vocabulário estavam TODAS dentro do bloco
+    # is.numeric(), então uma flag_ lógica ou textual escapava inteira, e um
+    # sufixo numérico em coluna de texto passava sem nenhum registro.
+    if (grepl("^flag_", nm)) {
+      admissiveis <- if (is.logical(v)) c(TRUE, FALSE, NA) else c(0, 1, NA, "0", "1")
+      if (!all(v %in% admissiveis)) {
+        registrar("erro", nm,
+                  paste0("prefixo flag_ exige 0/1 (ou TRUE/FALSE) e NA; ",
+                         "observados: ",
+                         paste(utils::head(setdiff(unique(as.character(v)),
+                                                   as.character(admissiveis)), 5),
+                               collapse = ", ")))
+      }
+    }
+    if (grepl("(_pct|_prop|_razao|_p100k|_p1k|_p100dom|_km|_km2|_idx)$", nm) &&
+        !is.numeric(v) && !all(is.na(v))) {
+      registrar("erro", nm,
+                paste0("sufixo numérico em coluna de tipo '", class(v)[1], "'"))
+    }
+
+    # Achado 56: 27 variáveis publicadas não têm descrição nenhuma. O dicionário
+    # é a especificação; uma linha sem descrição não especifica nada.
+    if ("descricao" %in% names(vars)) {
+      desc <- as.character(vars$descricao[i])
+      if (length(desc) == 1 && (is.na(desc) || !nzchar(trimws(desc)))) {
+        registrar("aviso", nm, "variável publicada sem descrição no dicionário")
+      }
+    }
+  }
+
+  # As colunas de chave são estruturais e não pertencem a nenhuma tabela em
+  # particular: elas são especificadas em config/parametros.yml, seção `chaves:`,
+  # e não no dicionário de variáveis. Cobrá-las aqui seria exigir 26 linhas
+  # idênticas no dicionário para dizer o que o YAML já diz uma vez.
+  #
+  # Achado 20, item (4): esse contrato estava declarado e NENHUMA função o lia.
+  # Agora ele é verificado em toda tabela, o que é mais forte do que uma linha de
+  # dicionário — pega o tipo, não só a presença.
+  contrato <- tryCatch(mape_param("chaves"), error = function(e) NULL)
+  chaves_declaradas <- names(contrato)
+  for (k in intersect(chaves_declaradas, names(x))) {
+    esperado_k <- contrato[[k]]$tipo
+    real_k <- mape_tipo_de(x[[k]])
+    if (!is.null(esperado_k) && !identical(real_k, esperado_k)) {
+      registrar("erro", k,
+                paste0("chave declarada '", esperado_k, "' em config/parametros.yml, ",
+                       "observada '", real_k, "'"))
+    }
+    digitos <- contrato[[k]]$digitos
+    if (!is.null(digitos) && is.character(x[[k]])) {
+      errados <- sum(!is.na(x[[k]]) & nchar(x[[k]]) != digitos)
+      if (errados > 0) {
+        registrar("erro", k,
+                  paste0(errados, " valor(es) de chave com número de dígitos ",
+                         "diferente de ", digitos))
+      }
+    }
+  }
+
+  # Achado 80, o furo maior: o laço iterava sobre as linhas do DICIONÁRIO, então
+  # uma coluna publicada que não constasse dele não era olhada por checagem
+  # nenhuma. O dicionário é a especificação — coluna fora dele é coluna sem
+  # especificação.
+  fora_do_dicionario <- setdiff(names(x), c(vars$nome_canonico, chaves_declaradas))
+  if (length(fora_do_dicionario)) {
+    registrar("erro", paste(utils::head(fora_do_dicionario, 1), collapse = ""),
+              paste0(length(fora_do_dicionario),
+                     " coluna(s) publicada(s) sem linha no dicionário: ",
+                     paste(utils::head(fora_do_dicionario, 8), collapse = ", ")))
+  }
+
+  # Achado 86: a checagem 9 só existe onde o dicionário quis, e 240 das 431
+  # variáveis não têm faixa verificada. Não dá para inventar a faixa, mas dá
+  # para dizer quanto do dado foi de fato olhado, em vez de deixar "as checagens
+  # passaram" sugerir cobertura total.
+  numericas <- names(x)[vapply(x, is.numeric, logical(1))]
+  numericas <- intersect(numericas, vars$nome_canonico)
+  if (length(numericas)) {
+    sem_dominio <- sum(is.na(vars$dominio_valido[match(numericas, vars$nome_canonico)]))
+    if (sem_dominio > 0) {
+      registrar("informativo", "(tabela)",
+                paste0(sem_dominio, " de ", length(numericas),
+                       " coluna(s) numérica(s) sem `dominio_valido` declarado (",
+                       round(100 * sem_dominio / length(numericas)),
+                       "%): a checagem de faixa não olhou essas."))
     }
   }
 

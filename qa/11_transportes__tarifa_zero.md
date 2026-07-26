@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifa_zero
 
-Gerado em 2026-07-26 15:10:41.
+Gerado em 2026-07-26 15:22:31.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 15:10:41.
 
 ## Checagens
 
-Checagens executadas: 11.
+Checagens executadas: 12.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | cobertura_municipios | aviso | a tabela cobre apenas 1.9% dos municípios do diretório | A tabela cobre 106 dos 5.570 municipios (1,9%) porque so 106 municipios brasileiros ja adotaram tarifa zero no transporte publico. A fonte registra ocorrencias, e a ausencia de linha significa que o municipio nunca adotou a politica. Cobertura baixa e o fato medido. |
+| schema | informativo | (tabela): 2 de 2 coluna(s) numérica(s) sem `dominio_valido` declarado (100%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

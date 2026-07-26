@@ -1,6 +1,6 @@
 # QA — 09_educacao/censup
 
-Gerado em 2026-07-26 15:10:39.
+Gerado em 2026-07-26 15:22:30.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:10:39.
 
 ## Checagens
 
-Checagens executadas: 11.
+Checagens executadas: 12.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

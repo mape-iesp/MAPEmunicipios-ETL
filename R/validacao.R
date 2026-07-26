@@ -127,12 +127,62 @@ mape_aplicar_justificativas <- function(res, tabela) {
     }
   }
 
-  # A cláusula que faltava: aviso sem justificativa vira erro.
+  # A cláusula que faltava: aviso sem justificativa vira erro. A gravidade
+  # "informativo" fica de fora — ela não afirma defeito, só mede cobertura, e
+  # exigir justificativa para ela transformaria informação em ruído.
+  res$justificada[res$gravidade == "informativo"] <- TRUE
   promove <- res$gravidade == "aviso" & !res$justificada
   res$gravidade[promove] <- "erro"
   res$descricao[promove] <- paste0(res$descricao[promove],
                                    " [aviso sem justificativa registrada]")
   res
+}
+
+#' Descrições de uma tabela que se repetem noutra — a checagem 12
+#'
+#' Compara descrições normalizadas: minúsculas, sem acento, sem pontuação, sem
+#' os sufixos de deflação que o projeto acrescenta mecanicamente. Isso é o que
+#' pega o bloco deslizado de 06_financas, cujo caso mais grave escapa da
+#' igualdade exata porque teve texto prefixado.
+#'
+#' Pares legítimos ficam de fora por uma lista de exceções declarada: há
+#' conceitos que a mesma frase descreve com razão em tabelas diferentes.
+#'
+#' @param tabela Identificador da tabela.
+#' @return Data frame com coluna, outra, tabela_outra.
+mape_descricoes_repetidas <- function(tabela) {
+  vars <- mape_dicionario("variaveis")
+  normalizar <- function(s) {
+    s <- tolower(iconv(as.character(s), to = "ASCII//TRANSLIT"))
+    s <- gsub("\\(deflacionado[^)]*\\)", "", s)
+    s <- gsub("[[:punct:]]", " ", s)
+    trimws(gsub("[[:space:]]+", " ", s))
+  }
+  vars$.norm <- normalizar(vars$descricao)
+  # Pares legítimos: a mesma frase descreve o mesmo conceito nas duas tabelas.
+  excecoes <- c("nome do municipio", "sigla da unidade da federacao",
+                "nome da unidade da federacao", "codigo ibge do municipio 7 digitos",
+                "ano de referencia", "ano")
+
+  minhas <- vars[!is.na(vars$tabela) & vars$tabela == tabela &
+                   !is.na(vars$.norm) & nzchar(vars$.norm), , drop = FALSE]
+  out <- list()
+  for (i in seq_len(nrow(minhas))) {
+    n <- minhas$.norm[i]
+    if (n %in% excecoes || nchar(n) < 25) next
+    outras <- vars[!is.na(vars$.norm) & vars$.norm == n &
+                     !is.na(vars$tabela) & vars$tabela != tabela, , drop = FALSE]
+    if (nrow(outras)) {
+      out[[length(out) + 1]] <- data.frame(
+        coluna = minhas$nome_canonico[i],
+        outra = outras$nome_canonico[1],
+        tabela_outra = outras$tabela[1],
+        stringsAsFactors = FALSE)
+    }
+  }
+  if (length(out)) do.call(rbind, out) else
+    data.frame(coluna = character(), outra = character(),
+               tabela_outra = character(), stringsAsFactors = FALSE)
 }
 
 #' Roda todas as checagens sobre uma tabela
@@ -283,6 +333,26 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
   }
 
   # -- 8. Sentinelas não convertidos ----------------------------------------
+  # -- 12. Descrições repetidas entre tabelas -------------------------------
+  # A checagem 12 do plano, que NUNCA foi implementada — e o defeito que ela
+  # previne está publicado: sete variáveis de 06_financas carregam a descrição
+  # dos componentes do PIB de 04_economia, deslizadas em bloco (achados 18, 23).
+  #
+  # A regra é de SIMILARIDADE e não de igualdade exata, porque o caso mais grave
+  # do bloco (siconfi_deducao_fundeb_brl2023) escapa da igualdade: a descrição
+  # foi montada prefixando texto à descrição alheia.
+  if (mape_tabela_no_dicionario(tabela)) {
+    rodou("descricao_repetida")
+    d <- tryCatch(mape_descricoes_repetidas(tabela), error = function(e) NULL)
+    if (!is.null(d) && nrow(d)) {
+      for (i in seq_len(nrow(d))) {
+        reg("descricao_repetida", "aviso",
+            paste0(d$coluna[i], ": descrição igual à de `", d$outra[i],
+                   "` (tabela ", d$tabela_outra[i], ")"))
+      }
+    }
+  }
+
   rodou("sentinelas")
   sent <- mape_detectar_sentinelas(x)
   if (nrow(sent)) {

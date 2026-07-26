@@ -1,6 +1,6 @@
 # QA — 13_seguranca
 
-Gerado em 2026-07-26 15:10:41.
+Gerado em 2026-07-26 15:22:32.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 15:10:41.
 
 ## Checagens
 
-Checagens executadas: 11.
+Checagens executadas: 12.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | dominio_chave | erro | 70 código(s) fora do diretório em 352 linha(s) (0.265%). Exemplos: 1100000, 1200000, 1300000, 1400000, 1500000 [aviso sem justificativa registrada] | — sem justificativa — |
+| schema | informativo | (tabela): 26 de 62 coluna(s) numérica(s) sem `dominio_valido` declarado (42%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 

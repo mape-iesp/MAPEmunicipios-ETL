@@ -1,6 +1,6 @@
 # QA — 12_habitacao/mcmv_fgts
 
-Gerado em 2026-07-26 15:10:41.
+Gerado em 2026-07-26 15:22:32.
 
 ## Resumo
 
@@ -10,7 +10,11 @@ Gerado em 2026-07-26 15:10:41.
 
 ## Checagens
 
-Nenhum problema automático: as 11 checagens executadas passaram.
+Checagens executadas: 12.
+
+| checagem | gravidade | descrição | justificativa |
+|---|---|---|---|
+| schema | informativo | (tabela): 2 de 6 coluna(s) numérica(s) sem `dominio_valido` declarado (33%): a checagem de faixa não olhou essas. | — sem justificativa — |
 
 ## Defeitos declarados no dicionário
 
