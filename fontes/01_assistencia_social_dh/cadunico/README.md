@@ -51,7 +51,8 @@ Contagem de famílias inscritas no Cadastro Único com dados atualizados, por fa
 
 ## Ressalvas
 
-O snapshot anual é o mês de dezembro, por causa de um filtro herdado do legado ('12$'). Isso descarta 2024, cujo arquivo bruto vai até novembro: a fonte cobre 2015-2024 e a tabela entrega 2015-2023. Rever se o snapshot deve passar a ser o último mês disponível. A origem desta fonte esteve perdida e foi reconstruída no planejamento; não há script de download, apenas o procedimento no README. LIMITAÇÃO CONHECIDA: a Taxa de Atualização Cadastral restrita à faixa de até meio salário mínimo passa de 100% em 59 municípios, todos no ano de 2016, chegando a 128,8%. Uma razão entre cadastros atualizados e cadastros totais não pode exceder 100% por definição; o excesso indica que numerador e denominador foram apurados em momentos diferentes, de modo que famílias que mudaram de faixa de renda entre as duas contagens aparecem só no numerador. Os valores foram MANTIDOS como vieram da fonte, sem truncamento, porque truncar esconderia o problema. A concentração em um único ano sugere falha na extração daquela edição. A outra taxa da mesma tabela tem máximo exatamente 100,00, o que indica que ela é truncada na origem e esta não é.
+O snapshot anual é o mês de dezembro, por causa de um filtro herdado do legado ('12$') — mas esse filtro NÃO roda nesta árvore, e é preciso não confundir as duas coisas (achado 46, precisado em 26/07/2026). O arquivo em fontes/01_assistencia_social_dh/cadunico/raw/ é DERIVADO: já vem com o filtro aplicado, com coluna `ano` em vez de `anomes_s` e com código de 7 dígitos. Medido: 50.130 linhas, 2015-2023, sem nenhuma linha de 2024 e sem coluna de mês. É a série MENSAL da origem, no SAGI, que vai até novembro de 2024 e que o filtro de dezembro descartaria; quem reextrair recebe essa série, com 6 dígitos, e precisa aplicar os dois passos registrados em `passos_ja_aplicados` no MANIFESTO.yml. Rever, na reextração, se o snapshot deve passar a ser o último mês disponível em vez de dezembro.
+ A origem desta fonte esteve perdida e foi reconstruída no planejamento; não há script de download, apenas o procedimento no README. LIMITAÇÃO CONHECIDA: a Taxa de Atualização Cadastral restrita à faixa de até meio salário mínimo passa de 100% em 59 municípios, todos no ano de 2016, chegando a 128,8%. Uma razão entre cadastros atualizados e cadastros totais não pode exceder 100% por definição; o excesso indica que numerador e denominador foram apurados em momentos diferentes, de modo que famílias que mudaram de faixa de renda entre as duas contagens aparecem só no numerador. Os valores foram MANTIDOS como vieram da fonte, sem truncamento, porque truncar esconderia o problema. A concentração em um único ano sugere falha na extração daquela edição. A outra taxa da mesma tabela tem máximo exatamente 100,00, o que indica que ela é truncada na origem e esta não é.
 
 ## Como ler esta tabela
 
@@ -62,5 +63,5 @@ x <- mape_ler("01_assistencia_social_dh/cadunico")
 x <- mape_ler("01_assistencia_social_dh/cadunico", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

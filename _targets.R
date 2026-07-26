@@ -26,7 +26,15 @@ library(targets)
 tar_option_set(
   packages = c("arrow", "janitor", "yaml", "digest", "openxlsx", "dplyr"),
   format = "rds",
-  error = "abridge"   # um alvo que falha não derruba os ramos independentes
+  # Achado 41. Esta linha dizia `error = "abridge"` glosado como "um alvo que
+  # falha não derruba os ramos independentes" — e essa é a semântica de "trim",
+  # não a de "abridge", que encerra a execução preservando o que já ficou
+  # pronto. O comentário descrevia a intenção e o código fazia outra coisa.
+  # Corrigido para o valor que realiza a intenção declarada.
+  #
+  # A parte substantiva do mesmo achado é o código de saída, e está em
+  # tools/rodar_grafo.R: `tar_make()` sai com 0 mesmo com alvo falhado.
+  error = "trim"
 )
 
 # A camada de funções comuns e todos os scripts de tratamento das fontes.

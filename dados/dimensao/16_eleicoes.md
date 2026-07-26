@@ -45,7 +45,7 @@ Resultados das eleições municipais: comparecimento, votos por candidato eleito
 | `comparecimento_prefeito_pct` | double | percentual | Proporção comparecimento prefeitura | 0.0% |
 | `tse_votos_brancos_prefeito_pct` | double | percentual | Percentual de votos BRANCOS para prefeito no municipio, sobre o total de votos do pleito municipal. Mediana 1,26%, e correlacao de 0,52 com tse_votos_brancos_camara_pct — o dado e o nome correspondem. | 0.0% |
 | `tse_votos_nulos_prefeito_pct` | double | percentual | Percentual de votos NULOS para prefeito no municipio, sobre o total de votos do pleito municipal. Mediana 4,46%, coerente com a serie de nulos da camara (2,76%) e distinta da de brancos. | 0.0% |
-| `turno_i` | double | turno | Turno da eleição | 0.0% |
+| `turno_i` | integer | turno | Turno da eleição | 0.0% |
 | `nep_prefeitura_idx` | double | indice | Número efetivo de partidos - eleições prefeitura (Laakso e Taagepera 1979)  | 0.0% |
 | `fracionalizacao_prefeitura_idx` | double | indice de 0 a 1 | Fracionalização Prefeitura (Rae 1971) | 0.0% |
 | `tse_eleitores_aptos_camara_i` | double | eleitores | Total eleitores aptos disputa proporcional municipal (Câmara de Vereadores) | 0.0% |
@@ -85,7 +85,7 @@ O PAINEL ANUAL NÃO TEM DADO ANUAL: é carry-forward puro. O valor do ano da ele
 
 **`tse_votos_nulos_prefeito_pct`** — CORRIGIDO em 26/07/2026 (auditoria, achado 30): ver o campo problema de tse_votos_brancos_prefeito_pct. A descricao das duas colunas estava trocada entre si no dicionario; o dado nao estava.
 
-**`turno_i`** — Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada.
+**`turno_i`** — Constante igual a 1 em todas as linhas: a base só traz primeiro turno. Mantida para não quebrar consumidor, mas não informa nada. CORRIGIDO PARCIALMENTE em 26/07/2026 (auditoria, achado 102): o tipo era `double` apesar do sufixo _i de contagem inteira, e passou a `integer`. A coluna continua CONSTANTE igual a 1 em todas as linhas e continua marcada acao = remover — remover coluna de tabela publicada depende do responsavel.
 
 **`comparecimento_camara_pct`** — Mesma inconsistencia de escala (0-100 sob prefixo 'proporcao'). E uma das colunas consumidas por scripts/artigo
 
@@ -122,5 +122,5 @@ x <- mape_ler("16_eleicoes")
 x <- mape_ler("16_eleicoes", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

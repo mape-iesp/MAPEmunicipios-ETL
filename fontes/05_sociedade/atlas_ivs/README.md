@@ -34,7 +34,7 @@
 | Cobertura declarada pela fonte | 2000 e 2010 |
 | **Cobertura observada na tabela** | **2000-2010** |
 | Células vazias (colunas de conteúdo, sem as chaves) | 0.01% |
-| Regra de preenchimento temporal | `valor_unico_replicado` |
+| Regra de preenchimento temporal | `mapa_censitario_legado` |
 
 ## Variáveis
 
@@ -69,5 +69,5 @@ x <- mape_ler("05_sociedade/atlas_ivs")
 x <- mape_ler("05_sociedade/atlas_ivs", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

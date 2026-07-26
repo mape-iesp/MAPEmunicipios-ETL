@@ -1,12 +1,14 @@
 # Paridade — 10_saude
 
-Gerado em 2026-07-26 09:42:28.
-Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
+Gerado em 2026-07-26 20:10:52.
+Referência: `base_municipios_brasileiros.RDa`  
+sha256: `a6f350ecf3090a7439eb680d732b9c40b34dfb79f25b4fe6e9be284cab07b336`
 
 Colunas comparadas: 63. Diferenças não explicadas: 0.
 
 | coluna | classe | descrição |
 |---|---|---|
+| `(conjunto de chaves)` | a_correcao_reivindicada | 2 chave(s) só no publicado e 31143 só na referência, de 149144 e 180285. 'Zero diferenças não explicadas' não cobre linha que não existe dos dois lados. 2 chaves so no publicado, ambas em 2010 e em municipios validos do diretorio. 31.143 so na referencia: a dimensao cobre 1994-2021 em 149.144 linhas. A referencia e um painel unico de 180.285 linhas cobrindo 1991-2023; chave presente so nela e assimetria de janela, nao perda. Medido em 26/07/2026, achados 66 e 67. |
 | `cobertura_total` | b_renomeacao | renomeada para 'pni_cobertura_vacinal_agregada_pct' |
 | `cobertura_bcg` | b_renomeacao | renomeada para 'pni_cobertura_bcg_pct' |
 | `cobertura_dtp` | b_renomeacao | renomeada para 'pni_cobertura_dtp_pct' |
@@ -67,7 +69,8 @@ Colunas comparadas: 63. Diferenças não explicadas: 0.
 | `pct_desp_recp_saude_mun` | b_renomeacao | renomeada para 'ieps_despesa_saude_sobre_receita_propria_pct' |
 | `desp_tot_saude_pc_mun` | b_renomeacao | renomeada para 'ieps_despesa_saude_total_per_capita_brl_nominal' |
 | `desp_recp_saude_pc_mun` | b_renomeacao | renomeada para 'ieps_despesa_saude_recursos_proprios_per_capita_brl_nominal' |
-| `desp_tot_saude_pc_mun_def` | b_renomeacao | renomeada para 'ieps_despesa_saude_total_per_capita_brl2023' |
-| `desp_recp_saude_pc_mun_def` | b_renomeacao | renomeada para 'ieps_despesa_saude_recursos_proprios_per_capita_brl2023' |
-| `gasto_pbf_pc_def` | b_renomeacao | renomeada para 'gasto_bolsa_familia_per_capita_brl2023' |
+| `desp_tot_saude_pc_mun_def` | b_renomeacao | renomeada para 'ieps_despesa_saude_total_per_capita_brl2021' |
+| `desp_recp_saude_pc_mun_def` | b_renomeacao | renomeada para 'ieps_despesa_saude_recursos_proprios_per_capita_brl2021' |
+| `gasto_pbf_pc_def` | b_renomeacao | renomeada para 'gasto_bolsa_familia_per_capita_brl2021' |
+| `sigla_uf` | a_correcao_reivindicada | presente na referência e ausente da tabela publicada: Coluna removida de propósito: é a origem do defeito de sigla_uf na base publicada, que tem apenas 33.420 valores preenchidos porque vem do IEPS em vez do diretório. |
 

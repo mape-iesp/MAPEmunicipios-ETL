@@ -364,9 +364,27 @@ mape_cobertura <- function(tabelas = NULL, por_ano = TRUE) {
     substantivas <- grep("^(flag_|ano_ref_)", dados, value = TRUE, invert = TRUE)
     if (!length(substantivas)) substantivas <- dados
 
+    # Mas excluir o `flag_` INTEIRO trocava um erro pelo outro: em
+    # 11_transportes as 578 linhas com `flag_adota_tarifa_zero == 1` são dado
+    # observado, vindo íntegro da fonte, e sumiam do relatório — a cobertura
+    # caía para 27 municípios quando o número honesto é 133.
+    #
+    # O critério certo não é o prefixo, é o VALOR: um flag ligado é observação,
+    # um flag em zero é preenchimento do painel. `ano_ref_` continua fora, e de
+    # propósito: numa tabela de carry_forward ele vem preenchido em toda linha,
+    # e contá-lo ressuscitaria o 100% falso que este achado corrigiu.
+    flags <- grep("^flag_", dados, value = TRUE)
+    flag_ligado <- if (length(flags)) {
+      m <- vapply(x[flags], function(v) {
+        z <- suppressWarnings(as.numeric(v))
+        !is.na(z) & z != 0
+      }, logical(nrow(x)))
+      rowSums(matrix(m, nrow = nrow(x))) > 0
+    } else rep(FALSE, nrow(x))
+
     # "Coberto" é ter pelo menos um valor não vazio, e não estar presente na
     # tabela. A distinção é o que separa cobertura de preenchimento.
-    tem <- rowSums(!is.na(x[, substantivas, drop = FALSE])) > 0
+    tem <- rowSums(!is.na(x[, substantivas, drop = FALSE])) > 0 | flag_ligado
 
     # E "coberto de fato" exige valor INFORMATIVO: uma coluna zerada por
     # preenchimento do painel não é dado. As duas medidas são devolvidas lado a
@@ -377,6 +395,10 @@ mape_cobertura <- function(tabelas = NULL, por_ano = TRUE) {
         (length(setdiff(substantivas, num)) > 0 &
            rowSums(!is.na(x[, setdiff(substantivas, num), drop = FALSE])) > 0)
     } else tem
+    # Um flag ligado é observação também aqui: ele diz que o evento ocorreu
+    # naquele município-ano, que é exatamente o tipo de valor informativo que
+    # esta segunda medida existe para contar.
+    tem_subst <- tem_subst | flag_ligado
 
     if (por_ano && "ano" %in% names(x)) {
       agg <- tapply(x$id_municipio[tem], x$ano[tem], function(v) length(unique(v)))

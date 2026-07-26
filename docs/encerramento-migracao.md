@@ -27,9 +27,31 @@ A soma das dezesseis tabelas de dimensão em Parquet dá 127 MB, contra 431 MB d
 base larga em CSV. Nenhum arquivo isolado passa do limiar de 20 MB, e o hook de
 `pre-commit` confirmou isso a cada commit.
 
+*(Errata de 26/07/2026, achado 96 da auditoria: os 127 MB não são o Parquet. São
+o Parquet **mais** o `csv.gz`. Medido em 26/07/2026, na mesma convenção de
+`mape_mb()`, que é base 1024: os dezesseis `dados/dimensao/*.parquet` somam
+**66,7 MB**; os dezesseis `dados/dimensao/*.csv.gz` somam **60,4 MB**; os trinta
+e dois juntos somam **127,1 MB**, que é o número da frase acima. O resto dela
+continua valendo: nenhum arquivo versionado de `dados/` passa de 20 MB, e o maior
+é `04_economia.parquet`, com 15,6 MB. Os 431 MB da base larga em CSV não foram
+remedidos, porque ela deixou de ser versionada.)*
+
 A base larga reconstruída tem 200.520 linhas por 424 colunas, com 50,7% de
 células vazias — número que confirma a medição que sustentou a decisão de
 publicar por dimensão.
+
+*(Errata de 26/07/2026, achado 96 da auditoria: a taxa de células vazias não é
+50,7%, e o motivo de circularem três valores diferentes é que ninguém dizia sobre
+qual denominador. Medida em 26/07/2026 sobre a base gerada em memória por
+`mape_montar_base_larga(deduplicar = TRUE)` — e não sobre
+`dados/derivado/base_larga.parquet`, que está em disco, não é versionado e é
+anterior às correções, com 183.810 × 440 —, ela dá: sobre **as 424 colunas**,
+47.342.774 células vazias em 85.020.480, ou **55,68%**; sobre as **396 colunas de
+conteúdo**, isto é, fora as duas chaves e as vinte e seis do bloco territorial de
+`00_diretorios`, 47.044.838 em 79.405.920, ou **59,25%**. Com `flags = TRUE` são
+439 colunas e 53,78%, porque as quinze colunas de presença de dimensão nunca são
+vazias. Qualquer um dos três é maior do que os 50,7% declarados, o que torna o
+argumento a favor de publicar por dimensão mais forte, e não mais fraco.)*
 
 ---
 

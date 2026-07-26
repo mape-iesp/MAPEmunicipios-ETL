@@ -111,6 +111,56 @@ if (file.exists(mape_caminho("LICENSE-DADOS"))) {
   message("  LICENSE-DADOS embarcado")
 }
 
+# --- Documentação gerada ----------------------------------------------------
+#
+# Achado 32: o release levava o dicionário e nenhum relatório. Duas
+# consequências, as duas medidas antes da correção.
+#
+# A primeira é que o `dicionario/README.md` embarcado tem 26 links relativos —
+# 16 para `../dados/dimensao/*.md` e 10 para `../fontes/<dim>/<fonte>/README.md`
+# — e todos os 26 apontavam para arquivo ausente dentro do `dist`.
+#
+# A segunda é mais séria: os defeitos que o repositório declara vivem no campo
+# `observacoes` de `dicionario/tabelas.csv`, no campo `problema` de
+# `dicionario/variaveis.csv` e na seção "Defeitos declarados no dicionário" de
+# `qa/<slug>.md`. Os dois primeiros iam no release; o terceiro, que é o que
+# reúne tudo por tabela, não ia.
+#
+# Os três conjuntos entram preservando o caminho que os links esperam.
+copiar_doc <- function(origem, destino_rel) {
+  destino <- file.path(dist, destino_rel)
+  dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
+  isTRUE(file.copy(origem, destino, overwrite = TRUE))
+}
+docs <- 0L
+for (arq in list.files(mape_caminho("dados", "dimensao"), pattern = "[.]md$",
+                       full.names = TRUE)) {
+  docs <- docs + copiar_doc(arq, file.path("dados", "dimensao", basename(arq)))
+}
+raiz_fontes <- mape_caminho("fontes")
+for (arq in list.files(raiz_fontes, pattern = "^README[.]md$",
+                       recursive = TRUE, full.names = TRUE)) {
+  docs <- docs + copiar_doc(
+    arq, file.path("fontes", sub(paste0("^", raiz_fontes, "/"), "", arq)))
+}
+for (slug in pub$slug) {
+  arq <- mape_caminho("qa", paste0(gsub("/", "__", slug), ".md"))
+  if (file.exists(arq)) docs <- docs + copiar_doc(arq, file.path("qa", basename(arq)))
+}
+message("  ", docs, " documento(s) .md embarcado(s)")
+
+# Um release do GitHub não tem pastas: cada anexo é um arquivo solto, e subir a
+# árvore acima achataria os dez `fontes/*/*/README.md` num só nome. O tarball
+# preserva os caminhos, e é ele que vai como anexo.
+local({
+  antes <- setwd(dist)
+  on.exit(setwd(antes), add = TRUE)
+  alvos <- c(file.path("dados", "dimensao"), "fontes", "qa",
+             file.path("dicionario", "README.md"))
+  alvos <- alvos[file.exists(alvos)]
+  utils::tar("documentacao.tar.gz", alvos, compression = "gzip", tar = "internal")
+})
+message("  documentacao.tar.gz montado")
 
 # --- Inventário e manifesto -------------------------------------------------
 utils::write.csv(inv, file.path(dist, "INVENTARIO.csv"),
@@ -133,23 +183,17 @@ manifesto <- list(
 writeLines(jsonlite::toJSON(manifesto, auto_unbox = TRUE, pretty = TRUE),
            file.path(dist, "manifesto.json"), useBytes = TRUE)
 
-# --- Somas de verificação ---------------------------------------------------
-#
-# O que o sha256 garante aqui não é integridade contra adversário: é conseguir
-# provar, seis meses depois, que o arquivo que alguém baixou é o arquivo que
-# foi publicado. É a mesma garantia que o manifesto de cada fonte dá para o
-# dado bruto, pelo mesmo custo de 64 bytes.
-arquivos <- list.files(dist, recursive = TRUE, full.names = TRUE)
-arquivos <- arquivos[basename(arquivos) != "SHA256SUMS.txt"]
-somas <- vapply(arquivos, function(a) {
-  paste0(mape_sha256(a), "  ", sub(paste0("^", dist, "/"), "", a))
-}, character(1))
-writeLines(sort(unname(somas)), file.path(dist, "SHA256SUMS.txt"), useBytes = TRUE)
-
 # --- Nota do release --------------------------------------------------------
 fmt <- function(n) formatC(n, format = "d", big.mark = ".", decimal.mark = ",")
 d <- inv[inv$camada == "dimensao", ]
 f <- inv[inv$camada == "fonte", ]
+
+# Achado 32: quantas tabelas declaram defeito é medido no dicionário, na hora, e
+# não escrito à mão aqui. Escrever à mão é como o número sete circulou pelo
+# repositório sem que ninguém o tivesse contado.
+com_defeito <- pub$slug[vapply(pub$slug, function(s) {
+  length(tryCatch(mape_defeitos_declarados(s), error = function(e) character())) > 0
+}, logical(1))]
 
 writeLines(c(
   paste0("# MAPEmunicipios — dados ", versao), "",
@@ -165,10 +209,30 @@ writeLines(c(
   "```", "",
   "Quem prefere baixar direto pode pegar qualquer `.parquet` ou `.csv.gz` desta",
   "página. O `SHA256SUMS.txt` confere a integridade do download.", "",
+  # Achado 103: esta seção afirmava que ler `id_municipio` como número "perde o
+  # zero à esquerda de todo município do Acre, de Alagoas e do Amazonas". É
+  # falso, e a auditoria falsificou: nenhum município brasileiro tem zero à
+  # esquerda, porque o primeiro dígito do código do IBGE é a região, de 1 a 5 —
+  # os códigos do AC começam em 12, os de AL em 27 e os do AM em 13. O motivo
+  # verdadeiro é outro, e a receita de leitura importa mais do que o motivo para
+  # quem baixa o csv.gz e o lê cru, que é o público desta nota.
   "## Chave", "",
   "`id_municipio` é **texto de sete dígitos** e `ano` é inteiro. O código do",
-  "IBGE é identificador, não quantidade: lê-lo como número perde o zero à",
-  "esquerda de todo município do Acre, de Alagoas e do Amazonas.", "",
+  "IBGE é identificador, não quantidade: nada deveria somar, tirar média ou",
+  "interpolar um código municipal, e o tipo é o que impede. Lê-lo como número",
+  "ainda o converte para `double`, e aí a junção contra o Parquet, contra",
+  "`00_diretorios__municipios` ou contra qualquer outra tabela daqui passa a",
+  "falhar por diferença de tipo.", "",
+  "O `.csv.gz` não carrega tipo, e tanto `read.csv()` quanto `readr::read_csv()`",
+  "devolvem `id_municipio` como número. Declare o tipo na leitura:", "",
+  "```r",
+  'read.csv("10_saude.csv.gz", colClasses = c(id_municipio = "character"))',
+  "",
+  'readr::read_csv("10_saude.csv.gz",',
+  '                col_types = readr::cols(id_municipio = readr::col_character()))',
+  "```", "",
+  "O `.parquet` não tem esse problema, porque preserva o tipo. Prefira-o sempre",
+  "que puder.", "",
   "## Tabelas de dimensão", "",
   "O painel município × ano de cada tema.", "",
   "| tabela | linhas | colunas | municípios | anos |",
@@ -201,6 +265,22 @@ writeLines(c(
   "delas chegando a 51.175%. A causa é o denominador da população-alvo,",
   "subestimado, e a ausência de truncamento na fonte. Os valores foram mantidos",
   "como a fonte publica.", "",
+  "## Defeitos declarados", "",
+  paste0("Estas duas não são as únicas. **", length(com_defeito), " das ",
+         nrow(inv), " tabelas** deste release declaram pelo menos um"),
+  "defeito ou limitação conhecida — no campo `observacoes` da tabela, em",
+  "`dicionario/tabelas.csv`, ou no campo `problema` da variável, em",
+  "`dicionario/variaveis.csv`. Os dois arquivos vão aqui.", "",
+  "O relatório `qa/<slug>.md` de cada tabela também vai, dentro de",
+  "`documentacao.tar.gz`, e reúne o que está declarado na seção **Defeitos",
+  "declarados no dicionário**. Um relatório de checagens limpo não significa uma",
+  "tabela sem defeito: as checagens não detectam o que não sabem procurar, e é",
+  "por isso que o que se sabe fica escrito.", "",
+  "**Leia o `qa/` da tabela antes de usá-la em análise.** As mais consequentes",
+  "são `04_economia` (a série de PIB tem um fator de bloco e não está em reais",
+  "de 2023), `06_financas` (receita inflada em uma ordem de grandeza, e colunas",
+  "que publicam vazio como zero) e `13_seguranca` (códigos não municipais",
+  "publicados, hoje marcados por `flag_codigo_nao_municipal`).", "",
   "## Licença", "",
   "Dados sob CC BY 4.0, condicionada pelas licenças das fontes. Três precisam de",
   "verificação antes de qualquer uso comercial: IEPS Data, Anuário do FBSP e o",
@@ -208,6 +288,24 @@ writeLines(c(
   paste0("_Gerado por `tools/publicar_release.R` em ",
          format(Sys.time(), "%Y-%m-%d %H:%M"), "._"), ""
 ), file.path(dist, "NOTA-DO-RELEASE.md"), useBytes = TRUE)
+
+# --- Somas de verificação ---------------------------------------------------
+#
+# O que o sha256 garante aqui não é integridade contra adversário: é conseguir
+# provar, seis meses depois, que o arquivo que alguém baixou é o arquivo que
+# foi publicado. É a mesma garantia que o manifesto de cada fonte dá para o
+# dado bruto, pelo mesmo custo de 64 bytes.
+#
+# Este bloco roda por último de propósito. Antes ele vinha ANTES da nota do
+# release, e a consequência era que o `NOTA-DO-RELEASE.md` — o único arquivo do
+# release que é lido por gente, e o que carrega as ressalvas — era o único que
+# ficava de fora do `SHA256SUMS.txt`.
+arquivos <- list.files(dist, recursive = TRUE, full.names = TRUE)
+arquivos <- arquivos[basename(arquivos) != "SHA256SUMS.txt"]
+somas <- vapply(arquivos, function(a) {
+  paste0(mape_sha256(a), "  ", sub(paste0("^", dist, "/"), "", a))
+}, character(1))
+writeLines(sort(unname(somas)), file.path(dist, "SHA256SUMS.txt"), useBytes = TRUE)
 
 total_mb <- round(sum(vapply(list.files(dist, recursive = TRUE, full.names = TRUE),
                              mape_mb, numeric(1))), 1)
@@ -223,7 +321,10 @@ message("\nPara publicar:\n")
 message("  gh release create ", versao, " \\")
 message("    --title 'MAPEmunicipios — dados ", versao, "' \\")
 message("    --notes-file ", file.path(dist, "NOTA-DO-RELEASE.md"), " \\")
-message("    ", dist, "/dados/* \\")
-message("    ", dist, "/dicionario/* \\")
+# `dados/*` deixou de servir: agora há uma subpasta `dados/dimensao/` com os
+# .md, e o gh recusa diretório como anexo. Os glob dizem o formato.
+message("    ", dist, "/dados/*.parquet ", dist, "/dados/*.csv.gz \\")
+message("    ", dist, "/dicionario/*.csv ", dist, "/dicionario/README.md \\")
+message("    ", dist, "/documentacao.tar.gz ", dist, "/LICENSE-DADOS \\")
 message("    ", dist, "/INVENTARIO.csv ", dist, "/manifesto.json ",
         dist, "/SHA256SUMS.txt\n")

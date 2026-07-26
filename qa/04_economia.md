@@ -1,6 +1,6 @@
 # QA — 04_economia
 
-Gerado em 2026-07-26 18:54:28.
+Gerado em 2026-07-26 20:52:22.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 18:54:28.
 
 ## Checagens
 
-Checagens executadas: 18.
+Checagens executadas: 19.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -23,6 +23,7 @@ Checagens executadas: 18.
 | quebra_de_nivel | aviso | valor_adicionado_servicos_brl2023: salto de nível em 2002 (mediana x0.56), 2004 (mediana x0.74), 2011 (mediana x0.57). Razão ano a ano igual para quase todos os municípios não é economia, é fator aplicado à série. | As tres quebras de nivel (2001, 2004, 2011) sao o defeito do grupo 1, CONFIRMADO contra a origem: a razao publicado/basedosdados.br_ibge_pib.municipio e exatamente 3,0000 em 2002-2003, 2,0000 em 2004-2010 e 1,0000 de 2011 em diante. A checagem esta certa e o dado e que esta errado. A correcao (dividir cada bloco pelo fator e deflacionar de fato, ou renomear para _brl_nominal) muda valor publicado em 11 colunas e depende de decisao do responsavel pela dimensao — ver auditoria/RELATORIO-FINAL.md. |
 | quebra_de_nivel | aviso | valor_adicionado_administracao_publica_brl2023: salto de nível em 2004 (mediana x0.72), 2011 (mediana x0.56). Razão ano a ano igual para quase todos os municípios não é economia, é fator aplicado à série. | As tres quebras de nivel (2001, 2004, 2011) sao o defeito do grupo 1, CONFIRMADO contra a origem: a razao publicado/basedosdados.br_ibge_pib.municipio e exatamente 3,0000 em 2002-2003, 2,0000 em 2004-2010 e 1,0000 de 2011 em diante. A checagem esta certa e o dado e que esta errado. A correcao (dividir cada bloco pelo fator e deflacionar de fato, ou renomear para _brl_nominal) muda valor publicado em 11 colunas e depende de decisao do responsavel pela dimensao — ver auditoria/RELATORIO-FINAL.md. |
 | quebra_de_nivel | aviso | pib_per_capita_brl2023: salto de nível em 2004 (mediana x0.72), 2011 (mediana x0.57). Razão ano a ano igual para quase todos os municípios não é economia, é fator aplicado à série. | As tres quebras de nivel (2001, 2004, 2011) sao o defeito do grupo 1, CONFIRMADO contra a origem: a razao publicado/basedosdados.br_ibge_pib.municipio e exatamente 3,0000 em 2002-2003, 2,0000 em 2004-2010 e 1,0000 de 2011 em diante. A checagem esta certa e o dado e que esta errado. A correcao (dividir cada bloco pelo fator e deflacionar de fato, ou renomear para _brl_nominal) muda valor publicado em 11 colunas e depende de decisao do responsavel pela dimensao — ver auditoria/RELATORIO-FINAL.md. |
+| exclusividade_territorial | aviso | sigla_uf_nome: coluna do bloco territorial publicada fora do diretório. O dono exclusivo desse bloco é `00_diretorios/municipios`; duplicá-lo faz duas tabelas discordarem sobre o nome do mesmo município. Use mape_ler(..., territorio = TRUE). | DEFEITO DECLARADO E NAO CORRIGIDO (achado 51). A coluna duplica o bloco territorial cujo dono exclusivo e 00_diretorios/municipios, e o nome mente: o prefixo sigla_ esta num campo que contem o NOME da UF por extenso. Ela tem acao = 'remover' declarada em dicionario/variaveis.csv e a remocao NAO foi executada, porque remover coluna muda o schema publicado e isso e decisao do responsavel pela dimensao. Enquanto isso, use nome_uf de 00_diretorios via mape_ler(..., territorio = TRUE); as duas podem discordar. Esta e a unica invasao do bloco territorial em toda a arvore, medido em 26/07/2026 sobre as 26 tabelas publicadas. |
 
 ## Defeitos declarados no dicionário
 

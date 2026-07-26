@@ -132,3 +132,47 @@ test_that("mape_variaveis_de de uma dimensão inclui as fontes dela", {
   so_fonte <- mape_variaveis_de("09_educacao/ideb")
   expect_true(all(so_fonte$tabela == "09_educacao/ideb"))
 })
+
+# mape_sha256() — a procedência do dado bruto ---------------------------------
+#
+# Grupo 26 da auditoria: a função sobrevivia a `function(...) NULL`. Ela é o
+# que amarra o arquivo em raw/ ao MANIFESTO.yml da fonte, e um hash que virou
+# NULL em silêncio destrói a única prova de que o bruto não mudou desde a
+# extração — sem que nada pare de funcionar.
+#
+# Os valores de referência foram calculados fora do R (`shasum -a 256`), de
+# propósito: comparar digest com digest provaria só que digest é consistente
+# consigo mesmo.
+
+test_that("mape_sha256 devolve o sha256 do CONTEÚDO do arquivo", {
+  f <- withr::local_tempfile()
+  writeBin(charToRaw("MAPEmunicipios\n"), f)
+  expect_identical(
+    mape_sha256(f),
+    "0b466f18b094fab7bf592e3fb512ef2a5ad221a4c4458c06a678c1b8860c1f57")
+
+  # Arquivo vazio tem o hash canônico do vazio — e não NA nem erro.
+  vazio <- withr::local_tempfile()
+  file.create(vazio)
+  expect_identical(
+    mape_sha256(vazio),
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+})
+
+test_that("mape_sha256 é do conteúdo, não do nome, e um byte muda tudo", {
+  a <- withr::local_tempfile(fileext = ".csv")
+  b <- withr::local_tempfile(fileext = ".parquet")
+  c1 <- withr::local_tempfile()
+  writeBin(charToRaw("id_municipio,valor\n3550308,1\n"), a)
+  writeBin(charToRaw("id_municipio,valor\n3550308,1\n"), b)
+  # Um único byte diferente: 1 -> 2.
+  writeBin(charToRaw("id_municipio,valor\n3550308,2\n"), c1)
+
+  # Mesmo conteúdo, nomes e extensões diferentes: mesmo hash.
+  expect_identical(mape_sha256(a), mape_sha256(b))
+  # Um byte de diferença: hash diferente. É esta propriedade que faz o
+  # manifesto detectar que o bruto mudou.
+  expect_false(identical(mape_sha256(a), mape_sha256(c1)))
+  # E é sempre hexadecimal de 64 caracteres.
+  expect_match(mape_sha256(a), "^[0-9a-f]{64}$")
+})

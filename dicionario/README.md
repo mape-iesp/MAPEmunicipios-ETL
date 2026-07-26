@@ -65,5 +65,5 @@ linhas de `11_transportes` e as 578 linhas de `11_transportes/tarifa_zero`.
 | `variaveis.csv` | uma linha por variável, com tipo, unidade, escala e domínio |
 | `deprecacao.csv` | de-para dos nomes antigos, para quem tinha código escrito |
 
-_Gerado em 2026-07-26 18:49._
+_Gerado em 2026-07-26 20:38._
 

@@ -84,5 +84,5 @@ x <- mape_ler("08_energia_internet")
 x <- mape_ler("08_energia_internet", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

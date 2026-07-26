@@ -68,7 +68,7 @@ va_industria,valor_adicionado_industria_brl2023,Idem,False,renomear
 va_servicos,valor_adicionado_servicos_brl2023,Idem,False,renomear
 sigla_uf_nome,,Prefixo sigla_ mas o conteudo e o NOME da UF por extenso. PUBLICADO (posicao 122); duplica nome_uf,False,remover
 pib,pib_brl2023,Sem unidade nem indicacao de deflacao no nome (pib_municipal.R:76 deflaciona para 12/2023); integer64 na origem,True,renomear
-pib_per_capita,pib_per_capita_brl2023,"Sem unidade; o denominador (populacao da propria dim 4) foi REMOVIDO da base em municipalityBR.qmd:97, tornando o indicador nao reproduzivel",True,renomear
+pib_per_capita,pib_per_capita_brl2023,"Sem unidade; renomeado para explicitar a base do deflator. CORRECAO DE 26/07/2026 (achado 62): a versao anterior deste motivo afirmava que o indicador ficara 'nao reproduzivel' porque o denominador foi removido da base. E FALSO, e foi medido: pib_brl2023 / populacao_residente_i (de 02_populacao) reproduz a coluna em 127.786 de 127.786 linhas, com desvio maximo de 7,3e-12. O denominador nao esta DENTRO de 04_economia por decisao de dono unico, e isso e diferente de nao ser reproduzivel",True,renomear
 impostos_liquidos,impostos_liquidos_brl2023,Sem unidade nem deflacao no nome,False,renomear
 impostos_pib,razao_impostos_sobre_pib_prop,"E uma razao, mas o nome parece uma justaposicao de dois indicadores",False,renomear
 dependencia_adm,participacao_va_administracao_publica_prop,'dependencia' sem denominador explicito (participacao do VA da administracao publica no VA total); 'adm' abreviado enquanto as irmas nao sao,False,renomear

@@ -1,12 +1,14 @@
 # Paridade — 09_educacao
 
-Gerado em 2026-07-26 09:42:05.
-Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
+Gerado em 2026-07-26 20:10:27.
+Referência: `base_municipios_brasileiros.RDa`  
+sha256: `a6f350ecf3090a7439eb680d732b9c40b34dfb79f25b4fe6e9be284cab07b336`
 
 Colunas comparadas: 35. Diferenças não explicadas: 0.
 
 | coluna | classe | descrição |
 |---|---|---|
+| `(conjunto de chaves)` | a_correcao_reivindicada | 5594 chave(s) só no publicado e 74491 só na referência, de 111388 e 180285. 'Zero diferenças não explicadas' não cobre linha que não existe dos dois lados. 5.594 chaves so no publicado, todas em municipios validos: 5.570 sao o ano de 2024 inteiro, posterior ao fim da referencia, e 24 se espalham por 2005-2010. 74.491 so na referencia sao assimetria de janela (a dimensao cobre 2005-2024). Medido em 26/07/2026, achados 66 e 67. |
 | `media_ideb` | b_renomeacao | renomeada para 'ideb_nota_municipio_idx' |
 | `media_saeb` | b_renomeacao | renomeada para 'saeb_nota_padronizada_municipio_idx' |
 | `media_projecao` | b_renomeacao | renomeada para 'ideb_meta_projetada_municipio_idx' |

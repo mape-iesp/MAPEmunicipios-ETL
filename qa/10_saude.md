@@ -1,6 +1,6 @@
 # QA — 10_saude
 
-Gerado em 2026-07-26 18:54:38.
+Gerado em 2026-07-26 20:52:31.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 18:54:38.
 
 ## Checagens
 
-Checagens executadas: 18.
+Checagens executadas: 19.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -61,15 +61,15 @@ Estes 47 defeito(s) estão declarados no dicionário e **não** são detectados 
 - (ieps_cobertura_atencao_basica_pct) Abreviacao criptica sem prefixo de fonte (IEPS); redundante com proporcao_cobertura_total_atencao_basica (correlacao 0,916). E uma das colunas consumidas por scripts/artigo
 - (ieps_cobertura_acs_pct) Abreviacao criptica (agentes comunitarios de saude) sem prefixo de fonte
 - (ieps_cobertura_esf_pct) Abreviacao criptica; redundante com proporcao_cobertura_estrategia_saude_familia (correlacao 0,940)
-- (ieps_cobertura_vacinal_bcg_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
-- (ieps_cobertura_vacinal_rotavirus_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
-- (ieps_cobertura_vacinal_meningococo_c_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
-- (ieps_cobertura_vacinal_pneumococica_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
-- (ieps_cobertura_vacinal_poliomielite_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
-- (ieps_cobertura_vacinal_triplice_viral_dose1_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
-- (ieps_cobertura_vacinal_pentavalente_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+- (ieps_cobertura_vacinal_bcg_pct) Nao e fonte independente de pni_cobertura_bcg_pct: coincide com min(pni_cobertura_bcg_pct, 100) em 94,2% das 33.407 linhas comparaveis — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026, remedido em 26/07/2026 coluna a coluna.
+- (ieps_cobertura_vacinal_rotavirus_pct) E a UNICA medicao desta vacina no painel: nao existe coluna pni_ correspondente, porque o SI-PNI publicado nesta tabela nao traz rotavirus, meningococo C nem pneumococica. Diferente das cinco outras colunas ieps_cobertura_vacinal_*, esta NAO duplica o SI-PNI e nao deve ser descartada por isso. ERRATA DE 26/07/2026: o achado 71 foi declarado nas oito colunas do bloco, e vale apenas para as cinco que tem par; nestas tres a declaracao era falsa e foi retirada.
+- (ieps_cobertura_vacinal_meningococo_c_pct) E a UNICA medicao desta vacina no painel: nao existe coluna pni_ correspondente, porque o SI-PNI publicado nesta tabela nao traz rotavirus, meningococo C nem pneumococica. Diferente das cinco outras colunas ieps_cobertura_vacinal_*, esta NAO duplica o SI-PNI e nao deve ser descartada por isso. ERRATA DE 26/07/2026: o achado 71 foi declarado nas oito colunas do bloco, e vale apenas para as cinco que tem par; nestas tres a declaracao era falsa e foi retirada.
+- (ieps_cobertura_vacinal_pneumococica_pct) E a UNICA medicao desta vacina no painel: nao existe coluna pni_ correspondente, porque o SI-PNI publicado nesta tabela nao traz rotavirus, meningococo C nem pneumococica. Diferente das cinco outras colunas ieps_cobertura_vacinal_*, esta NAO duplica o SI-PNI e nao deve ser descartada por isso. ERRATA DE 26/07/2026: o achado 71 foi declarado nas oito colunas do bloco, e vale apenas para as cinco que tem par; nestas tres a declaracao era falsa e foi retirada.
+- (ieps_cobertura_vacinal_poliomielite_pct) Nao e fonte independente de pni_cobertura_poliomielite_pct: coincide com min(pni_cobertura_poliomielite_pct, 100) em 94,6% das 33.407 linhas comparaveis — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026, remedido em 26/07/2026 coluna a coluna.
+- (ieps_cobertura_vacinal_triplice_viral_dose1_pct) Nao e fonte independente de pni_cobertura_triplice_viral_dose1_pct: coincide com min(pni_cobertura_triplice_viral_dose1_pct, 100) em 94,6% das 33.407 linhas comparaveis — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026, remedido em 26/07/2026 coluna a coluna.
+- (ieps_cobertura_vacinal_pentavalente_pct) Nao e fonte independente de pni_cobertura_penta_pct: coincide com min(pni_cobertura_penta_pct, 100) em 93,7% das 27.842 linhas comparaveis — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026, remedido em 26/07/2026 coluna a coluna.
 - (ieps_cobertura_hepatite_b_ate_30d_pct) O nome sugere hepatite B em geral, mas o codebook define 'cobertura em criancas ate 30 dias'; correlacao 0,061 com cobertura_hepatite_b
-- (ieps_cobertura_vacinal_hepatite_a_pct) Nao e fonte independente de pni_cobertura_*: coincide com min(pni_cobertura_*, 100) em cerca de 94% das linhas — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026.
+- (ieps_cobertura_vacinal_hepatite_a_pct) Nao e fonte independente de pni_cobertura_hepatite_a_pct: coincide com min(pni_cobertura_hepatite_a_pct, 100) em 92,8% das 22.277 linhas comparaveis — a mesma medida, CENSURADA em 100 — e nao acrescenta nenhuma observacao municipio-ano ao painel. Mantida por rastreabilidade da fonte. Achado 71 da auditoria de 26/07/2026, remedido em 26/07/2026 coluna a coluna.
 - (ieps_taxa_mortalidade_p100k) Prefixo tx_ sem unidade no nome (e por 100 mil hab.); compete com total_mortalidade da dim 14
 - (ieps_taxa_mortalidade_csap_p100k) Sigla CSAP (condicoes sensiveis a atencao primaria) nao expandida e sem unidade; e uma das colunas consumidas por scripts/artigo
 - (ieps_taxa_mortalidade_evitavel_p100k) Abreviacao 'evit' (evitavel) e sem unidade

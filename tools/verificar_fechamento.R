@@ -133,7 +133,10 @@ tentar(7, "nenhuma tabela perdeu linha, coluna, chave ou municipio vs BASELINE",
 })
 
 # -- 8 ----------------------------------------------------------------------
-tentar(8, "todo comando tar_make(...) da documentacao executa sem erro", {
+# O titulo dizia "executa sem erro" e o codigo so confere pertinencia ao grafo.
+# Nada e executado aqui, e prometer execucao num criterio que nao executa e a
+# mesma patologia que a auditoria encontrou no dado.
+tentar(8, "todo alvo tar_make(...) citado na documentacao EXISTE no grafo", {
   arqs <- c(file.path(RAIZ, c("README.md", "CLAUDE.md")),
             list.files(file.path(RAIZ, "docs"), pattern = "[.]md$", full.names = TRUE))
   arqs <- arqs[file.exists(arqs)]
@@ -171,7 +174,17 @@ tentar(9, "nenhum identificador GCP legado em arquivo versionado", {
   # partir de nome de arquivo — e evita, principalmente, escrever qualquer um
   # deles dentro deste arquivo, que É versionado.
   linhas <- readLines(nota, warn = FALSE)
+  # Duas formas, e a segunda existe porque a primeira sozinha deixou passar um
+  # vazamento real: os quatro identificadores LEGADOS estao listados como "- `id`",
+  # mas o identificador OFICIAL aparece so em prosa, como `MAPE_GCP_BILLING=<id>`.
+  # Conferir apenas a lista dava OK enquanto o oficial estava em
+  # dicionario/proveniencia.csv, versionado e empurrado para o remoto publico.
   ids <- unlist(regmatches(linhas, gregexpr("(?<=^- `)[^`]+(?=`)", linhas, perl = TRUE)))
+  # O charset e o comprimento sao os que o GCP impoe a um project id (6 a 30,
+  # minuscula/digito/hifen, comecando por letra). Sem isso o padrao captura o
+  # lixo que vier depois do "=" e produz falso positivo em qualquer arquivo.
+  ids <- c(ids, unlist(regmatches(
+    linhas, gregexpr("(?<=MAPE_GCP_BILLING=)[a-z][a-z0-9-]{5,29}", linhas, perl = TRUE))))
   ids <- unique(ids[nzchar(ids)])
   if (!length(ids)) {
     return(list(ok = FALSE, detalhe = "a nota nao lista identificadores no formato esperado (- `id`)"))
@@ -265,8 +278,158 @@ tentar(12, "CLAUDE.md descreve o estado atual: numeros conferidos por medicao", 
 })
 
 # -- 13 ---------------------------------------------------------------------
-registrar(13, "este script existe, cobre os doze acima e sai com codigo nao zero", TRUE,
-          "12 criterios verificados acima")
+# Os criterios 13 a 16 nasceram da reverificacao de 26/07/2026, que reexecutou
+# os 105 grupos e derrubou cinco deles. Todos os cinco passavam pelos doze
+# criterios anteriores, e passavam porque nenhum deles olhava o ARTEFATO: o
+# codigo era corrigido e o .md publicado continuava com o texto velho.
+tentar(13, "a documentacao gerada esta em dia com o dicionario e com o dado", {
+  gerados <- c(list.files(file.path(RAIZ, "dados", "dimensao"), pattern = "[.]md$",
+                          full.names = TRUE),
+               list.files(file.path(RAIZ, "fontes"), pattern = "README[.]md$",
+                          recursive = TRUE, full.names = TRUE))
+  gerados <- gerados[file.exists(gerados)]
+  # Sem `return()` aqui de proposito: `tentar()` recebe a expressao como
+  # promessa e a avalia no ambiente do chamador, que e o topo do script — um
+  # `return()` ali morre com "no function to return from".
+  if (!length(gerados)) {
+    list(ok = FALSE, detalhe = "nenhum documento gerado encontrado")
+  } else {
+    # Regera para um espelho temporario e compara: se der diferenca, o .md
+    # publicado nao corresponde ao dicionario atual.
+    raiz_velha <- getOption("mape.raiz")
+    espelho <- file.path(tempdir(), "fechamento_doc")
+    unlink(espelho, recursive = TRUE)
+    dir.create(espelho, recursive = TRUE, showWarnings = FALSE)
+    # file.copy("a/b", dest, recursive = TRUE) cria dest/b, e nao dest/a/b:
+    # por isso copiamos as pastas de PRIMEIRO nivel.
+    for (d in c("dados", "dicionario", "config", "qa", "fontes")) {
+      if (dir.exists(file.path(RAIZ, d))) {
+        file.copy(file.path(RAIZ, d), espelho, recursive = TRUE)
+      }
+    }
+    options(mape.raiz = espelho)
+    ok_geracao <- tryCatch({
+      suppressWarnings(suppressMessages(mape_gerar_documentacao_completa())); TRUE
+    }, error = function(e) conditionMessage(e))
+    options(mape.raiz = raiz_velha)
+
+    if (!isTRUE(ok_geracao)) {
+      list(ok = FALSE, detalhe = paste("a geracao falhou:", ok_geracao))
+    } else {
+      # A linha de data muda a cada execucao; compara ignorando ela.
+      # O carimbo aparece em duas formas: "Gerado em ..." no cabeçalho e
+      # "_Gerado em ... por `...`._" no rodapé. Ignorar só a primeira faria
+      # todo documento parecer fora de sincronia.
+      sem_data <- function(p) paste(grep("^_?Gerado em ", readLines(p, warn = FALSE),
+                                         invert = TRUE, value = TRUE), collapse = "\n")
+      desatualizados <- character()
+      comparados <- 0L
+      for (f in gerados) {
+        rel <- sub(paste0("^", RAIZ, "/?"), "", f)
+        novo <- file.path(espelho, rel)
+        if (!file.exists(novo)) next
+        comparados <- comparados + 1L
+        if (!identical(sem_data(f), sem_data(novo))) desatualizados <- c(desatualizados, rel)
+      }
+      list(ok = !length(desatualizados) && comparados > 0L,
+           detalhe = if (length(desatualizados))
+             sprintf("%d de %d documento(s) fora de sincronia: %s", length(desatualizados),
+                     comparados, paste(utils::head(desatualizados, 6), collapse = ", "))
+           else if (!comparados) "nenhum documento pode ser comparado no espelho"
+           else sprintf("%d documento(s) gerado(s) comparados, todos em dia", comparados))
+    }
+  }
+})
+
+# -- 14 ---------------------------------------------------------------------
+tentar(14, "a paridade nao tem diferenca nao explicada nem reivindicacao morta", {
+  arqs <- list.files(file.path(RAIZ, "qa"), pattern = "^paridade_.*[.]md$", full.names = TRUE)
+  if (!length(arqs)) return(list(ok = FALSE, detalhe = "nenhum relatorio de paridade"))
+  com_pendencia <- character()
+  for (a in arqs) {
+    l <- readLines(a, warn = FALSE)
+    m <- regmatches(l, regexpr("(?<=Diferenças não explicadas: )[0-9]+", l, perl = TRUE))
+    m <- unlist(m)
+    if (!length(m) || as.integer(m[1]) > 0) com_pendencia <- c(com_pendencia, basename(a))
+    if (!any(grepl("sha256", l))) com_pendencia <- c(com_pendencia, paste0(basename(a), " (sem sha256)"))
+  }
+  # Achado 25: o relatorio publicado era ANTERIOR as reivindicacoes, entao ele
+  # mostrava um estado que o arquivo de reivindicacoes ja tinha mudado.
+  esp <- file.path(RAIZ, "qa", "paridade_esperada.csv")
+  velhos <- if (file.exists(esp)) {
+    basename(arqs[file.mtime(arqs) < file.mtime(esp)])
+  } else character()
+  list(ok = !length(com_pendencia) && !length(velhos),
+       detalhe = paste(c(
+         if (length(com_pendencia)) paste("com pendencia:", paste(unique(com_pendencia), collapse = ", ")),
+         if (length(velhos)) paste("gerados ANTES de paridade_esperada.csv:", paste(velhos, collapse = ", ")),
+         if (!length(com_pendencia) && !length(velhos))
+           sprintf("%d relatorio(s), 0 nao explicadas, todos com sha256 e mais novos que as reivindicacoes",
+                   length(arqs))), collapse = "; "))
+})
+
+# -- 15 ---------------------------------------------------------------------
+tentar(15, "todo renomeio de deprecacao.csv resolve numa coluna publicada", {
+  dep <- mape_dicionario("deprecacao")
+  pub <- mape_dicionario("variaveis")$nome_canonico
+  prox <- split(dep$nome_novo, dep$nome_antigo)
+  resolve <- function(n) {
+    visto <- character(); fila <- n
+    while (length(fila)) {
+      c1 <- fila[1]; fila <- fila[-1]
+      if (c1 %in% pub) return(TRUE)
+      if (c1 %in% visto) next
+      visto <- c(visto, c1)
+      fila <- c(fila, prox[[c1]])
+    }
+    FALSE
+  }
+  ren <- dep[!is.na(dep$acao) & dep$acao == "renomear", , drop = FALSE]
+  destinos <- unique(ren$nome_novo)
+  mortos <- destinos[!vapply(destinos, resolve, logical(1))]
+  list(ok = !length(mortos),
+       detalhe = if (length(mortos))
+         sprintf("%d destino(s) que nao resolvem: %s", length(mortos),
+                 paste(utils::head(mortos, 8), collapse = ", "))
+       else sprintf("%d renomeio(s), %d destino(s) distinto(s), todos resolvem",
+                    nrow(ren), length(destinos)))
+})
+
+# -- 16 ---------------------------------------------------------------------
+tentar(16, "nenhum documento gerado repete afirmacao que o dado desmente", {
+  # Uma errata que introduz afirmacao falsa e pior que a omissao que ela
+  # conserta. Estas quatro foram medidas e falsificadas em 26/07/2026.
+  proibidas <- list(
+    list(arq = "dados/dimensao/12_habitacao.md",
+         padrao = "dois jeitos contraditorios: zero nas linhas fabricadas e NA",
+         motivo = "a tabela nao tem uma unica celula NA (achado 15)"),
+    list(arq = "dados/dimensao/13_seguranca.md",
+         padrao = "que a junção descarta",
+         motivo = "os pseudo-codigos ESTAO publicados (achado 13)"),
+    list(arq = "dados/dimensao/09_educacao.md",
+         padrao = "media_saeb_\\* NÃO vêm do SAEB",
+         motivo = "nome legado, e a afirmacao contradiz a descricao das colunas (achado 63)"),
+    list(arq = "dados/dimensao/04_economia.md",
+         padrao = "não é reprodutível",
+         motivo = "pib_per_capita reproduz em 127.786 de 127.786 linhas (achado 62)")
+  )
+  achadas <- character()
+  for (p in proibidas) {
+    caminho <- file.path(RAIZ, p$arq)
+    if (!file.exists(caminho)) next
+    if (any(grepl(p$padrao, readLines(caminho, warn = FALSE)))) {
+      achadas <- c(achadas, paste0(p$arq, ": ", p$motivo))
+    }
+  }
+  list(ok = !length(achadas),
+       detalhe = if (length(achadas)) paste(achadas, collapse = "; ")
+                 else sprintf("%d afirmacao(oes) falsificada(s) conferida(s); nenhuma sobreviveu",
+                              length(proibidas)))
+})
+
+# -- 17 ---------------------------------------------------------------------
+registrar(17, "este script existe, cobre os dezesseis acima e sai com codigo nao zero", TRUE,
+          "16 criterios verificados acima")
 
 # ---------------------------------------------------------------------------
 cat("\n", strrep("=", 78), "\n", sep = "")

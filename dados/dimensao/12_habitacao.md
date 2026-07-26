@@ -47,9 +47,12 @@ Unidades habitacionais contratadas e valores do programa Minha Casa Minha Vida, 
 | `mcmv_valor_contratado_brl2023` | double | BRL de dezembro de 2023 | Valor contratado no MCMV, por ano por município | 0.0% |
 | `mcmv_valor_desembolsado_brl2023` | double | BRL de dezembro de 2023 | Valor desembolsado no MCMV, por ano por município | 0.0% |
 
+A coluna `vazios` acima é medida **nesta** tabela. Já os campos calculados do dicionário (`pct_na`, `minimo`, `maximo`, `n_distintos`) são medidos na tabela em que a variável é observada, que para 6 destas colunas é outra: `mcmv_unidades_contratadas_i` (12_habitacao/mcmv_fgts), `mcmv_unidades_entregues_coorte_i` (12_habitacao/mcmv_fgts), `mcmv_unidades_vigentes_em_20240930_i` (12_habitacao/mcmv_fgts), `mcmv_unidades_distratadas_em_20240930_i` (12_habitacao/mcmv_fgts), `mcmv_valor_contratado_brl2023` (12_habitacao/mcmv_fgts), `mcmv_valor_desembolsado_brl2023` (12_habitacao/mcmv_fgts). Os dois números podem divergir muito, e divergem por desenho: a fonte guarda o observado e a dimensão o painel expandido.
+
 ## Ressalvas
 
-ESCOPO: cobre APENAS a faixa financiada com FGTS. A faixa subsidiada com recursos do OGU não existe no repositório — o arquivo que deveria contê-la é byte a byte idêntico ao do FGTS. DEFEITO GRAVE NÃO CORRIGIDO NESTA MIGRAÇÃO: os valores monetários estão inflados em até cem vezes por um gsub aninhado na ordem errada, que remove o ponto decimal que ele mesmo acabou de criar. Corrigir exige reprocessar a fonte, o que está fora do escopo desta etapa; ver pendencias/. O painel começa em 2007, dois anos antes da criação do programa. DEFEITO ABERTO (auditoria 26/07/2026, achados 15 e 16): 83.679 das 94.832 linhas (88,2%) tem TODAS as colunas de conteudo iguais a zero — sao preenchimento do esqueleto do painel, e nao observacao. A tabela representa 'sem dado' de dois jeitos contraditorios: zero nas linhas fabricadas e NA em outras. E as duas colunas monetarias tem defeito de ESCALA em parte das celulas, com maximo de R$ 205,8 bilhoes num municipio-ano. A regra_preenchimento_temporal declarada nao descreve o zero-fill, e a cobertura_temporal_da_fonte declarada (2007-2019) contradiz a observada (2007-2024).
+ESCOPO: cobre APENAS a faixa financiada com FGTS. A faixa subsidiada com recursos do OGU não existe no repositório — o arquivo que deveria contê-la é byte a byte idêntico ao do FGTS. DEFEITO GRAVE NÃO CORRIGIDO NESTA MIGRAÇÃO: os valores monetários estão inflados em até cem vezes por um gsub aninhado na ordem errada, que remove o ponto decimal que ele mesmo acabou de criar. Corrigir exige reprocessar a fonte, o que está fora do escopo desta etapa; ver pendencias/. O painel começa em 2007, dois anos antes da criação do programa. DEFEITO ABERTO (auditoria 26/07/2026, achados 15 e 16): 83.679 das 94.832 linhas (88,2%) tem TODAS as colunas de conteudo iguais a zero — sao preenchimento do esqueleto do painel, e nao observacao. A tabela nao tem uma unica celula NA (medido: sum(is.na) = 0 nas 94.832 x 8). A contradicao e outra, e esta nas LINHAS: de 2007 a 2023 todo ano tem 5.570 linhas, uma por municipio, preenchidas com zero onde nao houve contratacao; ja 2024 tem 142 linhas, isto e, ausencia de linha para os outros 5.428 municipios. O mesmo 'sem dado' aparece como zero num ano e como linha inexistente no seguinte. E as duas colunas monetarias tem defeito de ESCALA em parte das celulas, com maximo de R$ 205,8 bilhoes num municipio-ano. A regra_preenchimento_temporal declarada nao descreve o zero-fill. (Errata de 26/07/2026: esta secao afirmava que a tabela mistura zero e NA, o que o dado desmente, e que a cobertura declarada era 2007-2019, que o achado 54 ja havia corrigido para 2007-2024. As duas frases foram substituidas pelo que se mede hoje.)
+
 
 **`mcmv_unidades_contratadas_i`** — Sigla 'uh' (unidades habitacionais) opaca, sem prefixo de fonte nem de programa (MCMV/FGTS)
 
@@ -72,5 +75,5 @@ x <- mape_ler("12_habitacao")
 x <- mape_ler("12_habitacao", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

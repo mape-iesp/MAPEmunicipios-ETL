@@ -16,7 +16,16 @@ set -euo pipefail
 # YAML — e os dois podiam divergir sem que nada avisasse. Agora o hook LE o
 # YAML, com o literal como último recurso para o caso de o R não estar
 # disponível no ambiente do commit.
-LIMIAR_MB=$(Rscript -e 'cat(yaml::read_yaml("config/parametros.yml")$qa$max_mb_versionavel)' 2>/dev/null)
+#
+# O `|| LIMIAR_MB=""` não é enfeite: com `set -e` (linha 13), uma atribuição
+# cujo lado direito é substituição de comando herda o código de saída do
+# comando, e um Rscript que falha — R ausente, `yaml` não instalado, hook
+# rodando de um worktree sem config/parametros.yml — derrubava o hook inteiro
+# ali mesmo, em silêncio e antes de olhar arquivo nenhum. O fallback das linhas
+# seguintes era, por isso, inalcançável. O `|| ...` isenta a atribuição do
+# `set -e` (é o lado esquerdo de uma lista OR) e devolve o controle ao `case`,
+# que é quem decide o limiar quando a leitura não deu certo.
+LIMIAR_MB=$(Rscript -e 'cat(yaml::read_yaml("config/parametros.yml")$qa$max_mb_versionavel)' 2>/dev/null) || LIMIAR_MB=""
 case "$LIMIAR_MB" in
   ''|*[!0-9]*) LIMIAR_MB=20 ;;
 esac

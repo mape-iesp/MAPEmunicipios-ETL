@@ -1,6 +1,6 @@
 # QA — 07_recursos_humanos
 
-Gerado em 2026-07-26 18:54:33.
+Gerado em 2026-07-26 20:52:26.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 18:54:33.
 
 ## Checagens
 
-Nenhum problema automático: as 18 checagens executadas passaram.
+Nenhum problema automático: as 19 checagens executadas passaram.
 
 ## Defeitos declarados no dicionário
 

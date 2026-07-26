@@ -218,7 +218,7 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
 #'   invalidaria o teste.
 #' @return Invisivelmente, o relatório de diferenças.
 mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
-                          chave = NULL) {
+                          chave = NULL, gravar = TRUE) {
   if (is.null(referencia)) {
     # A referência vive em qa/referencia/, e não mais dentro da árvore legada.
     # São 56 MB contra os 18 GB do legado inteiro — a paridade nunca precisou
@@ -305,6 +305,11 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
   }
 
   achados <- list()
+  # Achado 66: quantas diferenças o curinga de fato absorveu. Só conta a
+  # dispensa que veio DELE — reivindicação nominal não é obra do curinga, e a
+  # linha de chaves ele não pode explicar. Sem esta separação, o curinga
+  # absorvia o achado que ele próprio fabricava e o aviso nunca disparava.
+  n_via_curinga <- 0L
   reg <- function(coluna, classe, descricao) {
     achados[[length(achados) + 1]] <<- data.frame(
       dimensao = dimensao, coluna = coluna, classe = classe,
@@ -320,13 +325,25 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
   so_no_novo <- length(setdiff(k_nov, k_ant))
   so_no_antigo <- length(setdiff(k_ant, k_nov))
   if (so_no_novo > 0 || so_no_antigo > 0) {
+    # Achado 66: o curinga NÃO justifica esta linha, e justificava. Ele é uma
+    # reivindicação sobre diferença de VALOR numa coluna; linha que existe de um
+    # lado só é diferença de LINHA, e uma coisa não explica a outra. Em
+    # `13_seguranca` o curinga fala de tipo de coluna (`quantidade_*` do FBSP
+    # como texto) e estava sendo colado nas 352 chaves dos códigos não
+    # municipais do achado 12 — motivo errado, divergência errada.
+    #
+    # Para dispensar esta linha é preciso reivindicá-la pelo nome,
+    # `(conjunto de chaves)`, em qa/paridade_esperada.csv.
+    motivo_ch <- if (!is.null(esperadas) && "(conjunto de chaves)" %in% esperadas$coluna) {
+      esperadas$motivo[esperadas$coluna == "(conjunto de chaves)"][1]
+    } else NA_character_
     reg("(conjunto de chaves)",
-        if (is.na(curinga)) "c_nao_explicada" else "a_correcao_reivindicada",
+        if (is.na(motivo_ch)) "c_nao_explicada" else "a_correcao_reivindicada",
         paste0(so_no_novo, " chave(s) só no publicado e ", so_no_antigo,
                " só na referência, de ", length(unique(k_nov)), " e ",
                length(unique(k_ant)), ". 'Zero diferenças não explicadas' não ",
                "cobre linha que não existe dos dois lados.",
-               if (!is.na(curinga)) paste0(" ", curinga) else ""))
+               if (!is.na(motivo_ch)) paste0(" ", motivo_ch) else ""))
   }
 
   for (col_antiga in cols_antigas) {
@@ -375,7 +392,10 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
     if (n_valor_para_na > 0 || n_na_para_valor > 0) {
       motivo_na <- if (!is.null(esperadas) && col_antiga %in% esperadas$coluna) {
         esperadas$motivo[esperadas$coluna == col_antiga][1]
-      } else curinga
+      } else {
+        if (!is.na(curinga)) n_via_curinga <- n_via_curinga + 1L
+        curinga
+      }
       reg(col_antiga,
           if (is.na(motivo_na)) "c_nao_explicada" else "a_correcao_reivindicada",
           paste0(n_valor_para_na, " célula(s) tinham valor e viraram NA, ",
@@ -387,7 +407,10 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
     if (n_dif > 0) {
       motivo <- if (!is.null(esperadas) && col_antiga %in% esperadas$coluna) {
         esperadas$motivo[esperadas$coluna == col_antiga][1]
-      } else curinga
+      } else {
+        if (!is.na(curinga)) n_via_curinga <- n_via_curinga + 1L
+        curinga
+      }
       reg(col_antiga,
           if (is.na(motivo)) "c_nao_explicada" else "a_correcao_reivindicada",
           paste0(n_dif, " de ", nrow(m), " valores diferem",
@@ -395,12 +418,41 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
     }
   }
 
+  # Achado 40: sete das nove reivindicações nominais eram INALCANÇÁVEIS, e por
+  # isso se liam como verificadas sem nunca terem sido consultadas. A causa é
+  # estrutural: o laço acima percorre `cols_antigas`, que sai do dicionário, e
+  # coluna REMOVIDA não tem linha no dicionário — some do laço em silêncio,
+  # levando junto a reivindicação que a explicava.
+  #
+  # Aqui cada reivindicação nominal que sobrou é confrontada com a referência.
+  # Se a coluna existe lá e não foi visitada, ela foi mesmo removida e a
+  # reivindicação a explica — e passa a APARECER no relatório. Se não existe nem
+  # lá, a reivindicação é órfã: dispensa uma coluna que nunca esteve nos dois
+  # lados, o que é dispensa de nada, e vira diferença não explicada.
+  if (!is.null(esperadas)) {
+    nominais <- setdiff(esperadas$coluna, c("*", "(conjunto de chaves)"))
+    visitadas <- if (length(achados)) {
+      vapply(achados, function(a) a$coluna, character(1))
+    } else character(0)
+    for (cl in setdiff(nominais, visitadas)) {
+      motivo_r <- esperadas$motivo[esperadas$coluna == cl][1]
+      if (cl %in% names(antiga)) {
+        reg(cl, "a_correcao_reivindicada",
+            paste0("presente na referência e ausente da tabela publicada: ", motivo_r))
+      } else {
+        reg(cl, "c_nao_explicada",
+            paste0("reivindicação órfã em qa/paridade_esperada.csv: '", cl,
+                   "' não existe nem na referência nem na tabela publicada, ",
+                   "portanto esta linha não dispensa nada. Apague-a ou corrija o nome."))
+      }
+    }
+  }
+
   # Achado 66: o curinga `*` dava imunidade a 52,5% das colunas comparadas, e
   # cinco das seis linhas com `*` não absorviam diferença nenhuma. Dispensa
   # inerte é pior que dispensa nenhuma: ela parece cobertura.
   if (!is.na(curinga)) {
-    absorveu <- length(achados) > 0 &&
-      any(vapply(achados, function(a) a$classe == "a_correcao_reivindicada", logical(1)))
+    absorveu <- n_via_curinga > 0L
     if (!absorveu) {
       warning("A dimensão '", dimensao, "' tem uma linha curinga (coluna = \"*\") ",
               "em qa/paridade_esperada.csv que NÃO absorveu diferença nenhuma. ",
@@ -415,25 +467,30 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
                classe = character(), descricao = character(),
                stringsAsFactors = FALSE)
 
-  destino <- mape_caminho("qa", paste0("paridade_", dimensao, ".md"))
-  dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
   n_c <- sum(res$classe == "c_nao_explicada")
-  writeLines(c(
-    paste0("# Paridade — ", dimensao), "",
-    paste0("Gerado em ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "."),
-    # Achado 68: esta linha afirmava a proveniência ("tag dados-v1.0.0-legado")
-    # sem verificar coisa nenhuma — o arquivo podia ser outro e o relatório diria
-    # o mesmo. Agora imprime o sha256 do arquivo que de fato foi lido, que é o
-    # que permite conferir a proveniência em vez de acreditar nela.
-    paste0("Referência: `", basename(referencia), "`  \n",
-           "sha256: `", digest::digest(referencia, algo = "sha256", file = TRUE), "`"), "",
-    paste0("Colunas comparadas: ", length(cols_antigas), ". ",
-           "Diferenças não explicadas: ", n_c, "."), "",
-    if (!nrow(res)) "Nenhuma diferença. A reconstrução é idêntica ao publicado." else
-      c("| coluna | classe | descrição |", "|---|---|---|",
-        paste0("| `", res$coluna, "` | ", res$classe, " | ",
-               gsub("[|]", "/", res$descricao), " |")),
-    ""), destino, useBytes = TRUE)
+  # `gravar = FALSE` existe pelo mesmo motivo que em mape_validar_tabela()
+  # (achados 59 e 87): sem ele, testar a paridade obriga a escrever em qa/, e a
+  # suíte suja a árvore versionada.
+  if (gravar) {
+    destino <- mape_caminho("qa", paste0("paridade_", dimensao, ".md"))
+    dir.create(dirname(destino), recursive = TRUE, showWarnings = FALSE)
+    writeLines(c(
+      paste0("# Paridade — ", dimensao), "",
+      paste0("Gerado em ", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "."),
+      # Achado 68: esta linha afirmava a proveniência ("tag dados-v1.0.0-legado")
+      # sem verificar coisa nenhuma — o arquivo podia ser outro e o relatório
+      # diria o mesmo. Agora imprime o sha256 do arquivo que de fato foi lido,
+      # que é o que permite conferir a proveniência em vez de acreditar nela.
+      paste0("Referência: `", basename(referencia), "`  \n",
+             "sha256: `", digest::digest(referencia, algo = "sha256", file = TRUE), "`"), "",
+      paste0("Colunas comparadas: ", length(cols_antigas), ". ",
+             "Diferenças não explicadas: ", n_c, "."), "",
+      if (!nrow(res)) "Nenhuma diferença. A reconstrução é idêntica ao publicado." else
+        c("| coluna | classe | descrição |", "|---|---|---|",
+          paste0("| `", res$coluna, "` | ", res$classe, " | ",
+                 gsub("[|]", "/", res$descricao), " |")),
+      ""), destino, useBytes = TRUE)
+  }
 
   message(sprintf("[paridade] %s: %d coluna(s) comparada(s), %d diferença(s) não explicada(s)",
                   dimensao, length(cols_antigas), n_c))

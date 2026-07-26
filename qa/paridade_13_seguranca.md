@@ -1,12 +1,14 @@
 # Paridade — 13_seguranca
 
-Gerado em 2026-07-26 09:42:57.
-Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
+Gerado em 2026-07-26 20:11:23.
+Referência: `base_municipios_brasileiros.RDa`  
+sha256: `a6f350ecf3090a7439eb680d732b9c40b34dfb79f25b4fe6e9be284cab07b336`
 
 Colunas comparadas: 63. Diferenças não explicadas: 0.
 
 | coluna | classe | descrição |
 |---|---|---|
+| `(conjunto de chaves)` | a_correcao_reivindicada | 352 chave(s) só no publicado e 47730 só na referência, de 132907 e 180285. 'Zero diferenças não explicadas' não cobre linha que não existe dos dois lados. 352 chaves so no publicado: sao os 70 codigos NAO MUNICIPAIS do achado 12 (27 codigos de UF, 30 pseudo-codigos sub-municipais do Rio, 11 de Sao Paulo e 2 avulsos), em 1996-2005. Nenhum dos 70 existe no diretorio de municipios, e todos estao marcados por flag_codigo_nao_municipal. As 47.730 chaves so na referencia sao assimetria de janela: a referencia e um painel unico de 180.285 linhas cobrindo 1991-2023, e esta dimensao cobre 1996-2021. Medido em 26/07/2026, achados 12, 13 e 66. |
 | `total_mortalidade` | b_renomeacao | renomeada para 'sim_obitos_totais_i' |
 | `total_mortalidade_homicidio` | b_renomeacao | renomeada para 'sim_obitos_homicidio_i' |
 | `total_mortalidade_alcool` | b_renomeacao | renomeada para 'sim_obitos_causa_alcool_i' |
@@ -70,4 +72,6 @@ Colunas comparadas: 63. Diferenças não explicadas: 0.
 | `quantidade_posse_ilegal_porte_ilegal_arma_de_fogo` | b_renomeacao | renomeada para 'fbsp_posse_e_porte_ilegal_arma_agregado_i' |
 | `grupo` | b_renomeacao | renomeada para 'fbsp_grupo_municipio_cat' |
 | `quantidade_homicidio_doloso` | b_renomeacao | renomeada para 'fbsp_homicidio_doloso_i' |
+| `sigla_uf_nome` | a_correcao_reivindicada | presente na referência e ausente da tabela publicada: Coluna removida de propósito: o prefixo sigla_ está num campo que contém o NOME da UF por extenso, e ela é redundante com nome_uf de 00_diretorios. |
+| `id_municipio_nome` | a_correcao_reivindicada | presente na referência e ausente da tabela publicada: Coluna removida de propósito: nome do município com prefixo id_, redundante com o diretório. |
 

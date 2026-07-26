@@ -164,7 +164,11 @@ test_that("tabela nova (que ainda não existe) grava sem barreira", {
 test_that("os três alvos dim_* se comportam como a auditoria mediu", {
   # Este é o teste de regressão do achado 6 sobre o dado real. Ele NÃO grava:
   # usa publicar = FALSE, que é o modo de inspeção documentado no CLAUDE.md.
-  skip_if_not(file.exists(here::here("dados", "dimensao", "11_transportes.parquet")))
+  # 11_transportes.parquet é versionado: ele existe em qualquer clone. O
+  # skip_if_not que havia aqui transformava a sua falta em silêncio, e era o
+  # teste de regressão do achado crítico nº 6 que sumia junto. Sumir a tabela é
+  # regressão, não motivo de pular.
+  expect_true(file.exists(here::here("dados", "dimensao", "11_transportes.parquet")))
 
   medir <- function(slug) {
     pub <- as.data.frame(arrow::read_parquet(
@@ -188,4 +192,96 @@ test_that("os três alvos dim_* se comportam como a auditoria mediu", {
       "11_transportes", camada = "dimensao")),
     "destruiria dado publicado"
   )
+})
+
+
+# A releitura das exportações — achado 39 -------------------------------------
+#
+# A "checagem 11" existia só no nome: o código relia o Parquet contra si mesmo
+# e nunca abria nenhuma exportação. Depois de corrigida, ela relê TODOS os
+# caminhos gravados — mas o ramo do .csv.gz continuava sem nenhum teste, porque
+# as onze chamadas a mape_escrever_tabela() acima passam formatos =
+# character(). Os três testes abaixo exercitam esse ramo, e dois deles provam
+# que ele MORDE: com a gravação sabotada, a escrita falha nomeando o csv.gz.
+
+test_that("o csv.gz é gravado, relido e bate com o objeto", {
+  raiz <- raiz_falsa()
+  withr::local_options(mape.raiz = raiz)
+
+  x <- painel_falso()
+  # Texto acentuado no dado: o csv.gz é escrito por uma conexão gzfile, e é ali
+  # que a codificação tem de ser declarada (achado 99).
+  x$nome_teste <- rep(c("São Paulo", "Abreulândia", "Ji-Paraná", "Poá"),
+                      length.out = nrow(x))
+
+  escritos <- suppressMessages(
+    mape_escrever_tabela(x, "99_teste", formatos = "csv.gz",
+                         validar = FALSE, camada = "dimensao"))
+
+  # A função devolve os dois caminhos, e a releitura passou por ambos.
+  expect_length(escritos, 2)
+  expect_true(any(grepl("[.]csv[.]gz$", escritos)))
+  gz <- escritos[grepl("[.]csv[.]gz$", escritos)]
+  expect_true(file.exists(gz))
+
+  # É gzip de verdade: os dois primeiros bytes são 0x1f 0x8b.
+  expect_identical(readBin(gz, "raw", 2), as.raw(c(0x1f, 0x8b)))
+
+  relido <- utils::read.csv(gz, stringsAsFactors = FALSE,
+                            colClasses = "character", check.names = FALSE)
+  expect_equal(nrow(relido), nrow(x))
+  expect_identical(names(relido), names(x))
+  # Sem coluna fantasma: row.names = FALSE é o que a impede.
+  expect_false(any(names(relido) %in% c("", "X")))
+  expect_identical(relido$nome_teste, x$nome_teste)
+  # E a chave sobrevive à ida e volta como texto de 7 dígitos.
+  expect_identical(relido$id_municipio, x$id_municipio)
+})
+
+test_that("a releitura do csv.gz pega a coluna fantasma", {
+  raiz <- raiz_falsa()
+  withr::local_options(mape.raiz = raiz)
+  x <- painel_falso()
+
+  # A demonstração do verificador, em teste: escrever o CSV SEM
+  # row.names = FALSE. O arquivo sai com uma coluna a mais, sem nome, e antes
+  # da correção do achado 39 a guarda continuava dizendo que estava tudo bem.
+  local_mocked_bindings(
+    write.csv = function(x, file, ...) {
+      utils::write.table(x, file, sep = ",", col.names = NA, row.names = TRUE,
+                         qmethod = "double", na = "")
+    },
+    .package = "utils")
+
+  err <- expect_error(suppressMessages(
+    mape_escrever_tabela(x, "99_teste", formatos = "csv.gz",
+                         validar = FALSE, camada = "dimensao")))
+
+  # O nome do arquivo na mensagem é a prova de que foi o csv.gz que a guarda
+  # abriu — o Parquet, gravado antes, passou.
+  expect_match(conditionMessage(err), "99_teste.csv.gz", fixed = TRUE)
+  expect_match(conditionMessage(err), "não bate nos nomes de coluna", fixed = TRUE)
+  expect_match(conditionMessage(err), "só no arquivo", fixed = TRUE)
+})
+
+test_that("a releitura do csv.gz pega truncamento", {
+  raiz <- raiz_falsa()
+  withr::local_options(mape.raiz = raiz)
+  x <- painel_falso()
+
+  # Agora a sabotagem é perder linhas na exportação — o caso do csv.gz
+  # truncado, que o Parquet não denuncia porque ele foi gravado inteiro.
+  local_mocked_bindings(
+    write.csv = function(x, file, ...) {
+      utils::write.table(x[1, , drop = FALSE], file, sep = ",", row.names = FALSE,
+                         col.names = TRUE, qmethod = "double", na = "")
+    },
+    .package = "utils")
+
+  err <- expect_error(suppressMessages(
+    mape_escrever_tabela(x, "99_teste", formatos = "csv.gz",
+                         validar = FALSE, camada = "dimensao")))
+  expect_match(conditionMessage(err), "99_teste.csv.gz", fixed = TRUE)
+  expect_match(conditionMessage(err), "devolveu 1 linha", fixed = TRUE)
+  expect_match(conditionMessage(err), "o objeto tem 12", fixed = TRUE)
 })

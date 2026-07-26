@@ -27,6 +27,7 @@ Este README é para quem vai **dar manutenção** ao ETL.
 - [As três tarefas de manutenção](#as-três-tarefas-de-manutenção)
 - [O dicionário é a especificação](#o-dicionário-é-a-especificação)
 - [Validação e teste de paridade](#validação-e-teste-de-paridade)
+- [As tabelas com defeito declarado](#as-tabelas-com-defeito-declarado)
 - [Publicar um release](#publicar-um-release)
 - [Armadilhas que já custaram caro](#armadilhas-que-já-custaram-caro)
 - [O que ainda está aberto](#o-que-ainda-está-aberto)
@@ -321,6 +322,84 @@ migração*, porque ela partiu dos artefatos que já existiam, sem reextrair —
 dado de entrada congelado, toda diferença é atribuível ao código. Na primeira
 reextração de verdade essa propriedade se perde: dado e código mudam juntos, e aí
 o que vale é a validação, não a paridade.
+
+---
+
+## As tabelas com defeito declarado
+
+Uma tabela pode passar em todas as checagens e mesmo assim estar errada. As
+checagens só encontram o que sabem procurar; o resto — o que alguém descobriu
+lendo o dado, e que ninguém automatizou — está escrito à mão em dois campos do
+dicionário: `observacoes`, em `dicionario/tabelas.csv`, e `problema`, em
+`dicionario/variaveis.csv`. Declarar não é corrigir, e é por isso que esta seção
+existe: até a auditoria de 26/07/2026, esses dois campos eram o único lugar onde
+os defeitos apareciam, e nenhum documento de alto nível os mencionava.
+
+Medido em 26/07/2026 (o comando está no fim da seção): **15 das 26 tabelas
+publicadas** trazem marcador de defeito no campo `observacoes`, e **221 das 432
+variáveis** têm o campo `problema` preenchido, espalhadas por 22 tabelas.
+Juntando os dois campos, **25 das 26 tabelas declaram alguma coisa** — a única
+que não declara nada é `01_assistencia_social_dh`, que é derivada das duas fontes
+dela, e as duas declaram.
+
+| tabela | o que o `observacoes` declara |
+|---|---|
+| `02_populacao` | a série intercensitária de nove a dez municípios é extrapolação linear fabricada, não estimativa do IBGE; propaga para o PIB per capita |
+| `03_meio_ambiente` | 3.843 linhas de município-ano anteriores à instalação do município publicadas como zero, e não como ausência |
+| `04_economia` | as onze colunas monetárias **não** estão em reais de 2023: são nominais multiplicadas por um fator inteiro que muda por bloco de anos |
+| `06_financas` | receita inflada em cerca de uma ordem de grandeza por somar os três estágios e a hierarquia de contas; seis colunas publicam vazio como zero; buraco de 2018 a 2021 na receita própria |
+| `07_recursos_humanos` | em 2011 a variável de administração indireta recebeu a coluna do total de funcionários: categórica em onze anos, numérica em um |
+| `09_educacao` | `NA` trocado por zero por índice posicional no Censo da Educação Superior, fabricando 27.850 linhas com zero instituições; as oito colunas `saeb_nota_*` não vêm do SAEB |
+| `10_saude` | `pni_cobertura_*` publica 0% onde a vacina ainda não existia no calendário; 2003 é extração truncada; 31,5% das células passam de 100% |
+| `11_transportes` | a cobertura de 100% é artefato do esqueleto do painel; os cinco municípios que encerraram a tarifa zero aparecem com zero até nos anos em que a política valia |
+| `12_habitacao` | 88,2% das linhas têm todas as colunas de conteúdo em zero, por preenchimento do esqueleto; as duas colunas monetárias têm defeito de escala |
+| `13_seguranca` | 70 códigos não municipais publicados em 352 linhas, hoje marcados por `flag_codigo_nao_municipal`; a série do Rio em 1996-1998 fica 96,1% subestimada; X96 não é contado como homicídio |
+| `14_corrupcao` | `cgu_montante_fiscalizado_brl2023` é atributo da ordem de serviço somado uma vez por constatação, o que infla 4,87 vezes na mediana; o deflator usa o ano da fiscalização e não o do repasse |
+| `15_dados_historicos` | 54 chaves duplicadas, municípios do Tocantins com registro anterior e posterior a 1988, mantidas de propósito |
+| `16_eleicoes` | o painel anual é carry-forward puro, sem dado anual; `votos_prefeito_eleito_prop` está em 0-1 e `votos_governador_eleito_pct` em 0-100 |
+| `01_assistencia_social_dh/cadunico` | a Taxa de Atualização Cadastral passa de 100% em 59 municípios, todos em 2016, chegando a 128,8% |
+| `11_transportes/tarifa_zero` | declarada canônica e já vem expandida: 81,7% das linhas são carry-forward, com a evidência apagada |
+
+Onde ler o texto integral:
+
+- **`qa/<slug>.md`**, seção *Defeitos declarados no dicionário* — é o único lugar
+  que reúne, por tabela, o que os dois campos dizem. A barra do slug vira duplo
+  sublinhado no nome do arquivo: `qa/09_educacao__ideb.md`.
+- **`dicionario/tabelas.csv`**, campo `observacoes` — a fonte da coluna acima.
+- **`dicionario/variaveis.csv`**, campo `problema` — o defeito de cada coluna,
+  que é onde está o detalhe que importa para análise.
+- **`mape_ler()`** avisa em tempo de execução, listando os primeiros e apontando
+  para o `qa/` da tabela. O release também leva os `qa/*.md`, dentro de
+  `documentacao.tar.gz`.
+
+Uma ressalva sobre o aviso de `mape_ler()`: ele vê 11 das 15 tabelas da coluna
+acima, não as 15. `mape_defeitos_declarados()` (`R/validacao.R`) descarta
+qualquer trecho que contenha a palavra `CORRIGIDO` — inclusive `DEFEITO NÃO
+CORRIGIDO`, que é como `07_recursos_humanos`, `13_seguranca` e `14_corrupcao`
+escrevem os deles — e o marcador `CHAVE DUPLICADA`, de `15_dados_historicos`, não
+está na lista que ele procura. Os quatro continuam visíveis pelo campo `problema`
+das variáveis, que é o outro caminho da mesma função.
+
+Para medir de novo:
+
+```bash
+Rscript -e '
+  for (f in list.files("R", pattern="[.]R$", full.names=TRUE)) source(f, encoding="UTF-8")
+  pub <- mape_tabelas_publicadas()
+  tab <- mape_dicionario("tabelas"); var <- mape_dicionario("variaveis")
+  marca <- "DEFEITO|LIMITA[ÇC][ÃA]O|CHAVE DUPLICADA|PERDA CONHECIDA|ESCALAS INCOMPAT"
+  obs <- tab$observacoes[match(pub$slug, tab$slug_tabela)]
+  sel <- !is.na(obs) & grepl(marca, obs)
+  cat("com marcador em observacoes:", sum(sel), "de", nrow(pub), "\n")
+  cat(paste0("  - ", pub$slug[sel], collapse="\n"), "\n")
+  tem <- !is.na(var$problema) & nzchar(trimws(as.character(var$problema)))
+  cat("variaveis com problema:", sum(tem), "de", nrow(var),
+      "| em", length(unique(var$tabela[tem])), "tabelas\n")
+  cat("uniao, como mape_ler() a ve:",
+      sum(vapply(pub$slug, function(s) length(mape_defeitos_declarados(s)) > 0,
+                 logical(1))), "\n")
+'
+```
 
 ---
 

@@ -212,16 +212,21 @@ test_that("todo nome_novo de deprecacao.csv resolve numa coluna publicada", {
   # resolver. Linhas de `acao` diferente de "renomear" descrevem remoção e
   # ficam de fora.
   renomeios <- dep[!is.na(dep$acao) & dep$acao == "renomear", , drop = FALSE]
-  aplicados <- renomeios[renomeios$nome_antigo %in% c(
-    "variacao_absoluta_area_desmatada_km2", "ln_pib_brl2023",
-    "razao_impostos_sobre_pib_prop", "proporcao_votos_brancos_prefeito_pct",
-    "ieps_despesa_saude_total_per_capita_brl2023",
-    "total_violacoes_lgbtq", "margem_pct"), , drop = FALSE]
-  expect_gt(nrow(aplicados), 0)
-  for (i in seq_len(nrow(aplicados))) {
-    expect_true(resolver(aplicados$nome_novo[i]) %in% colunas,
-                info = paste(aplicados$nome_antigo[i], "->", aplicados$nome_novo[i]))
+
+  # Este teste FILTRAVA por uma lista chumbada de sete nomes — e a lista excluía
+  # justamente os sete destinos mortos que o achado 76 tratava, de modo que a
+  # suíte passava com o defeito presente. Um teste que escolhe o que olhar até
+  # sobrar só o que passa não é teste. Agora percorre TODOS os renomeios.
+  expect_gt(nrow(renomeios), 100)
+  mortos <- character()
+  for (i in seq_len(nrow(renomeios))) {
+    if (!resolver(renomeios$nome_novo[i]) %in% colunas) {
+      mortos <- c(mortos, paste0(renomeios$nome_antigo[i], " -> ",
+                                 renomeios$nome_novo[i]))
+    }
   }
+  expect_equal(mortos, character(),
+               info = "destino de renomeio que não resolve em coluna publicada")
 })
 
 test_that("todo renomeio de variaveis.csv tem linha em deprecacao.csv", {

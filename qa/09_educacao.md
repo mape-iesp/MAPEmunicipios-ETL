@@ -1,6 +1,6 @@
 # QA — 09_educacao
 
-Gerado em 2026-07-26 18:54:35.
+Gerado em 2026-07-26 20:52:27.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 18:54:35.
 
 ## Checagens
 
-Checagens executadas: 18.
+Checagens executadas: 19.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -21,8 +21,9 @@ Checagens executadas: 18.
 
 ## Defeitos declarados no dicionário
 
-Estes 2 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+Estes 3 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
 
 - (tabela) DEFEITO CONHECIDO: as colunas do Censo da Educação Superior tiveram NA trocado por zero por índice posicional, fabricando 27.850 linhas que afirmam ZERO instituições quando o correto seria ausência de dado.
+- (tabela) DEFEITO DE PROVENIENCIA (achado 63, escopo corrigido em 26/07/2026): as oito colunas publicadas saeb_nota_*_idx — e nao 'media_saeb_*', que e o nome LEGADO delas — sao proficiencia do SAEB de verdade, na escala de 0 a 10, mas NAO vem de uma extracao do SAEB: vem da coluna nota_saeb_media_padronizada da tabela do IDEB.
 - (ano_ref_ideb) Ano da EDICAO da avaliacao (impares 2005-2023, numeric) convivendo com ano do painel (character); nada no nome indica que e a chave que distingue medicao de valor replicado
 

@@ -32,7 +32,12 @@ tratar_cadunico <- function(origem = NULL) {
 
   x <- janitor::clean_names(bruto)
 
-  # A coluna de código do município chega como codigo_ibge, com sete dígitos.
+  # A coluna de código do município chega como codigo_ibge, com sete dígitos —
+  # mas isso vale para o arquivo que ESTÁ em raw/, que é derivado (a saída do
+  # pipeline legado), e não para o que a origem entrega. Do SAGI vêm SEIS
+  # dígitos, e a série é MENSAL. Ver `passos_ja_aplicados` no MANIFESTO.yml:
+  # quem reextrair precisa aplicar o filtro de dezembro e mape_id7_de_id6()
+  # antes de chegar aqui. Achado 46 da auditoria de 26/07/2026.
   # O nome vira id_municipio, que é o reservado do projeto.
   if ("codigo_ibge" %in% names(x)) {
     names(x)[names(x) == "codigo_ibge"] <- "id_municipio"

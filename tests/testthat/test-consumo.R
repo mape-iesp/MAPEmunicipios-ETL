@@ -81,6 +81,82 @@ test_that("mape_cobertura mede presença de valor, não presença de linha", {
   expect_true(max(cb$cobertura_pct) < 50)
 })
 
+test_that("mape_cobertura conta flag LIGADO como observação", {
+  skip_if_not(file.exists(mape_caminho_tabela("11_transportes", "parquet", "dimensao")),
+              "sem 11_transportes publicada")
+  # Achado 21, e o erro que a primeira correção introduziu ao consertá-lo.
+  # Reportar 100% sobre um painel com 0,5% de informação era o defeito; excluir
+  # `flag_` inteiro trocou por reportar 27 municípios quando 133 têm dado. As
+  # 578 linhas com `flag_adota_tarifa_zero == 1` são observação real, vinda
+  # íntegra da fonte, cobrindo 106 municípios de 1992 a 2024.
+  cb <- mape_cobertura("11_transportes", por_ano = FALSE)
+  expect_equal(cb$municipios, 133L)
+
+  # E a série anual tem de alcançar os anos em que só o flag existe: com o flag
+  # fora, a tabela começava em 2005 e terminava em 2017.
+  cb_ano <- mape_cobertura("11_transportes")
+  expect_lte(min(cb_ano$ano), 1992L)
+  expect_gte(max(cb_ano$ano), 2024L)
+
+  # O contrapeso: `ano_ref_` continua fora. Numa tabela de carry_forward ele vem
+  # preenchido em toda linha, e contá-lo ressuscitaria o 100% falso.
+  x <- mape_ler_tabela("11_transportes", camada = "dimensao")
+  expect_true("ano_ref_inicio_tarifa_zero" %in% names(x))
+  expect_lt(max(cb_ano$cobertura_pct), 5)
+})
+
+test_that("flag em zero continua sendo preenchimento, e não dado", {
+  # O critério é o VALOR, não o prefixo: um flag em 0 é linha de painel.
+  x <- data.frame(
+    id_municipio = c("1100015", "3304557", "3550308"),
+    ano = c(2020L, 2020L, 2020L),
+    flag_evento = c(1, 0, 0),
+    medida_i = c(NA, NA, NA),
+    stringsAsFactors = FALSE)
+  flags <- grep("^flag_", names(x), value = TRUE)
+  m <- vapply(x[flags], function(v) {
+    z <- suppressWarnings(as.numeric(v)); !is.na(z) & z != 0
+  }, logical(nrow(x)))
+  ligado <- rowSums(matrix(m, nrow = nrow(x))) > 0
+  expect_equal(sum(ligado), 1L)
+  expect_true(ligado[1])
+})
+
+test_that("a regra do mapa censitário está LIGADA, e não só implementada", {
+  # Achado 34. O defeito não era a falta do mecanismo: `mape_expandir_por_regra()`
+  # já tinha o ramo `mapa_censitario_legado`, e nenhuma tabela o declarava. O
+  # despacho caía em `carry_forward` e extrapolava o censo de 2010 até 2024.
+  # Por isso este teste afirma a DECLARAÇÃO, e não só o comportamento da função:
+  # é a célula do dicionário que estava errada.
+  tabs <- mape_dicionario("tabelas")
+  regra <- tabs$regra_preenchimento_temporal[tabs$slug_tabela == "05_sociedade/atlas_ivs"]
+  expect_equal(regra, "mapa_censitario_legado")
+})
+
+test_that("expandir atlas_ivs ao painel reproduz a dimensão publicada", {
+  skip_if_not(file.exists(mape_caminho_tabela("05_sociedade/atlas_ivs", "parquet", "fonte")) &&
+              file.exists(mape_caminho_tabela("05_sociedade", "parquet", "dimensao")),
+              "sem atlas_ivs ou 05_sociedade publicadas")
+  x <- suppressMessages(mape_ler("05_sociedade/atlas_ivs", painel = TRUE))
+  d <- mape_ler_tabela("05_sociedade", camada = "dimensao")
+
+  # 111.300 linhas, 1996-2015. Com `carry_forward` dava 139.125 e ia até 2024,
+  # inventando quatorze anos de censo que ninguém mediu.
+  expect_equal(nrow(x), nrow(d))
+  expect_equal(range(x$ano), range(d$ano))
+  expect_equal(sum(duplicated(paste(x$id_municipio, x$ano))), 0L)
+
+  # E os valores têm de bater célula a célula, não só a contagem de linhas.
+  comum <- setdiff(intersect(names(x), names(d)), c("id_municipio", "ano"))
+  i <- match(paste(d$id_municipio, d$ano), paste(x$id_municipio, x$ano))
+  expect_equal(sum(is.na(i)), 0L)
+  divergentes <- sum(vapply(comum, function(cl) {
+    a <- d[[cl]]; b <- x[[cl]][i]
+    sum(!((is.na(a) & is.na(b)) | (!is.na(a) & !is.na(b) & a == b)))
+  }, numeric(1)))
+  expect_equal(divergentes, 0)
+})
+
 test_that("mape_indicadores devolve o catálogo com as dependências declaradas", {
   cat_ind <- mape_indicadores()
   expect_s3_class(cat_ind, "data.frame")

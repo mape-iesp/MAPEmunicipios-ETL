@@ -313,9 +313,22 @@ mape_verificar_raw <- function(fonte, arquivo = NULL) {
 
   caminho <- mape_caminho("fontes", fonte, "raw", arquivo)
   if (!file.exists(caminho)) {
+    # Achado 46: esta mensagem mandava o usuário à URL da origem sem avisar que,
+    # em fonte marcada `derivado: true`, o que vem de lá NÃO é o que estava em
+    # raw/. No CadÚnico a diferença é grande: a origem entrega a série MENSAL
+    # com código de 6 dígitos, e o arquivo de raw/ é o snapshot de dezembro já
+    # com 7 dígitos. Quem baixasse e seguisse em frente produziria outra tabela
+    # em silêncio, e por isso `passos_ja_aplicados` entra aqui.
     stop("Arquivo bruto ausente: ", caminho, "\n",
          "Ele não é versionado. Obtenha-o assim:\n  ",
          manifesto$url %||% "(sem URL registrada)", "\n",
+         if (isTRUE(manifesto$derivado)) {
+           paste0("ATENÇÃO: esta fonte é DERIVADA — o que está em raw/ não é o ",
+                  "bruto da origem.\n",
+                  if (!is.null(manifesto$passos_ja_aplicados))
+                    paste0("Passos já aplicados nele, que você terá de repetir:\n",
+                           manifesto$passos_ja_aplicados, "\n") else "")
+         } else "",
          if (!is.null(manifesto$nota)) paste0("Nota: ", manifesto$nota) else "",
          call. = FALSE)
   }

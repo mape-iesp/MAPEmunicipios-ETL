@@ -644,6 +644,41 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
     }
   }
 
+  # -- 19. Exclusividade do bloco territorial --------------------------------
+  # Achado 51. O contrato diz que `00_diretorios/municipios` é dono EXCLUSIVO do
+  # bloco territorial e que nenhuma outra tabela deveria publicar nome de
+  # município ou UF. A regra existia em cinco documentos e em código nenhum.
+  #
+  # A rodada anterior alegou que a checagem `descricao_repetida` pegava o caso
+  # de `sigla_uf_nome` em 04_economia. Não pega, e não podia pegar: a descrição
+  # daquela coluna era "Nome da Unidade da Federação", que está na lista de
+  # exceções de `mape_descricoes_repetidas()`. Uma checagem que pula o caso
+  # antes e depois da correção não prova correção nenhuma.
+  #
+  # O critério é o NOME da coluna, não a descrição — é o nome que diz quem é o
+  # dono do dado.
+  DONO_TERRITORIAL <- "00_diretorios/municipios"
+  if (!identical(tabela, DONO_TERRITORIAL)) {
+    rodou("exclusividade_territorial")
+    # Não entram aqui `id_municipio` (a chave) nem `id_municipio_6` (o caminho
+    # de conversão de 6 para 7 dígitos), que toda tabela pode ter.
+    territoriais <- c(
+      "nome_municipio", "municipio", "nome_uf", "sigla_uf", "sigla_uf_nome",
+      "nome_regiao", "sigla_regiao", "nome_mesorregiao", "nome_microrregiao",
+      "id_municipio_nome", "municipio_tarifa_zero", "localidade_gasto",
+      "nome_regiao_imediata", "nome_regiao_intermediaria", "nome_regiao_saude")
+    # Um achado POR COLUNA, e a descrição começa pelo nome dela: é assim que
+    # mape_aplicar_justificativas() encontra a justificativa (ela lê o prefixo
+    # "<coluna>:"). Um achado agregado seria injustificável e viraria erro.
+    for (cl in intersect(names(x), territoriais)) {
+      reg("exclusividade_territorial", "aviso",
+          paste0(cl, ": coluna do bloco territorial publicada fora do ",
+                 "diretório. O dono exclusivo desse bloco é `", DONO_TERRITORIAL,
+                 "`; duplicá-lo faz duas tabelas discordarem sobre o nome do ",
+                 "mesmo município. Use mape_ler(..., territorio = TRUE)."))
+    }
+  }
+
   rodou("sentinelas")
   sent <- mape_detectar_sentinelas(x)
   if (nrow(sent)) {

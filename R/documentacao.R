@@ -120,6 +120,16 @@ mape_gerar_documentacao <- function(tabela, destino = NULL, recalcular = TRUE) {
   linhas_var <- character()
   if (nrow(vars)) {
     vars <- vars[order(match(vars$nome_canonico, names(x))), ]
+    # Achado 55: `pct_na`, `minimo` e `maximo` do dicionário são medidos na
+    # tabela declarada em `vars$tabela`, e para 110 variáveis essa tabela é a
+    # FONTE, não a dimensão. Imprimir aquele número aqui fazia o documento da
+    # DIMENSÃO afirmar dela uma medida da fonte: `ano_ref_inicio_tarifa_zero`
+    # aparecia com 81,7% de vazios quando na dimensão ela é 99,94% vazia.
+    #
+    # A coluna `vazios` passa a ser medida em `x`, que é a tabela que ESTE
+    # documento descreve. Onde os campos guardados vierem de outra tabela, a
+    # nota abaixo diz de qual — em vez de calar.
+    medida_alhures <- character()
     linhas_var <- c(
       "## Variáveis", "",
       "| variável | tipo | unidade | descrição | vazios |",
@@ -128,14 +138,34 @@ mape_gerar_documentacao <- function(tabela, destino = NULL, recalcular = TRUE) {
         limpa <- function(s) {
           if (is.na(s) || !nzchar(s)) "—" else gsub("[|\n]", " ", s)
         }
-        na_txt <- if (is.na(vars$pct_na[i])) "—" else
+        col <- vars$nome_canonico[i]
+        na_txt <- if (col %in% names(x)) {
+          paste0(format(round(100 * mean(is.na(x[[col]])), 1), nsmall = 1), "%")
+        } else if (is.na(vars$pct_na[i])) "—" else {
           paste0(format(round(vars$pct_na[i], 1), nsmall = 1), "%")
-        paste0("| `", vars$nome_canonico[i], "` | ", limpa(vars$tipo[i]), " | ",
+        }
+        decl <- vars$tabela[i]
+        if (!is.na(decl) && nzchar(decl) && !identical(decl, tabela)) {
+          medida_alhures <<- c(medida_alhures, paste0("`", col, "` (", decl, ")"))
+        }
+        paste0("| `", col, "` | ", limpa(vars$tipo[i]), " | ",
                limpa(vars$unidade[i]), " | ", limpa(vars$descricao[i]), " | ",
                na_txt, " |")
       }, character(1)),
       ""
     )
+    if (length(medida_alhures)) {
+      linhas_var <- c(linhas_var,
+        paste0("A coluna `vazios` acima é medida **nesta** tabela. Já os campos ",
+               "calculados do dicionário (`pct_na`, `minimo`, `maximo`, ",
+               "`n_distintos`) são medidos na tabela em que a variável é ",
+               "observada, que para ", length(medida_alhures),
+               " destas colunas é outra: ",
+               paste(medida_alhures, collapse = ", "),
+               ". Os dois números podem divergir muito, e divergem por desenho: ",
+               "a fonte guarda o observado e a dimensão o painel expandido."),
+        "")
+    }
   }
 
   # --- Ressalvas ------------------------------------------------------------

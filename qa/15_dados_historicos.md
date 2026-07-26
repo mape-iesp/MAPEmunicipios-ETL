@@ -1,6 +1,6 @@
 # QA — 15_dados_historicos
 
-Gerado em 2026-07-26 18:54:41.
+Gerado em 2026-07-26 20:52:34.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 18:54:41.
 
 ## Checagens
 
-Checagens executadas: 12.
+Checagens executadas: 13.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

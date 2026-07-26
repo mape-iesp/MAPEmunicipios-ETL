@@ -98,23 +98,25 @@ Reúne quatro fontes com coberturas muito diferentes: desastres do Atlas S2iD, s
 | `area_desmatada_sobre_area_municipio_razao` | double | razao | Área desmatada acumulada dividida pela área do município. Passa de 1 em alguns casos porque numerador e denominador vêm de fontes diferentes (PRODES e IBGE), com recortes territoriais que não coincidem exatamente. | 30.3% |
 | `area_desmatada_municipio_lag1_km2` | double | km2 | Área total desmatado do município em km² (defasagem de um ano) | 33.3% |
 | `variacao_area_desmatada_pct` | double | percentual | Taxa de crescimento anual da area desmatada do municipio, em PERCENTUAL: ((area_desmatada_municipio_km2 - area_desmatada_municipio_lag1_km2) / area_desmatada_municipio_lag1_km2) * 100. NAO e uma area. Confirmado em 122.503 linhas com residuo maximo de 5,8e-11 contra a formula. O dominio nao tem teto porque um municipio que sai de 0,1 km2 desmatado para 11,8 km2 tem crescimento de 11.700%. | 33.4% |
-| `adapta_id_indicador` | double | identificador | Identificador interno do município na base do AdaptaBrasil. Não é o código do IBGE e não serve como chave; existe para rastrear a linha até o arquivo de origem. | 0.0% |
-| `adapta_capacidade_investimento_idx` | double | indice | Capacidade de investimento público municipal e renda da população - investimentos em políticas de adaptação e em populações socioeconomicamente vulneráveis  | 0.0% |
-| `adapta_capacidade_investimento_cat` | character | classe | Capacidade de investimento público municipal e renda da população - investimentos em políticas de adaptação e em populações socioeconomicamente vulneráveis (CLASSE) | 0.0% |
-| `adapta_capacidade_adaptacao_inundacoes_idx` | double | indice | Índice de capacidade adaptativa para inundações, enxurradas e alagamentos  | 0.0% |
-| `adapta_capacidade_adaptacao_inundacoes_cat` | character | classe | Índice de capacidade adaptativa para inundações, enxurradas e alagamentos  (CLASSE) | 0.0% |
-| `adapta_risco_inundacoes_idx` | double | indice | Índice de Risco para inundações, enxurradas e alagamentos  | 0.0% |
-| `adapta_risco_inundacoes_cat` | character | classe | Índice de Risco para inundações, enxurradas e alagamentos (CLASSE) | 0.0% |
-| `adapta_vulnerabilidade_inundacoes_idx` | double | indice | Índice de vulnerabilidade para inundações, enxurradas e alagamentos | 0.0% |
-| `adapta_vulnerabilidade_inundacoes_cat` | character | classe | Índice de vulnerabilidade para inundações, enxurradas e alagamentos (CLASSE) | 0.0% |
-| `adapta_adesao_cidades_resilientes_idx` | double | indice | Adesão ao Programa Cidades Resilientes  | 0.0% |
-| `adapta_adesao_cidades_resilientes_cat` | character | classe | Adesão ao Programa Cidades Resilientes (CLASSE) | 0.0% |
-| `adapta_capacidade_recursos_hidricos_idx` | double | indice | Índice de capacidade adaptativa - recursos hídricos | 0.0% |
-| `adapta_capacidade_recursos_hidricos_cat` | character | classe | Índice de capacidade adaptativa - recursos hídricos (CLASSE) | 0.0% |
-| `adapta_risco_seca_idx` | double | indice | Índice de risco de impacto para seca | 0.0% |
-| `adapta_risco_seca_cat` | character | classe | Índice de risco de impacto para seca (CLASSE) | 0.0% |
-| `adapta_vulnerabilidade_seca_idx` | double | indice | Índice de vulnerabilidade - seca  | 0.0% |
-| `adapta_vulnerabilidade_seca_cat` | character | classe | Índice de vulnerabilidade - seca (CLASSE) | 0.0% |
+| `adapta_id_indicador` | double | identificador | Identificador interno do município na base do AdaptaBrasil. Não é o código do IBGE e não serve como chave; existe para rastrear a linha até o arquivo de origem. | 66.7% |
+| `adapta_capacidade_investimento_idx` | double | indice | Capacidade de investimento público municipal e renda da população - investimentos em políticas de adaptação e em populações socioeconomicamente vulneráveis  | 66.7% |
+| `adapta_capacidade_investimento_cat` | character | classe | Capacidade de investimento público municipal e renda da população - investimentos em políticas de adaptação e em populações socioeconomicamente vulneráveis (CLASSE) | 66.7% |
+| `adapta_capacidade_adaptacao_inundacoes_idx` | double | indice | Índice de capacidade adaptativa para inundações, enxurradas e alagamentos  | 66.7% |
+| `adapta_capacidade_adaptacao_inundacoes_cat` | character | classe | Índice de capacidade adaptativa para inundações, enxurradas e alagamentos  (CLASSE) | 66.7% |
+| `adapta_risco_inundacoes_idx` | double | indice | Índice de Risco para inundações, enxurradas e alagamentos  | 66.7% |
+| `adapta_risco_inundacoes_cat` | character | classe | Índice de Risco para inundações, enxurradas e alagamentos (CLASSE) | 66.7% |
+| `adapta_vulnerabilidade_inundacoes_idx` | double | indice | Índice de vulnerabilidade para inundações, enxurradas e alagamentos | 66.7% |
+| `adapta_vulnerabilidade_inundacoes_cat` | character | classe | Índice de vulnerabilidade para inundações, enxurradas e alagamentos (CLASSE) | 66.7% |
+| `adapta_adesao_cidades_resilientes_idx` | double | indice | Adesão ao Programa Cidades Resilientes  | 66.7% |
+| `adapta_adesao_cidades_resilientes_cat` | character | classe | Adesão ao Programa Cidades Resilientes (CLASSE) | 66.7% |
+| `adapta_capacidade_recursos_hidricos_idx` | double | indice | Índice de capacidade adaptativa - recursos hídricos | 66.7% |
+| `adapta_capacidade_recursos_hidricos_cat` | character | classe | Índice de capacidade adaptativa - recursos hídricos (CLASSE) | 66.7% |
+| `adapta_risco_seca_idx` | double | indice | Índice de risco de impacto para seca | 66.7% |
+| `adapta_risco_seca_cat` | character | classe | Índice de risco de impacto para seca (CLASSE) | 66.7% |
+| `adapta_vulnerabilidade_seca_idx` | double | indice | Índice de vulnerabilidade - seca  | 66.7% |
+| `adapta_vulnerabilidade_seca_cat` | character | classe | Índice de vulnerabilidade - seca (CLASSE) | 66.7% |
+
+A coluna `vazios` acima é medida **nesta** tabela. Já os campos calculados do dicionário (`pct_na`, `minimo`, `maximo`, `n_distintos`) são medidos na tabela em que a variável é observada, que para 17 destas colunas é outra: `adapta_id_indicador` (03_meio_ambiente/adaptabrasil), `adapta_capacidade_investimento_idx` (03_meio_ambiente/adaptabrasil), `adapta_capacidade_investimento_cat` (03_meio_ambiente/adaptabrasil), `adapta_capacidade_adaptacao_inundacoes_idx` (03_meio_ambiente/adaptabrasil), `adapta_capacidade_adaptacao_inundacoes_cat` (03_meio_ambiente/adaptabrasil), `adapta_risco_inundacoes_idx` (03_meio_ambiente/adaptabrasil), `adapta_risco_inundacoes_cat` (03_meio_ambiente/adaptabrasil), `adapta_vulnerabilidade_inundacoes_idx` (03_meio_ambiente/adaptabrasil), `adapta_vulnerabilidade_inundacoes_cat` (03_meio_ambiente/adaptabrasil), `adapta_adesao_cidades_resilientes_idx` (03_meio_ambiente/adaptabrasil), `adapta_adesao_cidades_resilientes_cat` (03_meio_ambiente/adaptabrasil), `adapta_capacidade_recursos_hidricos_idx` (03_meio_ambiente/adaptabrasil), `adapta_capacidade_recursos_hidricos_cat` (03_meio_ambiente/adaptabrasil), `adapta_risco_seca_idx` (03_meio_ambiente/adaptabrasil), `adapta_risco_seca_cat` (03_meio_ambiente/adaptabrasil), `adapta_vulnerabilidade_seca_idx` (03_meio_ambiente/adaptabrasil), `adapta_vulnerabilidade_seca_cat` (03_meio_ambiente/adaptabrasil). Os dois números podem divergir muito, e divergem por desenho: a fonte guarda o observado e a dimensão o painel expandido.
 
 ## Ressalvas
 
@@ -209,5 +211,5 @@ x <- mape_ler("03_meio_ambiente")
 x <- mape_ler("03_meio_ambiente", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

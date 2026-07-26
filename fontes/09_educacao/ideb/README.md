@@ -41,7 +41,7 @@ Notas do IDEB e do SAEB e metas projetadas, agregadas por município e abertas p
 | variável | tipo | unidade | descrição | vazios |
 |---|---|---|---|---|
 | `ideb_nota_municipio_idx` | double | escore de 0 a 10 | Média IDEB município | 1.4% |
-| `saeb_nota_padronizada_municipio_idx` | double | escore padronizado | Média SAEB município | 1.4% |
+| `saeb_nota_padronizada_municipio_idx` | double | escore padronizado | Nota media padronizada do SAEB do municipio, na escala de 0 a 10 usada na composicao do IDEB. E o componente de PROFICIENCIA do IDEB, sem o fator de aprovacao — por isso difere de ideb_nota_municipio_idx. | 1.4% |
 | `ideb_meta_projetada_municipio_idx` | double | escore de 0 a 10 | Média Projeção IDEB município | 30.4% |
 | `ideb_nota_fundamental_idx` | double | escore de 0 a 10 | Nota do IDEB do municipio no ensino fundamental completo (1o ao 9o ano), rede publica, em escore de 0 a 10. O IDEB combina a nota padronizada do SAEB com a taxa de aprovacao; e indicador OBSERVADO, nao meta. | 1.5% |
 | `ideb_nota_medio_idx` | double | escore de 0 a 10 | Nota do IDEB do municipio no ensino medio, rede publica, em escore de 0 a 10. Indicador observado. A cobertura municipal do ensino medio e menor que a do fundamental, porque a rede estadual concentra a oferta. | 66.7% |
@@ -71,13 +71,27 @@ O legado propagava cada divulgação para o ano par seguinte, gerando 111.388 li
 
 **`ideb_nota_municipio_idx`** — Media NAO PONDERADA de todas as linhas do municipio, incluindo as tres redes; convive com media_ideb_rede_* sem hierarquia explicita no nome
 
-**`saeb_nota_padronizada_municipio_idx`** — Atribui a fonte SAEB a um dado que vem da coluna nota_saeb_media_padronizada da tabela do IDEB (mesma familia: _fundamental, _medio, _anos_finais, _anos_iniciais, _rede_*)
+**`saeb_nota_padronizada_municipio_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
 
 **`ideb_meta_projetada_municipio_idx`** — 'projecao' de que indicador nao esta no nome: e a META do IDEB (mesma familia: _fundamental, _medio, _anos_finais, _anos_iniciais, _rede_*)
+
+**`saeb_nota_fundamental_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
+
+**`saeb_nota_medio_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
 
 **`ideb_nota_ef_anos_finais_idx`** — 'anos' aqui significa SERIES escolares, no meio de uma base cuja chave temporal tambem se chama ano
 
 **`ideb_nota_ef_anos_iniciais_idx`** — Idem; e um recorte que se SOBREPOE a media_ideb_fundamental sem prefixo que indique o eixo de corte
+
+**`saeb_nota_anos_finais_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
+
+**`saeb_nota_anos_iniciais_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
+
+**`saeb_nota_rede_estadual_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
+
+**`saeb_nota_rede_municipal_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
+
+**`saeb_nota_rede_federal_idx`** — PROVENIENCIA, nao valor: a coluna e proficiencia do SAEB de verdade, mas NAO vem de uma extracao do SAEB — vem da coluna nota_saeb_media_padronizada da tabela do IDEB. A extracao do SAEB nunca foi implementada nesta arvore, e o unico bloco ativo daquele script e sintaticamente invalido. O valor esta correto e na escala de 0 a 10 do IDEB; o que nao existe e caminho proprio de atualizacao. Achado 63 da auditoria de 26/07/2026, escopo corrigido na mesma data.
 
 ## Como ler esta tabela
 
@@ -88,5 +102,5 @@ x <- mape_ler("09_educacao/ideb")
 x <- mape_ler("09_educacao/ideb", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 

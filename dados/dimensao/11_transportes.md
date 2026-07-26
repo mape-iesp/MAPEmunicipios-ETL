@@ -40,11 +40,13 @@ Tarifa de ônibus e comprometimento de renda com transporte público (Mobilidado
 
 | variável | tipo | unidade | descrição | vazios |
 |---|---|---|---|---|
-| `ano_ref_inicio_tarifa_zero` | double | ano | Ano início Tarifa Zero | 81.7% |
+| `ano_ref_inicio_tarifa_zero` | double | ano | Ano início Tarifa Zero | 99.9% |
 | `flag_adota_tarifa_zero` | double | 0 ou 1 | Adota Tarifa Zero | 0.0% |
-| `comprometimento_tarifa_sobre_renda_domesticas_negras_prop` | double | proporcao | Comprometimento da renda para trabalhadoras domésticas negras | 23.1% |
-| `comprometimento_tarifa_sobre_salario_minimo_prop` | double | proporcao | Comprometimento da renda de um salário mínimo | 0.0% |
-| `tarifa_onibus_urbano_brl2023` | double | BRL de dezembro de 2023 | Tarifa de transporte público para 26 capitais e Distrito Federal | 0.0% |
+| `comprometimento_tarifa_sobre_renda_domesticas_negras_prop` | double | proporcao | Comprometimento da renda para trabalhadoras domésticas negras | 99.9% |
+| `comprometimento_tarifa_sobre_salario_minimo_prop` | double | proporcao | Comprometimento da renda de um salário mínimo | 99.8% |
+| `tarifa_onibus_urbano_brl2023` | double | BRL de dezembro de 2023 | Tarifa de transporte público para 26 capitais e Distrito Federal | 99.8% |
+
+A coluna `vazios` acima é medida **nesta** tabela. Já os campos calculados do dicionário (`pct_na`, `minimo`, `maximo`, `n_distintos`) são medidos na tabela em que a variável é observada, que para 5 destas colunas é outra: `ano_ref_inicio_tarifa_zero` (11_transportes/tarifa_zero), `flag_adota_tarifa_zero` (11_transportes/tarifa_zero), `comprometimento_tarifa_sobre_renda_domesticas_negras_prop` (11_transportes/tarifas), `comprometimento_tarifa_sobre_salario_minimo_prop` (11_transportes/tarifas), `tarifa_onibus_urbano_brl2023` (11_transportes/tarifas). Os dois números podem divergir muito, e divergem por desenho: a fonte guarda o observado e a dimensão o painel expandido.
 
 ## Ressalvas
 
@@ -67,5 +69,5 @@ x <- mape_ler("11_transportes")
 x <- mape_ler("11_transportes", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 18:49 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
 
