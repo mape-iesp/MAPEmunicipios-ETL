@@ -39,8 +39,11 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# pkgdown site (só a saída gerada; docs/ é documentação escrita e VAI para o git)
+/docs/reference/
+/docs/articles/
+/docs/pkgdown.yml
+/docs/index.html
 
 # translation temp files
 po/*~
@@ -67,3 +70,9 @@ _targets_user/
 # Lixo de sistema
 .DS_Store
 Thumbs.db
+# Cache do targets (os alvos são reconstruíveis; o cache não é versionado)
+_targets/
+
+# Biblioteca do renv (o lockfile é versionado, a biblioteca não)
+renv/library/
+renv/staging/
