@@ -1,6 +1,6 @@
 # QA — 01_assistencia_social_dh
 
-Gerado em 2026-07-26 15:45:19.
+Gerado em 2026-07-26 16:00:45.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:45:19.
 
 ## Checagens
 
-Checagens executadas: 14.
+Checagens executadas: 15.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

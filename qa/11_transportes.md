@@ -1,6 +1,6 @@
 # QA — 11_transportes
 
-Gerado em 2026-07-26 15:45:32.
+Gerado em 2026-07-26 16:00:57.
 
 ## Resumo
 
@@ -10,11 +10,12 @@ Gerado em 2026-07-26 15:45:32.
 
 ## Checagens
 
-Checagens executadas: 14.
+Checagens executadas: 15.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | schema | informativo | (tabela): 3 de 5 coluna(s) numérica(s) sem `dominio_valido` declarado (60%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| licenca | aviso | licenca = 'A VERIFICAR — combina o Mobilidados/ITDP (Instituto de Politicas de Transporte e Desenvolvimento, organizacao privada) com levantamentos abertos. Ver as licencas das fontes.': a tabela não declara sob que licença é publicada, e o release a distribui como CC BY 4.0. | A dimensao combina o Mobilidados/ITDP — Instituto de Politicas de Transporte e Desenvolvimento, organizacao privada — com levantamentos abertos e com o levantamento proprio do MAPE. As licencas das tres origens sao distintas e precisam ser verificadas uma a uma antes de qualquer publicacao formal. Grupo 45. |
 
 ## Defeitos declarados no dicionário
 

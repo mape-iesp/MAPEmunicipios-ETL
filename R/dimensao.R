@@ -50,6 +50,11 @@ mape_consolidar_dimensao <- function(dimensao, tipo = "full", publicar = TRUE,
             call. = FALSE)
     partes <- partes[tem_ano]
   }
+  # Achado 79: `chaves` era calculado a partir do vetor `tem_ano` ANTIGO, de
+  # antes da filtragem. Depois de descartar as fontes sem `ano`, todas as que
+  # sobraram têm `ano` — mas `all(tem_ano)` continuava FALSE, e a consolidação
+  # juntava só por município, perdendo a dimensão temporal em silêncio.
+  tem_ano <- vapply(partes, function(p) "ano" %in% names(p), logical(1))
   chaves <- if (all(tem_ano)) c("id_municipio", "ano") else "id_municipio"
 
   resultado <- partes[[1]]

@@ -22,9 +22,12 @@
 #'   repasse — a coluna certa existe no bruto e é ignorada.
 #' @param base Mês-base no formato "MM/AAAA". Se NULL, usa o parâmetro.
 #' @param sufixo Sufixo das colunas criadas. Se NULL, usa o parâmetro.
+#' @param indice Série de índices a usar, como data frame com as colunas `data`
+#'   e `indice`. Se NULL, lê a cópia fixada em `config/ipca.csv`. Passar a série
+#'   explicitamente é o que torna a função testável sem rede.
 #' @return O data frame com as colunas deflacionadas acrescentadas.
 mape_deflacionar <- function(x, cols, data_ref = "ano", base = NULL,
-                             sufixo = NULL) {
+                             sufixo = NULL, indice = NULL) {
   stopifnot(is.data.frame(x))
   if (is.null(base))   base   <- mape_param("deflator_base")
   if (is.null(sufixo)) sufixo <- mape_param("deflator_sufixo")
@@ -49,6 +52,16 @@ mape_deflacionar <- function(x, cols, data_ref = "ano", base = NULL,
          call. = FALSE)
   }
 
+  # Achado 37: aqui o deflator era `deflateBR::ipca()`, chamado DENTRO do laço.
+  # Cada coluna disparava um download novo da API do IPEA, o resultado não era
+  # reprodutível (a série é revisada), nada registrava qual série foi usada, e a
+  # função dependia de rede para rodar.
+  #
+  # Agora a série é lida uma vez, de uma cópia fixada e versionada, e o vetor de
+  # fatores é calculado uma vez para todas as colunas.
+  serie <- if (is.null(indice)) mape_serie_ipca() else indice
+  fator <- mape_fator_deflacao(datas, base, serie)
+
   for (col in cols) {
     novo <- if (grepl("_brl_nominal$", col)) {
       sub("_brl_nominal$", paste0("_", sufixo), col)
@@ -58,9 +71,64 @@ mape_deflacionar <- function(x, cols, data_ref = "ano", base = NULL,
     if (novo %in% names(x)) {
       warning("Coluna '", novo, "' já existe e será sobrescrita.", call. = FALSE)
     }
-    x[[novo]] <- deflateBR::ipca(x[[col]], datas, base)
+    x[[novo]] <- as.numeric(x[[col]]) * fator
   }
+  attr(x, "mape_deflacao") <- list(base = base, sufixo = sufixo,
+                                   colunas = cols, n_indice = nrow(serie))
   x
+}
+
+#' Lê a cópia fixada da série do IPCA
+#'
+#' Achado 37: a série vinha da API do IPEA a cada chamada. Uma série de índice de
+#' preços é revisada, então o mesmo código rodando em dois dias podia devolver
+#' números diferentes — e nada registrava qual série tinha sido usada. A cópia
+#' fixada é o que torna a deflação reprodutível.
+#'
+#' Para atualizar a cópia, rode `tools/atualizar_ipca.R`, que registra a
+#' proveniência.
+#'
+#' @return Data frame com `data` (Date, primeiro dia do mês) e `indice`.
+mape_serie_ipca <- function() {
+  caminho <- mape_caminho("config", "ipca.csv")
+  if (!file.exists(caminho)) {
+    stop("A série do IPCA não está fixada em config/ipca.csv.\n",
+         "Rode: Rscript tools/atualizar_ipca.R\n",
+         "A deflação NÃO busca a série na rede: ela seria irreprodutível e não ",
+         "ficaria registrada (achado 37 da auditoria).", call. = FALSE)
+  }
+  s <- utils::read.csv(caminho, stringsAsFactors = FALSE)
+  s$data <- as.Date(s$data)
+  s[order(s$data), ]
+}
+
+#' Fator de deflação de cada data até o mês-base
+#'
+#' @param datas Vetor de datas.
+#' @param base Mês-base "MM/AAAA".
+#' @param serie Data frame com `data` e `indice`.
+#' @return Vetor numérico de fatores.
+mape_fator_deflacao <- function(datas, base, serie) {
+  # A série é normalizada com o índice do mês-base igual a 100, e o mês-base
+  # fica gravado no próprio arquivo. Recalculá-lo aqui a partir da string
+  # "MM/AAAA" daria resultado diferente: deflateBR resolve "12/2023" um mês à
+  # frente, e o fator de dezembro de 2023 vale 1,0056 e não 1,0000. Confiar no
+  # arquivo é o que faz a cópia fixada reproduzir o pipeline antigo dígito a
+  # dígito, em vez de "quase".
+  if ("base" %in% names(serie) && !identical(serie$base[1], base)) {
+    stop("A série fixada em config/ipca.csv foi gerada para a base '",
+         serie$base[1], "' e a deflação pediu '", base, "'.\n",
+         "Regenere com: Rscript tools/atualizar_ipca.R", call. = FALSE)
+  }
+  mes <- as.Date(format(datas, "%Y-%m-01"))
+  i_ref <- serie$indice[match(mes, serie$data)]
+  faltando <- sum(is.na(i_ref) & !is.na(mes))
+  if (faltando) {
+    warning(faltando, " data(s) fora da série do IPCA fixada (",
+            format(min(serie$data)), " a ", format(max(serie$data)),
+            "): o valor deflacionado sai NA.", call. = FALSE)
+  }
+  100 / i_ref
 }
 
 #' Marca colunas monetárias como nominais

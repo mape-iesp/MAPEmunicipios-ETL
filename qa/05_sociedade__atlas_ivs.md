@@ -1,6 +1,6 @@
 # QA — 05_sociedade/atlas_ivs
 
-Gerado em 2026-07-26 15:45:26.
+Gerado em 2026-07-26 16:00:51.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:45:26.
 
 ## Checagens
 
-Nenhum problema automático: as 14 checagens executadas passaram.
+Nenhum problema automático: as 15 checagens executadas passaram.
 
 ## Defeitos declarados no dicionário
 

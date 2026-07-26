@@ -1,14 +1,14 @@
-fonte: cadunico
-dimensao: 01_assistencia_social_dh
-orgao: MDS/SAGI — Secretaria de Avaliacao e Gestao da Informacao
-url: https://aplicacoes.mds.gov.br/sagi/vis/data3/
-arquivo_local: cadunico.csv
+fonte: "cadunico"
+dimensao: "01_assistencia_social_dh"
+orgao: "MDS/SAGI — Secretaria de Avaliacao e Gestao da Informacao"
+url: "https://aplicacoes.mds.gov.br/sagi/vis/data3/"
+arquivo_local: "cadunico.csv"
 versao_fonte: ~
 data_download: ~
 baixado_por: ~
-sha256: 69411825f679c1f585eb62f3f00abf99b8bcabceb478283e4b2359271db6a942
-licenca: dados publicos federais, compativeis com atribuicao
-automatizavel: parcial
+sha256: "69411825f679c1f585eb62f3f00abf99b8bcabceb478283e4b2359271db6a942"
+licenca: "dados publicos federais, compativeis com atribuicao"
+automatizavel: "parcial"
 nota: >
   A origem desta fonte esteve perdida. O inventario a registrava como "arquivo
   local sem origem", e uma busca por 'cadun', 'anomes_s' e 'http' em toda a

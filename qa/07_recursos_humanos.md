@@ -1,6 +1,6 @@
 # QA — 07_recursos_humanos
 
-Gerado em 2026-07-26 15:45:29.
+Gerado em 2026-07-26 16:00:54.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:45:29.
 
 ## Checagens
 
-Checagens executadas: 14.
+Checagens executadas: 15.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

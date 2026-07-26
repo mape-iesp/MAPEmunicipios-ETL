@@ -1,0 +1,20 @@
+fonte: "atlas_ivs"
+dimensao: "05_sociedade"
+orgao: "Ipea — Instituto de Pesquisa Economica Aplicada"
+url: "https://ivs.ipea.gov.br/"
+arquivo_local: ~
+versao_fonte: ~
+data_download: ~
+baixado_por: ~
+sha256: ~
+licenca: "Dado publico federal. Uso livre com citacao da fonte."
+automatizavel: "sim"
+nota: >
+  Manifesto criado em 26/07/2026 pela rodada de correcao da auditoria (achados
+  89 e 90). A fonte foi migrada a partir da arvore legada por
+  tools/migracao/fatiar_fontes.R, e por isso o arquivo bruto ORIGINAL nunca
+  esteve neste repositorio: nao ha `arquivo_local` para conferir, e o sha256
+  fica em branco de proposito. Preencher versao_fonte, data_download,
+  baixado_por, arquivo_local e sha256 na primeira reextracao — que e quando
+  eles passam a significar alguma coisa. O que este manifesto registra hoje, e
+  que nao existia, e a ORIGEM e a LICENCA.

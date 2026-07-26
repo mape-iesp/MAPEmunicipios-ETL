@@ -475,6 +475,42 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
     }
   }
 
+  # -- 15. Licença declarada e proveniência da fonte -------------------------
+  # Achado 90: o scaffold de mape_nova_fonte() promete que "sem `url` e
+  # `licenca` a validação avisa", e NENHUMA checagem olhava licença, URL ou
+  # manifesto. Achado 45: as 26 tabelas estão sob `licenca = "a verificar"` e o
+  # release publica todas como CC BY 4.0.
+  if (mape_tabela_no_dicionario(tabela)) {
+    rodou("licenca")
+    tabs <- mape_dicionario("tabelas")
+    lin <- tabs[tabs$slug_tabela == tabela, , drop = FALSE]
+    lic <- if ("licenca" %in% names(lin)) as.character(lin$licenca[1]) else NA_character_
+    if (is.na(lic) || !nzchar(trimws(lic)) || grepl("verificar", lic, ignore.case = TRUE)) {
+      reg("licenca", "aviso",
+          paste0("licenca = '", if (is.na(lic)) "(vazio)" else lic,
+                 "': a tabela não declara sob que licença é publicada, e o ",
+                 "release a distribui como CC BY 4.0."))
+    }
+    # Fonte de download manual sem manifesto com URL não tem proveniência.
+    if (grepl("/", tabela)) {
+      metodo <- if ("metodo_acesso" %in% names(lin)) as.character(lin$metodo_acesso[1]) else NA
+      if (!is.na(metodo) && metodo %in% c("download_manual", "arquivo_local")) {
+        mani <- mape_caminho("fontes", tabela, "MANIFESTO.yml")
+        if (!file.exists(mani)) {
+          reg("proveniencia", "aviso",
+              paste0("fonte de ", metodo, " sem MANIFESTO.yml: não há registro ",
+                     "de onde o dado veio nem de qual arquivo o produziu."))
+        } else {
+          m <- tryCatch(yaml::read_yaml(mani), error = function(e) list())
+          if (is.null(m$url) || !nzchar(as.character(m$url))) {
+            reg("proveniencia", "aviso",
+                "MANIFESTO.yml sem `url`: a origem do dado não está registrada.")
+          }
+        }
+      }
+    }
+  }
+
   rodou("sentinelas")
   sent <- mape_detectar_sentinelas(x)
   if (nrow(sent)) {

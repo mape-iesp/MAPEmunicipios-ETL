@@ -1,6 +1,6 @@
 # QA — 13_seguranca
 
-Gerado em 2026-07-26 15:45:33.
+Gerado em 2026-07-26 16:00:59.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:45:33.
 
 ## Checagens
 
-Checagens executadas: 14.
+Checagens executadas: 15.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -20,6 +20,7 @@ Checagens executadas: 14.
 | zero_inflacao | aviso | sim_obitos_homicidio_parda_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 23 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 | zero_inflacao | aviso | sim_obitos_homicidio_branca_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 20 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 | zero_inflacao | aviso | sim_obitos_homicidio_parda_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 19 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
+| licenca | aviso | licenca = 'A VERIFICAR — mistura o SIM/DATASUS (publico federal, uso livre com citacao) com o Anuario Brasileiro de Seguranca Publica, do Forum Brasileiro de Seguranca Publica, que e associacao privada. O Anuario e publicado sob CC BY-NC-ND em algumas edicoes, o que e INCOMPATIVEL com a redistribuicao sob CC BY 4.0 que o release faz. As colunas fbsp_* precisam de verificacao.': a tabela não declara sob que licença é publicada, e o release a distribui como CC BY 4.0. | As colunas fbsp_* vem do Anuario Brasileiro de Seguranca Publica, do Forum Brasileiro de Seguranca Publica, associacao privada. Algumas edicoes do Anuario saem sob CC BY-NC-ND, que e INCOMPATIVEL com a redistribuicao sob CC BY 4.0 que o release faz — o NC proibe uso comercial e o ND proibe obra derivada, e uma tabela derivada e exatamente uma obra derivada. Esta e a pendencia de licenca mais grave das tres. Grupo 45. |
 
 ## Defeitos declarados no dicionário
 

@@ -1,5 +1,9 @@
-arquivo_local: pib_municipio.parquet
-sha256: 24dd39a853c5f1e12780063545dd3d606da507c88afa1277490273952c145ccc
+url: "https://basedosdados.org/dataset/br-ibge-pib"
+orgao: "IBGE — Contas Regionais, via Base dos Dados"
+licenca: "Dado publico federal. Uso livre com citacao da fonte."
+nota: "Cache da consulta agregada por municipio x ano, baixado em 26/07/2026 pela rodada de correcao da auditoria para confirmar o achado 1 (fator de bloco na serie de PIB). NAO e o bruto da origem: e o resultado de um GROUP BY no servidor."
+arquivo_local: "pib_municipio.parquet"
+sha256: "24dd39a853c5f1e12780063545dd3d606da507c88afa1277490273952c145ccc"
 metodo_acesso: bigquery
 sql_hash: 9c6bb3f6d1cff1aa
-data_download: '2026-07-26'
+data_download: "'2026-07-26'"

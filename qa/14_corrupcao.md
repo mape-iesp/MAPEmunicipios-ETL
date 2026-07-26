@@ -1,6 +1,6 @@
 # QA — 14_corrupcao
 
-Gerado em 2026-07-26 15:45:33.
+Gerado em 2026-07-26 16:00:59.
 
 ## Resumo
 
@@ -10,12 +10,13 @@ Gerado em 2026-07-26 15:45:33.
 
 ## Checagens
 
-Checagens executadas: 14.
+Checagens executadas: 15.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | cobertura_municipios | aviso | a tabela cobre apenas 24.3% dos municípios do diretório | A tabela cobre 1.352 dos 5.570 municipios (24,3%) porque a base de Kustov & Pardelli deriva do sorteio de auditorias da CGU, que e amostral por construcao. Municipio ausente nao e municipio sem corrupcao: e municipio nao sorteado. Qualquer inferencia sobre o universo dos municipios a partir desta tabela precisa tratar a selecao. |
 | schema | informativo | (tabela): 2 de 6 coluna(s) numérica(s) sem `dominio_valido` declarado (33%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| licenca | aviso | licenca = 'A VERIFICAR — a base deriva de Kustov & Pardelli (2024), material de replicacao academico, construido sobre os sorteios de auditoria da CGU. O dado da CGU e publico federal; a COMPILACAO e dos autores e a licenca de redistribuicao depende do repositorio de replicacao. Precisa de verificacao e da citacao dos autores.': a tabela não declara sob que licença é publicada, e o release a distribui como CC BY 4.0. | A base deriva de Kustov & Pardelli (2024), material de replicacao academico construido sobre os sorteios de auditoria da CGU. O dado da CGU e publico federal; a COMPILACAO e dos autores, e a licenca de redistribuicao depende do repositorio de replicacao em que ela foi depositada. Exige verificacao e citacao dos autores. Grupo 45. |
 
 ## Defeitos declarados no dicionário
 

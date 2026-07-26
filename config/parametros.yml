@@ -51,10 +51,14 @@ bq:
 # paisagem.
 anos_painel: [1989, 2024]
 
-# Anos das eleições municipais efetivamente cobertos. Parametrizado mesmo
-# reproduzindo o comportamento atual: estender a série depois passa a ser
-# editar esta linha, e não mexer no script (o legado tem seq(2000, 2020, by = 4)
-# escrito dentro do código).
+# Anos das eleições municipais efetivamente cobertos.
+#
+# RESERVADO, SEM CONSUMIDOR (achado 84 da auditoria de 26/07/2026). Nenhuma
+# função lê este parâmetro hoje: não existe `tratar_*.R` para 16_eleicoes, e a
+# tabela publicada veio dos scripts de migração. Ele fica aqui porque é o lugar
+# certo para a grade de anos quando o script do TSE for escrito — mas até lá
+# editar esta linha NÃO muda nada, e `pendencias/16_eleicoes__tse_2022_2024.md`
+# não deve prometer que muda.
 anos_eleicao: [2000, 2004, 2008, 2012, 2016, 2020]
 
 # ---------------------------------------------------------------------------

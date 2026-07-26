@@ -12,18 +12,33 @@
 
 set -euo pipefail
 
-LIMIAR_MB=20
+# Achado 84: o limiar estava duplicado — 20 aqui e qa.max_mb_versionavel no
+# YAML — e os dois podiam divergir sem que nada avisasse. Agora o hook LE o
+# YAML, com o literal como último recurso para o caso de o R não estar
+# disponível no ambiente do commit.
+LIMIAR_MB=$(Rscript -e 'cat(yaml::read_yaml("config/parametros.yml")$qa$max_mb_versionavel)' 2>/dev/null)
+case "$LIMIAR_MB" in
+  ''|*[!0-9]*) LIMIAR_MB=20 ;;
+esac
 LIMIAR_BYTES=$((LIMIAR_MB * 1024 * 1024))
 erros=0
 
-# Arquivos adicionados ou modificados neste commit
-arquivos=$(git diff --cached --name-only --diff-filter=ACM)
+# Arquivos adicionados ou modificados neste commit.
+#
+# Achado 61: sem -z, o git aplica core.quotepath e devolve caminhos com acento
+# escapados e entre aspas ("fontes/mun\303\255cipio.parquet"), que o teste
+# [ -f ] não encontra — e o arquivo passava. O -z com read -d '' elimina o
+# escape de uma vez.
+arquivos=()
+while IFS= read -r -d '' arquivo; do
+  arquivos+=("$arquivo")
+done < <(git diff --cached --name-only --diff-filter=ACM -z)
 
-if [ -z "$arquivos" ]; then
+if [ "${#arquivos[@]}" -eq 0 ]; then
   exit 0
 fi
 
-while IFS= read -r arquivo; do
+for arquivo in "${arquivos[@]}"; do
   [ -z "$arquivo" ] && continue
 
   # 1. Árvore legada
@@ -37,8 +52,16 @@ while IFS= read -r arquivo; do
   esac
 
   # 2. Tamanho
-  [ -f "$arquivo" ] || continue
-  bytes=$(wc -c < "$arquivo" | tr -d ' ')
+  #
+  # Achado 61: medir o arquivo na ÁRVORE DE TRABALHO deixava passar o caso em
+  # que ele é removido (ou truncado) depois do `git add` — o objeto grande já
+  # está no índice e vai para o commit, mas [ -f ] falha e o `continue` deixava
+  # passar. Medir o OBJETO do índice mede o que de fato será commitado, e não
+  # depende de o arquivo existir nem de ser um arquivo regular.
+  bytes=$(git cat-file -s "$(git rev-parse ":$arquivo" 2>/dev/null)" 2>/dev/null)
+  case "$bytes" in
+    ''|*[!0-9]*) continue ;;
+  esac
   if [ "$bytes" -gt "$LIMIAR_BYTES" ]; then
     mb=$((bytes / 1024 / 1024))
     echo "ERRO: $arquivo tem ${mb} MB, acima do limiar de ${LIMIAR_MB} MB."
@@ -46,7 +69,7 @@ while IFS= read -r arquivo; do
     echo "      Arquivos grandes vão para release do GitHub, não para o git."
     erros=$((erros + 1))
   fi
-done <<< "$arquivos"
+done
 
 if [ "$erros" -gt 0 ]; then
   echo ""

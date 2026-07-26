@@ -1,0 +1,20 @@
+fonte: "tarifa_zero"
+dimensao: "11_transportes"
+orgao: "Observatorio da Tarifa Zero"
+url: "https://tarifazero.org/"
+arquivo_local: ~
+versao_fonte: ~
+data_download: ~
+baixado_por: ~
+sha256: ~
+licenca: "A VERIFICAR: o Observatorio publica o levantamento abertamente, mas nao declara licenca formal."
+automatizavel: "parcial"
+nota: >
+  Manifesto criado em 26/07/2026 pela rodada de correcao da auditoria (achados
+  89 e 90). A fonte foi migrada a partir da arvore legada por
+  tools/migracao/fatiar_fontes.R, e por isso o arquivo bruto ORIGINAL nunca
+  esteve neste repositorio: nao ha `arquivo_local` para conferir, e o sha256
+  fica em branco de proposito. Preencher versao_fonte, data_download,
+  baixado_por, arquivo_local e sha256 na primeira reextracao — que e quando
+  eles passam a significar alguma coisa. O que este manifesto registra hoje, e
+  que nao existia, e a ORIGEM e a LICENCA.

@@ -1,6 +1,6 @@
 # QA — 09_educacao
 
-Gerado em 2026-07-26 15:45:29.
+Gerado em 2026-07-26 16:00:55.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:45:29.
 
 ## Checagens
 
-Checagens executadas: 14.
+Checagens executadas: 15.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

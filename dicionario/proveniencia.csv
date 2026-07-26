@@ -1,3 +1,5 @@
 "fonte","metodo","detalhe","hash_consulta","n_linhas","segundos","data_extracao","usuario"
 "04_economia/ibge_pib","bigquery","projeto=mapemunicipios; bytes=3952258","10c41e25066801c2",122466,14.5,"2026-07-26 15:29:59","felipelmc"
 "04_economia/ibge_pib","bigquery","projeto=mapemunicipios; bytes=3952258","9c6bb3f6d1cff1aa",122466,13.6,"2026-07-26 15:30:47","felipelmc"
+"config/ipca","api","ipeadatar::ipeadata('PRECOS12_IPCA12')","4752fca65a19918e",385,NA,"2026-07-26 15:53:50","felipelmc"
+"config/ipca","api","ipeadatar::ipeadata('PRECOS12_IPCA12')","011f3eca682fa220",385,NA,"2026-07-26 15:55:03","felipelmc"
