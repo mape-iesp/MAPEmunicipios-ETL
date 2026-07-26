@@ -68,6 +68,32 @@ A segunda é que o **contrato de nomes seja estável**. O pacote assume que
 texto de sete dígitos. Ambos estão fixados: a numeração é só de acréscimo (seção
 8.3 do plano) e o tipo das chaves está no `config/parametros.yml`.
 
+## Estado do pacote em 26/07/2026
+
+O pacote `MAPEmunicipios` v0.1.0 está pronto na branch `v0-tabelas-modulares`,
+com 16 funções exportadas, 63 testes, `R CMD check` limpo e um site Quarto de
+cinco páginas.
+
+Ele **não foi empurrado**. A conta que fez o trabalho tem permissão de escrita em
+`mape-iesp/MAPEmunicipios-ETL`, mas apenas de leitura em
+`mape-iesp/MAPEmunicipios`:
+
+```
+$ gh api repos/mape-iesp/MAPEmunicipios --jq .permissions
+{"admin":false,"maintain":false,"pull":true,"push":false,"triage":false}
+```
+
+Quem tiver escrita no repositório publica com:
+
+```bash
+cd ~/Desktop/MAPEmunicipios
+git push -u origin v0-tabelas-modulares
+```
+
+Depois disso, o site é publicado sozinho pelo workflow `.github/workflows/site.yaml`,
+assim que a branch for mesclada em `main` — é preciso habilitar GitHub Pages com
+origem "GitHub Actions" nas configurações do repositório.
+
 ## O que fica registrado como risco
 
 O pacote pode ficar para trás do ETL sem que ninguém perceba, porque nada quebra
