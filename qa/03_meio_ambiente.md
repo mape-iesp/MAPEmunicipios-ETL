@@ -1,6 +1,6 @@
 # QA — 03_meio_ambiente
 
-Gerado em 2026-07-26 15:22:28.
+Gerado em 2026-07-26 15:27:59.
 
 ## Resumo
 
@@ -57,5 +57,5 @@ Estes 38 defeito(s) estão declarados no dicionário e **não** são detectados 
 - (area_desmatada_bioma_caatinga_km2) Idem (mesma familia: cerrado, mata_atlantica, pampa, pantanal)
 - (area_desmatada_sobre_area_municipio_razao) Escala 0-1 sem sufixo; denominador (area_total_municipio) so visivel no codigo (desmatamento.R:67)
 - (area_desmatada_municipio_lag1_km2) Nome de OPERACAO (lag) em vez de conceito; ordem do lag nao explicita (desmatamento.R:75)
-- (variacao_absoluta_area_desmatada_km2) Contradicao interna: 'taxa' e 'abs' (absoluto) no mesmo nome; sem unidade
+- (variacao_area_desmatada_pct) CORRIGIDO em 26/07/2026 (auditoria, achado 7): a coluna era publicada como variacao_absoluta_area_desmatada_km2, com unidade km2 e escala fisica, sobre um percentual. O maximo publicado, 678.600, afirmava que um municipio desmatara 678.600 km2 a mais num ano — mais de quatro vezes o maior municipio do pais. Em 99,97% das linhas o erro era indetectavel a olho. Os VALORES nunca estiveram errados e vieram intactos do legado; o defeito era exclusivamente o rotulo.
 

@@ -54,11 +54,16 @@ test_that("ano é integer e nunca integer64 nas tabelas publicadas", {
 })
 
 test_that("o conjunto de colunas _pct fora de [0,100] é exatamente o baseline", {
-  # Baseline congelado em 26/07/2026: 18 colunas, todas com o defeito declarado
-  # e justificado. Uma 19ª quebra este teste — que é o ponto. Se uma coluna sair
-  # da lista porque foi corrigida, o teste também quebra, e a lista é atualizada
-  # no mesmo commit da correção, de propósito.
+  # Baseline congelado em 26/07/2026: 19 colunas. Uma 20ª quebra este teste — que
+  # é o ponto. Se uma coluna sair da lista porque foi corrigida, o teste também
+  # quebra, e a lista é atualizada no mesmo commit da correção, de propósito.
+  #
+  # Foi o que aconteceu com `03_meio_ambiente::variacao_area_desmatada_pct`: ela
+  # entrou na lista ao ser renomeada (achado 7). Ela passa de 100 com razão — é
+  # uma taxa de crescimento, e um município que sai de 0,1 para 11,8 km² de área
+  # desmatada cresceu 11.700%. As outras 18 passam de 100 por defeito da fonte.
   esperado <- c(
+    "03_meio_ambiente::variacao_area_desmatada_pct",
     "01_assistencia_social_dh::cadun_taxa_atualizacao_cadastral_rfpc_ate_meio_sm_pct",
     "01_assistencia_social_dh/cadunico::cadun_taxa_atualizacao_cadastral_rfpc_ate_meio_sm_pct",
     "10_saude::pni_cobertura_bcg_pct",

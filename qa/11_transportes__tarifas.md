@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifas
 
-Gerado em 2026-07-26 15:22:31.
+Gerado em 2026-07-26 15:28:02.
 
 ## Resumo
 

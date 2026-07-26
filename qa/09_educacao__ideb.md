@@ -1,6 +1,6 @@
 # QA — 09_educacao/ideb
 
-Gerado em 2026-07-26 15:22:30.
+Gerado em 2026-07-26 15:28:01.
 
 ## Resumo
 

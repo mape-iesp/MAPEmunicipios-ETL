@@ -1,6 +1,6 @@
 # QA — 03_meio_ambiente/adaptabrasil
 
-Gerado em 2026-07-26 15:22:28.
+Gerado em 2026-07-26 15:27:59.
 
 ## Resumo
 

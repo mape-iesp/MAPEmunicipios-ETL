@@ -1,6 +1,6 @@
 # QA — 10_saude
 
-Gerado em 2026-07-26 15:22:31.
+Gerado em 2026-07-26 15:28:02.
 
 ## Resumo
 
@@ -34,7 +34,7 @@ Checagens executadas: 12.
 
 ## Defeitos declarados no dicionário
 
-Estes 36 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+Estes 38 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
 
 - (pni_cobertura_vacinal_agregada_pct) A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 51175%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem.
 - (pni_cobertura_bcg_pct) A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 13050%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem.
@@ -71,5 +71,7 @@ Estes 36 defeito(s) estão declarados no dicionário e **não** são detectados 
 - (ieps_enfermeiros_carga_horaria_p1k) A unidade declarada dizia 'por 100 mil habitantes' e estava errada: a descrição da fonte e a faixa observada mostram que é por mil.
 - (ieps_cobertura_plano_privado_pct) Abreviacao criptica; e cobertura de PLANO PRIVADO e se confunde facilmente com cobertura publica
 - (ieps_despesa_saude_sobre_receita_propria_pct) Tres abreviacoes empilhadas ('desp', 'recp' = receita propria, 'mun'); colide conceitualmente com a dimensao 6 (SICONFI)
-- (gasto_bolsa_familia_per_capita_brl2023) Conceitualmente pertence a assistencia social e nao a saude; '_def' esconde a base de deflacao; sigla PBF nao expandida. E uma das colunas consumidas por scripts/artigo
+- (ieps_despesa_saude_total_per_capita_brl2021) CORRIGIDO em 26/07/2026 (auditoria, achado 8): publicada com sufixo _brl2023 e unidade 'BRL de dezembro de 2023' sobre dado em reais de dezembro de 2021. O indice implicito vale exatamente 1,0000 em 2021 nas 2.744 linhas e reproduz o IPCA oficial ano a ano para tras. ATENCAO ao comparar com as demais colunas _brl2023 do repositorio: as bases sao diferentes, e somar ou dividir uma pela outra mistura duas moedas.
+- (ieps_despesa_saude_recursos_proprios_per_capita_brl2021) CORRIGIDO em 26/07/2026 (auditoria, achado 8): publicada com sufixo _brl2023 e unidade 'BRL de dezembro de 2023' sobre dado em reais de dezembro de 2021. O indice implicito vale exatamente 1,0000 em 2021 nas 2.744 linhas e reproduz o IPCA oficial ano a ano para tras. ATENCAO ao comparar com as demais colunas _brl2023 do repositorio: as bases sao diferentes, e somar ou dividir uma pela outra mistura duas moedas.
+- (gasto_bolsa_familia_per_capita_brl2021) CORRIGIDO em 26/07/2026 (auditoria, achado 8): publicada com sufixo _brl2023 e unidade 'BRL de dezembro de 2023' sobre dado em reais de dezembro de 2021. O indice implicito vale exatamente 1,0000 em 2021 nas 2.744 linhas e reproduz o IPCA oficial ano a ano para tras. ATENCAO ao comparar com as demais colunas _brl2023 do repositorio: as bases sao diferentes, e somar ou dividir uma pela outra mistura duas moedas.
 

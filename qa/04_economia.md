@@ -1,6 +1,6 @@
 # QA — 04_economia
 
-Gerado em 2026-07-26 15:22:29.
+Gerado em 2026-07-26 15:27:59.
 
 ## Resumo
 
@@ -35,12 +35,12 @@ Estes 17 defeito(s) estão declarados no dicionário e **não** são detectados 
 - (valor_adicionado_administracao_publica_brl2023) Estava como texto na base publicada, por coerção posicional incompleta na origem. O tipo numérico foi recuperado na migração e a declaração do dicionário, que herdara o erro, foi corrigida.
 - (sigla_uf_nome) DEFEITO ABERTO: prefixo sigla_ com conteudo de nome por extenso, e duplicacao do bloco territorial que pertence a 00_diretorios/municipios. acao = remover foi declarada e NAO executada. Confirmado pelo grupo 51 da auditoria de 26/07/2026.
 - (pib_per_capita_brl2023) Sem unidade; o denominador (populacao da propria dim 4) foi REMOVIDO da base em municipalityBR.qmd:97, tornando o indicador nao reproduzivel
-- (razao_impostos_sobre_pib_prop) E uma razao, mas o nome parece uma justaposicao de dois indicadores
+- (impostos_sobre_pib_prop) CORRIGIDO em 26/07/2026 (auditoria, achado 102): publicada como razao_impostos_sobre_pib_prop. O prefixo razao_ foi ACRESCENTADO na harmonizacao (nome antigo impostos_pib), introduzindo no inicio do nome um dos prefixos de grandeza relativa que plano/01 manda eliminar. O sufixo _prop ja carrega a escala.
 - (participacao_va_administracao_publica_prop) 'dependencia' sem denominador explicito (participacao do VA da administracao publica no VA total); 'adm' abreviado enquanto as irmas nao sao
 - (participacao_va_industria_prop) 'dependencia' sem denominador explicito
 - (participacao_va_agropecuaria_prop) Idem; 'agro' abreviado enquanto va_agropecuaria nao e
 - (participacao_va_servicos_prop) 'dependencia' sem denominador explicito
-- (ln_pib_brl2023) Transformacao no nome sem dizer a base (e logaritmo natural)
-- (ln_pib_per_capita_brl2023) Idem; e uma das colunas consumidas por scripts/artigo
-- (ln_valor_adicionado_bruto_brl2023) Idem; e o log de va, cujo nome curto ja e ambiguo
+- (log10_pib_idx) CORRIGIDO em 26/07/2026 (auditoria, achado 48): publicada como ln_*_brl2023, com unidade R$ e escala monetaria. O prefixo ln_ prometia logaritmo natural e o conteudo e log10, e o sufixo _brl2023 prometia reais de dezembro de 2023 sobre um numero sem unidade. O campo problema anterior afirmava a base errada ('e logaritmo natural'), contradizendo a descricao da mesma linha. Herda a quebra de nivel do PIB — ver o achado 1.
+- (log10_pib_per_capita_idx) CORRIGIDO em 26/07/2026 (auditoria, achado 48): publicada como ln_*_brl2023, com unidade R$ e escala monetaria. O prefixo ln_ prometia logaritmo natural e o conteudo e log10, e o sufixo _brl2023 prometia reais de dezembro de 2023 sobre um numero sem unidade. O campo problema anterior afirmava a base errada ('e logaritmo natural'), contradizendo a descricao da mesma linha. Herda a quebra de nivel do PIB — ver o achado 1.
+- (log10_valor_adicionado_bruto_idx) CORRIGIDO em 26/07/2026 (auditoria, achado 48): publicada como ln_*_brl2023, com unidade R$ e escala monetaria. O prefixo ln_ prometia logaritmo natural e o conteudo e log10, e o sufixo _brl2023 prometia reais de dezembro de 2023 sobre um numero sem unidade. O campo problema anterior afirmava a base errada ('e logaritmo natural'), contradizendo a descricao da mesma linha. Herda a quebra de nivel do PIB — ver o achado 1.
 
