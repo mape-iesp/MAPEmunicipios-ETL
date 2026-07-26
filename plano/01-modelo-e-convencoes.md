@@ -298,7 +298,7 @@ Uma por fonte viva. As mortas da seção 2.5 não migram.
 | 05 sociedade | `ipea_ivs` | `id_municipio, ano_ref_ivs` | 11.140 linhas |
 | 06 financas | `siconfi_receitas`, `cgu_emendas` | `id_municipio, ano` | 222 chaves duplicadas a resolver na origem |
 | 07 recursos_humanos | `munic_rh` | `id_municipio, ano` | |
-| 01 assistencia_dh | `cadunico`, `disque100`, `munic_dh` | `id_municipio, ano` | `cadunico` já migrado |
+| 01 assistencia_dh | `cadunico`, `disque100`, `munic_dh` | `id_municipio, ano` | origem do CadÚnico: MDS/SAGI |
 | 08 energia_internet | `anatel_banda_larga`, `anatel_telefonia_movel`, `lpt_domicilios`, `censo_eletricidade` | `id_municipio, ano` | |
 | 09 educacao | `inep_ideb`, `inep_censo_superior` | `id_municipio, ano_ref_ideb` | só anos ímpares |
 | 10 saude | `pni_imunizacoes`, `egestor_atencao_basica`, `ieps_indicadores` | `id_municipio, ano` | |
@@ -385,10 +385,11 @@ Vale registrar que a convenção **já é violada pelo próprio código commitad
 e `write.xlsx(diretorios, "processed/diretorios.xlsx")`), sem `here()`, e produz `.RData` e `.xlsx`
 em vez de CSV. Corrigir isso são duas linhas.
 
-A violação mais cara é a do CadÚnico, e ela é conceitual: como os nomes de coluna vêm prontos do
-arquivo bruto, o script não implementa a convenção que aparenta implementar. Corrigir exige escrever
-o `rename()` explícito — que precisa passar a existir de qualquer forma, porque sem ele não há nada
-garantindo o padrão na próxima fonte.
+A violação mais interessante era a do CadÚnico, e ela é conceitual: como os nomes de coluna vêm
+prontos do arquivo bruto, o script não implementava a convenção que aparentava implementar. A pasta
+commitada era um teste e foi descartada, então o custo de correção virou zero — mas a lição fica,
+porque o `rename()` explícito precisa passar a existir de qualquer forma. Sem ele, nada garante o
+padrão na próxima fonte.
 
 ## 4.2 O nome dos scripts
 
@@ -457,9 +458,9 @@ A renumeração adotada na árvore nova é **definitiva**, com uma única corre�
 tem 38 caracteres e aparece em todo caminho de arquivo. O custo é renomear uma pasta commitada e
 ajustar dois caminhos `here()` no script do CadÚnico.
 
-Uma observação de escopo que precisa de decisão sua: a dimensão 13 se chama "Habitação e Zoneamento"
-e não contém nenhum dado de zoneamento. Deixei o rótulo como "Habitação" na tabela acima, mas isso é
-uma decisão sua, não minha.
+Uma renomeação já confirmada: a dimensão 13 se chamava "Habitação e Zoneamento" e não contém nenhum
+dado de zoneamento, nem plano diretor, nem uso do solo. O rótulo publicado passa a ser apenas
+**Habitação**, e o slug, `12_habitacao`.
 
 ## 4.4 A árvore alvo
 
@@ -693,12 +694,14 @@ Quanto à convivência com os campos `unidade` e `escala` do dicionário: o sufi
 verificável, e o dicionário é a forma completa e autoritativa. A validação confere que os dois
 concordam, e uma divergência entre eles interrompe a publicação.
 
-**Quanto custa renomear o `cadunico.csv` já commitado?** Pouco. São dez colunas, e oito delas já
-estão corretas sob o padrão novo, porque o `_i` é mantido. Mudam duas:
-`cadun_taxa_atualizacao_cadastral_d` e `cadun_taxa_atualizacao_cadastral_rfpc_ate_meio_sm_d`, que
-passam a terminar em `_pct` — olhei os valores (57,82 e 64,54 na primeira linha) e são percentuais de
-0 a 100, não proporções. A mudança é um `rename()` no script, que precisa passar a existir de
-qualquer forma.
+**Quanto custa renomear as colunas do CadÚnico?** Nada, agora: a cópia commitada era um teste e foi
+descartada, então a fonte será migrada já sob o padrão novo. Vale registrar o que muda, porque é o
+primeiro caso concreto de aplicação do vocabulário. Das dez colunas, oito já estão corretas, porque
+o `_i` é mantido. Mudam duas: `cadun_taxa_atualizacao_cadastral_d` e
+`cadun_taxa_atualizacao_cadastral_rfpc_ate_meio_sm_d` passam a terminar em `_pct`. Olhei os valores
+(57,82 e 64,54 na primeira linha), e a documentação da fonte confirma: a Taxa de Atualização
+Cadastral é uma razão entre cadastros atualizados e cadastros totais, expressa em percentual. São
+`_pct`, não `_prop`.
 
 ## 6.3 O glossário de conceitos
 

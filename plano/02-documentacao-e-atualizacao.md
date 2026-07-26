@@ -143,7 +143,8 @@ licença própria. O **Anuário do FBSP** tem termos de uso próprios do Fórum.
 de **Kustov & Pardelli**, que alimenta a dimensão 16, tem licença desconhecida e nem sequer um DOI
 registrado no repositório.
 
-Enquanto isso não for verificado, essas três tabelas ficam com `licenca = "a verificar"` e a
+Verificar essas três licenças é tarefa minha na Fase 3, junto com o resto do endurecimento — você
+não tem os termos, então vou atrás deles. Até lá, as tabelas ficam com `licenca = "a verificar"` e a
 validação emite aviso. Na prática, isso significa `LICENSE` para o código, `LICENSE-DADOS` para os
 dados, e um campo `licenca` por tabela.
 
@@ -385,8 +386,8 @@ O `.Renviron` já está no `.gitignore`, então parte do caminho está andada. B
 MAPE_GCP_BILLING=mapemunicipios
 ```
 
-O projeto oficial do Google Cloud para o MAPEmunicipios é **`mapemunicipios`**. Ele substitui os
-quatro projetos hoje espalhados pelo código (`dados-importacao`, `municipality-carlos`,
+O projeto oficial do Google Cloud para o MAPEmunicipios é **`mapemunicipios`**, e o faturamento
+nele já está habilitado. Ele substitui os quatro projetos hoje espalhados pelo código (`dados-importacao`, `municipality-carlos`,
 `dissertacao-de-mestrado-399114` e `base-dos-dados-429117`), e nenhum deles deve sobreviver à
 migração. O valor entra também como padrão em `config/parametros.yml`, para que quem clonar o
 repositório e tiver acesso ao projeto não precise configurar nada.

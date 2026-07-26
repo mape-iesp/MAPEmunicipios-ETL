@@ -111,9 +111,12 @@ porque o inventário anterior a tratava como precedente consolidado. Os nomes no
 `cadun_qtd_familias_atualizadas_i` já vêm prontos no cabeçalho dos arquivos `raw/*.txt`. Abri o
 `raw/2015.txt` e o cabeçalho é idêntico ao do `processed/cadunico.csv`, exceto pelas colunas de
 chave. O script `01_CadUnico/R/script.R` lê, filtra o mês de dezembro, deriva o ano e junta com o
-diretório — ele não renomeia nada. A convenção veio de uma extração manual feita a montante, cuja
-origem não existe no repositório. Não há, hoje, nada que garanta que a próxima fonte siga o mesmo
-padrão, porque nunca houve código impondo esse padrão.
+diretório — ele não renomeia nada. A convenção veio de uma extração manual feita a montante. Não há,
+hoje, nada que garanta que a próxima fonte siga o mesmo padrão, porque nunca houve código impondo
+esse padrão.
+
+A origem daquela extração era desconhecida quando escrevi este diagnóstico e foi localizada depois:
+são indicadores do MDS/SAGI, detalhados na seção 2.6.
 
 **O campo de tipo do dicionário chama-se `Operacionalização`.** O dicionário tem cinco campos:
 `Nome_original`, `Nome_banco`, `Dimensão`, `Descrição` e `Operacionalização`. Esse último contém
@@ -426,9 +429,10 @@ arquivos que não existem na pasta.
 
 ### Dimensão 8 — Assistência Social e Direitos Humanos
 
-Três fontes. O **CadÚnico** já foi migrado para a árvore nova e é discutido em detalhe na seção 2.6.
-O ponto crítico é que não existe script, URL, README ou data de extração para os arquivos `.txt` em
-lugar nenhum da árvore legada — procurei por `cadun`, `anomes_s` e `http` e não há nada.
+Três fontes. O **CadÚnico** é discutido em detalhe na seção 2.6: a cópia commitada na árvore nova
+era um teste e foi descartada, mas a fonte é real e alimenta 8 das 15 colunas da dimensão na base
+publicada. A origem, que o inventário registrava como desconhecida, foi localizada — são indicadores
+do MDS/SAGI. O que ainda falta é o script de download.
 
 O **Disque 100** cobre 2011 a 2023 e também não tem URL, órgão, data ou script de download.
 
@@ -534,13 +538,32 @@ município-ano produz 1.516 linhas que ocupam 180.285 na base final.
 
 ### Dimensão 16 — Dados históricos
 
-Cinco fontes, das quais duas alimentam a saída. A principal é o `data.csv` do pacote de replicação
-de Kustov & Pardelli, um corte transversal sem coluna de ano, sem URL, sem DOI e sem versão
-registrada. Dos 37 campos disponíveis, o script seleciona 8 e descarta 29 sem justificativa.
+Cinco fontes, das quais duas alimentam a saída, e as duas tiveram a origem localizada durante o
+planejamento.
 
-A segunda é `IBGE_1872_2010_atualizado.xlsx`, com a linhagem de nomes de município de 1872 a 2010.
-Não existe script que gere a versão "atualizada" a partir da "original" — a transformação é edição
-manual em Excel, sem log. É dentro dessa edição que nascem os 54 registros duplicados.
+A principal é o `data.csv`, que fornece **7 das 8 colunas** da dimensão na base publicada
+(`ln.pc.receita1920.sd`, `ln.admpub.1920.sd`, `ln.forcapub.1920.sd`, `ln.rail1920.sd`, `amc1920`,
+`ln.dist.coast.sd` e `ln.dist.capital.sd`). É o pacote de replicação de **Kustov, Alexander e
+Giuliana Pardelli (2024), "Beyond Diversity: The Role of State Capacity in Fostering Social Cohesion
+in Brazil", World Development 180: 106625**,
+[doi:10.1016/j.worlddev.2024.106625](https://doi.org/10.1016/j.worlddev.2024.106625). O artigo está
+identificado, mas **não há pacote de replicação público**: a página dos autores lista apenas PDF,
+markdown e figuras, o Harvard Dataverse não retorna nada, e o artigo está atrás do paywall da
+Elsevier. A decisão foi manter o arquivo local registrando o paper e o DOI como procedência, com a
+ressalva de que a fonte passa a ser citável mas não reobtenível. Dos 37 campos disponíveis, o script
+seleciona 8 e descarta 29 sem justificativa.
+
+A segunda é `IBGE_1872_2010_atualizado.xlsx`, que fornece a oitava coluna, `estimativa_ano_fundacao`,
+a partir da linhagem de nomes de município de 1872 a 2010. A origem é a publicação
+**[Evolução da divisão territorial do Brasil 1872-2010](https://www.ibge.gov.br/geociencias/organizacao-do-territorio/estrutura-territorial/15771-evolucao-da-divisao-territorial-do-brasil.html)**
+(IBGE, 2011). A genealogia dos municípios e os shapefiles por ano censitário estão públicos no
+[servidor do IBGE](https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/evolucao_da_divisao_territorial_do_brasil/evolucao_da_divisao_territorial_do_brasil_1872_2010/),
+mas a planilha eletrônica original foi distribuída em CD-ROM junto com a publicação impressa — o que
+explica o `IBGE_1872_2010_original.xls` de 1,6 MB parado na pasta.
+
+O que continua sem solução nesta fonte é o passo `original -> atualizado`: não existe script que o
+produza, a transformação é edição manual em Excel sem log, e é dentro dela que nascem os 54
+registros duplicados.
 
 Há ainda uma função de pareamento por similaridade de nomes (Jaro-Winkler) que usa `which.min` **sem
 limiar de distância**: todo nome de município de 1900 recebe obrigatoriamente um par de 1872, por
@@ -638,20 +661,56 @@ não são referenciados por nenhum script.
 Por fim, `beyond-diversity-code-upd_2.R` (128 KB) é código de replicação de artigo acadêmico,
 duplicado em duas pastas dentro da dimensão 16.
 
-## 2.6 Como o CadÚnico migrado se compara ao legado
+## 2.6 O CadÚnico: o que era teste e o que não era
 
-Este é o único caso já migrado, e portanto o único teste real da convenção da árvore nova.
+A pasta `01_CadUnico` da árvore nova era um teste de migração, e **foi descartada**. Os arquivos
+brutos dela eram byte a byte idênticos aos do legado (conferi os md5 dos dez `.txt`), então nada se
+perdeu — o legado continua tendo tudo em
+`8 Assistência Social e DH/CadUnico/0_dados/raw/`.
 
-A leitura é equivalente nos dois: o legado e o novo leem os mesmos arquivos e aplicam o mesmo filtro
-`'12$'`, que seleciona o mês de dezembro — e, consequentemente, os dois descartam 2024, cujo arquivo
-vai até novembro.
+**A fonte, porém, não é teste nenhum.** Ela alimenta 8 das 15 colunas da dimensão 8 na base
+publicada — toda a família `cadun_*` —, e `assistencia_social_DH.R:30` lê o `cadunico.csv` para
+produzir a dimensão. Descartá-la reduziria a dimensão 8 às seis colunas do Disque 100. Ela continua
+no escopo e será migrada a partir do legado, pelo procedimento normal.
 
-O novo é melhor num ponto concreto: ele recupera o código de sete dígitos usando
-`00_diretorios/processed/diretorios.xlsx`, enquanto o legado usava um arquivo local de equivalência
-sem origem documentada. Ele também usa `here()` e exporta CSV em vez do par `.RData` + `.xlsx`.
+O que a comparação entre as duas versões ensinou, e que vale preservar:
 
-O que ele não faz, apesar de parecer fazer, é aplicar a convenção de nomes. Como expliquei na seção
-1.2, os nomes já vêm prontos no arquivo bruto. A saída tem 50.130 linhas e 10 colunas.
+O novo é melhor num ponto concreto: recupera o código de sete dígitos usando o diretório, enquanto o
+legado usa um arquivo local de equivalência sem origem documentada. Também usa `here()` e exporta
+CSV. Esses dois ganhos são incorporados quando a fonte for migrada de verdade.
+
+Os dois aplicam o mesmo filtro `'12$'`, que seleciona o mês de dezembro e, por consequência,
+**descarta 2024** — o arquivo daquele ano vai até novembro. Isso é um defeito herdado, não uma
+escolha, e a migração precisa decidir explicitamente se o snapshot anual é dezembro ou o último mês
+disponível.
+
+E o novo não aplica a convenção de nomes, apesar de parecer aplicar: como expliquei na seção 1.2, os
+nomes `cadun_*_i` e `cadun_*_d` já vêm prontos no cabeçalho do arquivo bruto.
+
+### A origem, que agora é conhecida
+
+O inventário registrava esta fonte como "arquivo local sem origem", e essa era a pendência mais
+grave do piloto. Ela está resolvida.
+
+Os dados vêm do **MDS/SAGI**, e as colunas correspondem a indicadores publicados e documentados:
+
+- as contagens `cadun_qtd_familias_atualizadas_*` são o indicador
+  [IN004 — Famílias com dados atualizados cadastradas no Cadastro Único, por faixa de renda per
+  capita](https://wiki-sagi.mds.gov.br/home/DS/Cad/I/IN004), cujas faixas de renda batem uma a uma
+  com os sufixos usados (`pobreza_pbf`, `baixa_renda`, `rfpc_ate_meio_sm`, `rfpc_acima_meio_sm`,
+  `renda_zero`);
+- as duas colunas `cadun_taxa_atualizacao_cadastral_*` são a **Taxa de Atualização Cadastral (TAC)**,
+  componente do Índice de Gestão Descentralizada do Bolsa Família, definida como cadastros
+  atualizados sobre cadastros totais do município.
+
+Duas confirmações úteis vêm junto. A definição oficial de "família atualizada" é aquela cuja última
+atualização de campos sensíveis tem menos de 24 meses — informação que precisa entrar na descrição
+das variáveis, porque muda a interpretação. E a TAC é uma **taxa**, o que confirma que as colunas
+hoje sufixadas com `_d` são percentuais e devem virar `_pct`.
+
+Falta apenas confirmar, na Fase 2, qual ferramenta da SAGI gera a série municipal mensal — os
+candidatos são o CECAD e os Relatórios de Informações Sociais. É uma verificação de minutos, não um
+bloqueio.
 
 ## 2.7 O que ficou por inventariar
 
