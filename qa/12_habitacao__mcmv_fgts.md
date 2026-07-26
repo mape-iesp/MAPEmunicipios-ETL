@@ -1,6 +1,6 @@
 # QA — 12_habitacao/mcmv_fgts
 
-Gerado em 2026-07-26 15:28:03.
+Gerado em 2026-07-26 15:40:51.
 
 ## Resumo
 
@@ -10,11 +10,15 @@ Gerado em 2026-07-26 15:28:03.
 
 ## Checagens
 
-Checagens executadas: 12.
+Checagens executadas: 14.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | schema | informativo | (tabela): 2 de 6 coluna(s) numérica(s) sem `dominio_valido` declarado (33%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| zero_inflacao | aviso | mcmv_unidades_entregues_coorte_i: 1 ano(s) com 99% ou mais de zeros exatos (2024), enquanto 13 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_unidades_entregues_coorte_i: Nao diz se sao entregues acumuladas ou no ano; na pratica e a soma dos contratos assinados no ano (entregues de coorte) |
+| zero_inflacao | aviso | mcmv_unidades_vigentes_em_20240930_i: 4 ano(s) com 99% ou mais de zeros exatos (2007, 2008, 2009, 2019), enquanto 9 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_unidades_vigentes_em_20240930_i: 'vigente' e um ESTOQUE medido na data_referencia (30/09/2024) imputado ao ano de assinatura - estoque tratado como fluxo |
+| zero_inflacao | aviso | mcmv_unidades_distratadas_em_20240930_i: 9 ano(s) com 99% ou mais de zeros exatos (2007, 2008, 2009, 2014, 2015, 2016, 2017, 2019, ...), enquanto 3 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_unidades_distratadas_em_20240930_i: Mesmo problema de estoque-vs-fluxo |
+| zero_inflacao | aviso | mcmv_valor_desembolsado_brl2023: 1 ano(s) com 99% ou mais de zeros exatos (2024), enquanto 13 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_valor_desembolsado_brl2023: Idem; e a coluna mais afetada pelo bug de escala 100x |
 
 ## Defeitos declarados no dicionário
 

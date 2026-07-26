@@ -1,6 +1,6 @@
 # QA — 08_energia_internet
 
-Gerado em 2026-07-26 15:28:01.
+Gerado em 2026-07-26 15:40:47.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:28:01.
 
 ## Checagens
 
-Checagens executadas: 12.
+Checagens executadas: 14.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

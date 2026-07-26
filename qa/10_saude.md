@@ -1,6 +1,6 @@
 # QA — 10_saude
 
-Gerado em 2026-07-26 15:28:02.
+Gerado em 2026-07-26 15:40:50.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 15:28:02.
 
 ## Checagens
 
-Checagens executadas: 12.
+Checagens executadas: 14.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -31,6 +31,8 @@ Checagens executadas: 12.
 | schema | aviso | pni_cobertura_triplice_viral_dose1_pct: 62946 valor(es) fora do domínio [0,100] (observado: 0 a 9550) | problema da variável pni_cobertura_triplice_viral_dose1_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 9550%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
 | schema | aviso | pni_cobertura_triplice_viral_d2_pct: 12450 valor(es) fora do domínio [0,100] (observado: 0 a 7400) | problema da variável pni_cobertura_triplice_viral_d2_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 7400%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
 | schema | informativo | (tabela): 32 de 63 coluna(s) numérica(s) sem `dominio_valido` declarado (51%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| zero_inflacao | aviso | pni_cobertura_haemophilus_influenzae_b_pct: 4 ano(s) com 99% ou mais de zeros exatos (1995, 1996, 1997, 1998), enquanto 5 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável pni_cobertura_haemophilus_influenzae_b_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 1500%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
+| zero_inflacao | aviso | pni_cobertura_triplice_viral_dose1_pct: 1 ano(s) com 99% ou mais de zeros exatos (1999), enquanto 22 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável pni_cobertura_triplice_viral_dose1_pct: A fonte nao trunca a cobertura em 100%. O denominador e a populacao-alvo estimada, subestimada em municipios pequenos e em campanhas com publico flutuante. O maximo observado nesta coluna e 9550%. Os valores foram mantidos como a fonte publica; a validacao emite aviso a cada execucao para que o defeito nao vire paisagem. |
 
 ## Defeitos declarados no dicionário
 

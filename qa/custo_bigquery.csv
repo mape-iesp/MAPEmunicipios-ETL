@@ -1,0 +1,3 @@
+"data","fonte","sql_resumo","hash_consulta","bytes_dry_run","bytes_cobrados","n_linhas","segundos"
+"2026-07-26 15:29:59","04_economia/ibge_pib"," SELECT ano, id_municipio, COUNT(*) AS n_linhas_origem, SUM(pib) AS pib_somado, MAX(pib) AS pib_maximo, SUM(impostos_liquidos) AS impostos_somado, MAX(impostos_","10c41e25066801c2","3952258","3952258",122466,14.5
+"2026-07-26 15:30:47","04_economia/ibge_pib"," SELECT CAST(ano AS INT64) AS ano, id_municipio, COUNT(*) AS n_linhas_origem, CAST(SUM(pib) AS FLOAT64) AS pib_somado, CAST(MAX(pib) AS FLOAT64) AS pib_maximo, ","9c6bb3f6d1cff1aa","3952258","3952258",122466,13.6

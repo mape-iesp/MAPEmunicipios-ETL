@@ -138,6 +138,61 @@ mape_aplicar_justificativas <- function(res, tabela) {
   res
 }
 
+#' Anos em que uma coluna monetária salta de nível para quase todos os municípios
+#'
+#' Achado 1. Um erro de escala move a série toda pelo mesmo fator num ano só; o
+#' crescimento econômico não faz isso. A assinatura não está na dispersão — a
+#' razão ano a ano do PIB municipal tem IQR relativo de ~0,11 tanto nos anos de
+#' quebra quanto nos normais — e sim na MEDIANA da razão comparada com a mediana
+#' típica da própria série.
+#'
+#' No PIB publicado: 0,84 em 2001, 0,73 em 2004 e 0,57 em 2011, contra 1,10 de
+#' crescimento nominal típico. Uma queda de 43% no PIB nominal somado de todos os
+#' municípios do país, num ano em que a economia cresceu, é aritmética e não
+#' economia.
+#'
+#' @param x Data frame com id_municipio, ano e a coluna.
+#' @param coluna Nome da coluna monetária.
+#' @param min_salto Desvio mínimo em relação à mediana típica da série, como
+#'   fator (0,3 = 30%).
+#' @return Data frame com ano, mediana da razão e o desvio contra o típico.
+mape_quebras_de_nivel <- function(x, coluna, min_salto = 0.3) {
+  v <- suppressWarnings(as.numeric(as.character(x[[coluna]])))
+  d <- data.frame(id = as.character(x$id_municipio),
+                  ano = as.integer(as.character(x$ano)), v = v,
+                  stringsAsFactors = FALSE)
+  d <- d[!is.na(d$v) & d$v > 0 & !is.na(d$ano) & !is.na(d$id), , drop = FALSE]
+  if (!nrow(d)) return(NULL)
+
+  anos <- sort(unique(d$ano))
+  if (length(anos) < 5) return(NULL)
+
+  medianas <- list()
+  for (k in seq_along(anos)[-1]) {
+    a <- anos[k]; b <- anos[k - 1]
+    if (a - b != 1) next
+    m <- merge(d[d$ano == a, c("id", "v")], d[d$ano == b, c("id", "v")],
+               by = "id", suffixes = c("_a", "_b"))
+    # Exige massa: numa serie esparsa — dano de desastre, emenda parlamentar —
+    # a mediana da razao e instavel e o teste vira gerador de ruido. Meia
+    # cobertura do pais nos DOIS anos e o piso para a mediana significar algo.
+    if (nrow(m) < 2500) next
+    med <- stats::median(m$v_a / m$v_b, na.rm = TRUE)
+    if (is.finite(med) && med > 0) {
+      medianas[[length(medianas) + 1]] <- data.frame(ano = a, mediana = med)
+    }
+  }
+  if (length(medianas) < 4) return(NULL)
+  med <- do.call(rbind, medianas)
+
+  # A referência é a própria série: a mediana das medianas é o crescimento
+  # típico, robusta aos anos de quebra justamente porque eles são minoria.
+  tipico <- stats::median(med$mediana)
+  med$desvio <- med$mediana / tipico
+  fora <- med[abs(log(med$desvio)) > log(1 + min_salto), , drop = FALSE]
+  if (nrow(fora)) fora else NULL
+}
+
 #' Descrições de uma tabela que se repetem noutra — a checagem 12
 #'
 #' Compara descrições normalizadas: minúsculas, sem acento, sem pontuação, sem
@@ -349,6 +404,73 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
         reg("descricao_repetida", "aviso",
             paste0(d$coluna[i], ": descrição igual à de `", d$outra[i],
                    "` (tabela ", d$tabela_outra[i], ")"))
+      }
+    }
+  }
+
+  # -- 13. Zero-inflação e janela efetiva por coluna -------------------------
+  # Achados 4, 5, 15, 16 e 27. O `pct_na` dizia que
+  # siconfi_receitas_realizadas_brl2023 estava 99,74% completa; ela é 96,95%
+  # zero, e o zero ali significa "não medido" — o padrão de sum() sobre
+  # subconjunto vazio, que devolve 0 e não NA.
+  #
+  # A checagem olha duas coisas que o pct_na não vê: quanto da coluna é zero, e
+  # em que anos ela tem algum valor informativo.
+  # O discriminante NÃO é a proporção de zeros: uma contagem de baixa incidência
+  # é legitimamente quase toda zero, e um município com zero denúncias por
+  # motivo religioso mediu zero. O que denuncia vazio-publicado-como-zero é o
+  # zero em BLOCO DE ANO INTEIRO — anos em que a coluna é 100% zero para os
+  # 5.570 municípios, ao lado de anos em que ela tem valor. Nenhum fenômeno
+  # social desaparece do país inteiro num ano e volta no seguinte; um layout de
+  # origem que deixa de publicar um estágio, sim.
+  if ("ano" %in% names(x) && nrow(x) > 100) {
+    rodou("zero_inflacao")
+    anos <- sort(unique(x$ano))
+    if (length(anos) >= 3) {
+      for (nm in names(x)) {
+        v <- x[[nm]]
+        if (!is.numeric(v) || grepl("^(flag_|ano_ref_)", nm) || nm %in% chaves) next
+        if (!any(!is.na(v))) next
+        prop_por_ano <- vapply(anos, function(a) {
+          vv <- v[x$ano == a]
+          if (!any(!is.na(vv))) NA_real_ else mean(vv == 0, na.rm = TRUE)
+        }, numeric(1))
+        vazios <- anos[!is.na(prop_por_ano) & prop_por_ano >= 0.99]
+        cheios <- anos[!is.na(prop_por_ano) & prop_por_ano < 0.90]
+        if (length(vazios) && length(cheios)) {
+          reg("zero_inflacao", "aviso",
+              paste0(nm, ": ", length(vazios), " ano(s) com 99% ou mais de zeros exatos (",
+                     paste(utils::head(vazios, 8), collapse = ", "),
+                     if (length(vazios) > 8) ", ..." else "",
+                     "), enquanto ", length(cheios), " ano(s) têm dado. ",
+                     "Ano inteiro zerado costuma ser vazio publicado como zero, ",
+                     "e o valor certo para 'não medido' é NA."))
+        }
+      }
+    }
+  }
+
+  # -- 14. Quebra de nível em série monetária --------------------------------
+  # Achado 1. A soma nacional do PIB caía 17,2% em 2001, 24,0% em 2004 e 43,7%
+  # em 2011 — quedas que nenhum deflator explica, porque a série estava
+  # multiplicada por um fator inteiro que muda por bloco de anos. Confirmado
+  # contra a origem (basedosdados.br_ibge_pib.municipio) em 26/07/2026: o fator
+  # é exatamente 3 em 2002-2003, 2 em 2004-2010 e 1 de 2011 em diante.
+  #
+  # A assinatura é uma razão ano a ano com IQR estreito e mediana longe de 1: se
+  # TODOS os municípios saltam pelo mesmo fator, não é economia, é aritmética.
+  if ("ano" %in% names(x) && "id_municipio" %in% names(x)) {
+    rodou("quebra_de_nivel")
+    monetarias <- grep("_brl", names(x), value = TRUE)
+    monetarias <- monetarias[vapply(x[monetarias], is.numeric, logical(1))]
+    for (nm in monetarias) {
+      q <- tryCatch(mape_quebras_de_nivel(x, nm), error = function(e) NULL)
+      if (!is.null(q) && nrow(q)) {
+        reg("quebra_de_nivel", "aviso",
+            paste0(nm, ": salto de nível em ",
+                   paste(sprintf("%d (mediana x%.2f)", q$ano, q$mediana), collapse = ", "),
+                   ". Razão ano a ano igual para quase todos os municípios não é ",
+                   "economia, é fator aplicado à série."))
       }
     }
   }

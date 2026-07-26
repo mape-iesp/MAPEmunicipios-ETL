@@ -1,25 +1,29 @@
 # QA — 13_seguranca
 
-Gerado em 2026-07-26 15:28:03.
+Gerado em 2026-07-26 15:40:52.
 
 ## Resumo
 
 - linhas: 132.907
-- colunas: 65
-- células vazias (todas as colunas): 41.53%
+- colunas: 66
+- células vazias (todas as colunas): 40.9%
 
 ## Checagens
 
-Checagens executadas: 12.
+Checagens executadas: 14.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
-| dominio_chave | erro | 70 código(s) fora do diretório em 352 linha(s) (0.265%). Exemplos: 1100000, 1200000, 1300000, 1400000, 1500000 [aviso sem justificativa registrada] | — sem justificativa — |
-| schema | informativo | (tabela): 26 de 62 coluna(s) numérica(s) sem `dominio_valido` declarado (42%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| dominio_chave | aviso | 70 código(s) fora do diretório em 352 linha(s) (0.265%). Exemplos: 1100000, 1200000, 1300000, 1400000, 1500000 | 70 codigos nao municipais em 352 linhas (0,265%), MANTIDOS de proposito e agora MARCADOS pela coluna flag_codigo_nao_municipal. Composicao medida: 27 codigos de UF terminados em 00000 ('municipio ignorado' do SIM), 30 pseudo-codigos 3345xxx do Rio, 11 pseudo-codigos 3580xxx de Sao Paulo e 2 avulsos. Eles carregam 18.543 homicidios, e por isso a metrica de 0,265% das linhas engana: os 30 do Rio concentram 6.639 homicidios em 1996-1998 contra 269 publicados no proprio municipio do Rio, o que deixa a serie municipal carioca 96,1% subestimada naqueles anos. Descartar as linhas apagaria o dado; reagrega-las nos municipios de destino reduz linhas e muda valores publicados, e por isso depende do responsavel. Ate la ficam publicadas e marcadas. Grupos 12 e 13 da auditoria. |
+| schema | informativo | (tabela): 26 de 63 coluna(s) numérica(s) sem `dominio_valido` declarado (41%): a checagem de faixa não olhou essas. | — sem justificativa — |
+| zero_inflacao | aviso | sim_obitos_homicidio_preta_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 22 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
+| zero_inflacao | aviso | sim_obitos_homicidio_parda_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 23 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
+| zero_inflacao | aviso | sim_obitos_homicidio_branca_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 20 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
+| zero_inflacao | aviso | sim_obitos_homicidio_parda_domicilio_i: 1 ano(s) com 99% ou mais de zeros exatos (1996), enquanto 19 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | O campo raca/cor do SIM tem preenchimento muito baixo em 1996, o primeiro ano da serie: a variavel so se torna de preenchimento consistente a partir de 1998-2000. O ano de 1996 sai 100% zero nas colunas de homicidio por raca/cor porque a informacao nao foi coletada, e nao porque nao houve obitos naquele recorte. Descarte 1996 em qualquer analise por raca/cor. |
 
 ## Defeitos declarados no dicionário
 
-Estes 13 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
+Estes 14 defeito(s) estão declarados no dicionário e **não** são detectados pelas checagens automáticas acima. Um relatório limpo não significa uma tabela sem defeito.
 
 - (sim_obitos_totais_i) Prefixo total_ generico; nao indica a fonte (SIM) nem a granularidade (ocorrencia x residencia)
 - (sim_obitos_homicidio_i) Sem fonte no nome; sugere equivalencia com quantidade_homicidio_doloso (FBSP), que tem definicao, cobertura e periodo diferentes
@@ -34,4 +38,5 @@ Estes 13 defeito(s) estão declarados no dicionário e **não** são detectados 
 - (fbsp_posse_e_porte_ilegal_arma_agregado_i) Estava como texto na base publicada, por coerção posicional incompleta na origem. O tipo numérico foi recuperado na migração e a declaração do dicionário, que herdara o erro, foi corrigida.
 - (fbsp_grupo_municipio_cat) PUBLICADO como coluna 399 com nome maximamente generico; e a classificacao Grupo 1..4 do FBSP, sem definicao em lugar nenhum, e colide com o 'grupo' (vulneravel) do Disque 100
 - (fbsp_homicidio_doloso_i) Estava como texto na base publicada, por coerção posicional incompleta na origem. O tipo numérico foi recuperado na migração e a declaração do dicionário, que herdara o erro, foi corrigida.
+- (flag_codigo_nao_municipal) Coluna criada em 26/07/2026 pela rodada de correcao da auditoria (grupos 12 e 13), para tornar visiveis linhas que antes so apareciam num aviso de QA de 0,265% — numero que esconde 18.543 homicidios.
 
