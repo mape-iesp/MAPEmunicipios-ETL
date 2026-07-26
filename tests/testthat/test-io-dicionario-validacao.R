@@ -158,8 +158,14 @@ test_that("mape_param lê chave aninhada e falha com mensagem útil", {
   expect_error(mape_param("nao.existe.isso"), "não encontrado")
 })
 
-test_that("mape_anos_painel expande a faixa", {
+test_that("mape_anos_painel expande a faixa declarada no config", {
+  # A faixa vem de config/parametros.yml e não é fixada aqui de propósito. Este
+  # teste já falhou uma vez por isso: quando a janela foi ampliada para
+  # 1989-2024, para caber as 8.583 linhas de 1989-1990 das Finanças, ele
+  # continuava exigindo 1991-2023 e acusava um problema que não existia.
+  faixa <- mape_param("anos_painel")
   anos <- mape_anos_painel()
-  expect_equal(range(anos), c(1991, 2023))
-  expect_length(anos, 33)
+  expect_equal(range(anos), c(faixa[1], faixa[2]))
+  expect_length(anos, faixa[2] - faixa[1] + 1)
+  expect_type(anos, "integer")
 })

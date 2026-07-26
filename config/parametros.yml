@@ -22,7 +22,14 @@ gcp_billing: ~
 # ---------------------------------------------------------------------------
 # Faixa de anos do esqueleto município × ano. O legado espalhava 1991:2023 por
 # cinco scripts, com variações não documentadas (2007:2023, 2010:2020).
-anos_painel: [1991, 2023]
+#
+# A janela foi ampliada para 1989-2024 em 26/07/2026, depois que a validação
+# apontou dado real fora dela em cinco tabelas. As Finanças trazem 8.583 linhas
+# de 1989 e 1990, e Energia e Internet, Educação, Transportes e Habitação
+# chegam a 2024. Manter o painel em 1991-2023 obrigaria a descartar dado
+# medido ou a conviver com um aviso permanente — e aviso permanente vira
+# paisagem.
+anos_painel: [1989, 2024]
 
 # Anos das eleições municipais efetivamente cobertos. Parametrizado mesmo
 # reproduzindo o comportamento atual: estender a série depois passa a ser

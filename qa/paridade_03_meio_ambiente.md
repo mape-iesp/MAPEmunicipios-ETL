@@ -1,6 +1,6 @@
 # Paridade — 03_meio_ambiente
 
-Gerado em 2026-07-26 00:59:17.
+Gerado em 2026-07-26 01:28:59.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 77. Diferenças não explicadas: 0.
@@ -13,9 +13,25 @@ Colunas comparadas: 77. Diferenças não explicadas: 0.
 | `total_prejuizos_publicos` | b_renomeacao | renomeada para 's2id_prejuizos_publicos_brl2023' |
 | `total_prejuizos_privados` | b_renomeacao | renomeada para 's2id_prejuizos_privados_brl2023' |
 | `total_desastres_climatologicos` | b_renomeacao | renomeada para 's2id_desastres_climatologicos_i' |
+| `total_pessoas_afetadas_climatologicos` | b_renomeacao | renomeada para 's2id_pessoas_afetadas_climatologicos_i' |
+| `total_danos_materiais_climatologicos` | b_renomeacao | renomeada para 's2id_danos_materiais_climatologicos_brl2023' |
+| `total_prejuizos_publicos_climatologicos` | b_renomeacao | renomeada para 's2id_prejuizos_publicos_climatologicos_brl2023' |
+| `total_prejuizos_privados_climatologicos` | b_renomeacao | renomeada para 's2id_prejuizos_privados_climatologicos_brl2023' |
 | `total_desastres_hidrologicos` | b_renomeacao | renomeada para 's2id_desastres_hidrologicos_i' |
+| `total_pessoas_afetadas_hidrologicos` | b_renomeacao | renomeada para 's2id_pessoas_afetadas_hidrologicos_i' |
+| `total_danos_materiais_hidrologicos` | b_renomeacao | renomeada para 's2id_danos_materiais_hidrologicos_brl2023' |
+| `total_prejuizos_publicos_hidrologicos` | b_renomeacao | renomeada para 's2id_prejuizos_publicos_hidrologicos_brl2023' |
+| `total_prejuizos_privados_hidrologicos` | b_renomeacao | renomeada para 's2id_prejuizos_privados_hidrologicos_brl2023' |
 | `total_desastres_meteorologicos` | b_renomeacao | renomeada para 's2id_desastres_meteorologicos_i' |
+| `total_pessoas_afetadas_meteorologicos` | b_renomeacao | renomeada para 's2id_pessoas_afetadas_meteorologicos_i' |
+| `total_danos_materiais_meteorologicos` | b_renomeacao | renomeada para 's2id_danos_materiais_meteorologicos_brl2023' |
+| `total_prejuizos_publicos_meteorologicos` | b_renomeacao | renomeada para 's2id_prejuizos_publicos_meteorologicos_brl2023' |
+| `total_prejuizos_privados_meteorologicos` | b_renomeacao | renomeada para 's2id_prejuizos_privados_meteorologicos_brl2023' |
 | `total_desastres_outros` | b_renomeacao | renomeada para 's2id_desastres_outros_i' |
+| `total_pessoas_afetadas_outros` | b_renomeacao | renomeada para 's2id_pessoas_afetadas_outros_i' |
+| `total_danos_materiais_outros` | b_renomeacao | renomeada para 's2id_danos_materiais_outros_brl2023' |
+| `total_prejuizos_publicos_outros` | b_renomeacao | renomeada para 's2id_prejuizos_publicos_outros_brl2023' |
+| `total_prejuizos_privados_outros` | b_renomeacao | renomeada para 's2id_prejuizos_privados_outros_brl2023' |
 | `populacao_atendida_agua` | b_renomeacao | renomeada para 'snis_populacao_atendida_agua_i' |
 | `populacao_atentida_esgoto` | b_renomeacao | renomeada para 'snis_populacao_atendida_esgoto_i' |
 | `populacao_urbana` | b_renomeacao | renomeada para 'snis_populacao_urbana_i' |

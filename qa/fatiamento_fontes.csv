@@ -1,0 +1,8 @@
+"slug","dimensao","linhas_dimensao","linhas_fonte","colunas","metodo","reducao_pct"
+"03_meio_ambiente/adaptabrasil","03_meio_ambiente",183810,5570,17,"constante",97
+"05_sociedade/atlas_ivs","05_sociedade",111300,11130,8,"ano_ref",90
+"09_educacao/ideb","09_educacao",111388,55694,25,"ano_ref",50
+"09_educacao/censup","09_educacao",111388,10642,10,"preenchido",90.4
+"11_transportes/tarifa_zero","11_transportes",183814,578,2,"preenchido",99.7
+"11_transportes/tarifas","11_transportes",183814,351,3,"preenchido",99.8
+"12_habitacao/mcmv_fgts","12_habitacao",94832,11153,6,"preenchido",88.2

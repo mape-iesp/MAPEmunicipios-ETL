@@ -1,6 +1,6 @@
 # Paridade — 11_transportes
 
-Gerado em 2026-07-26 00:57:35.
+Gerado em 2026-07-26 01:30:15.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 6. Diferenças não explicadas: 0.

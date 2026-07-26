@@ -1,6 +1,6 @@
 # QA — 16_eleicoes
 
-Gerado em 2026-07-26 00:58:05.
+Gerado em 2026-07-26 01:47:22.
 
 ## Resumo
 
@@ -10,7 +10,5 @@ Gerado em 2026-07-26 00:58:05.
 
 ## Checagens
 
-| checagem | gravidade | descrição |
-|---|---|---|
-| nomes_colunas | aviso | prefixo genérico banido: total_aptos_prefeitura, total_comparecimento_prefeitura, total_aptos_camara_vereadores, total_comparecimento_camara_vereadores |
+Nenhum problema. As doze checagens passaram.
 

@@ -78,6 +78,43 @@ for (i in seq_len(nrow(tabelas))) {
   ))
 }
 
+# ---------------------------------------------------------------------------
+# Alvos de dimensão: consolidam as fontes de um tema.
+#
+# Só entra a dimensão que tem pelo menos duas fontes publicadas. Com uma fonte
+# só, a "consolidação" seria uma cópia — e é justamente esse o caso de quatro
+# dimensões do legado, em que o arquivo de dimensão é uma cópia manual do
+# arquivo da subpasta.
+# ---------------------------------------------------------------------------
+alvos_dimensao <- list()
+dimensoes_com_fonte <- unique(tabelas$dimensao[grepl("/", tabelas$slug_tabela)])
+for (d in dimensoes_com_fonte) {
+  fontes_d <- tabelas$slug_tabela[tabelas$dimensao == d & grepl("/", tabelas$slug_tabela)]
+  publicadas <- fontes_d[file.exists(file.path("dados", "fonte",
+                                               paste0(fontes_d, ".parquet")))]
+  if (length(publicadas) < 2) next
+  alvos_dimensao <- c(alvos_dimensao, list(
+    tar_target_raw(
+      paste0("dim_", gsub("[^A-Za-z0-9]", "_", d)),
+      substitute(mape_consolidar_dimensao(D), list(D = d))
+    )
+  ))
+}
+
+# ---------------------------------------------------------------------------
+# Documentação: um alvo por tabela publicada, mais o índice geral.
+#
+# A garantia de que a documentação não desatualiza é este alvo. Ele depende do
+# dicionário, então mexer no dicionário sem regerar a documentação deixa o
+# grafo desatualizado, e `tar_outdated()` diz isso.
+# ---------------------------------------------------------------------------
+alvos_doc <- list(
+  tar_target(documentacao, {
+    arquivo_dicionario; arquivo_tabelas    # dependência explícita
+    mape_gerar_documentacao_completa()
+  })
+)
+
 list(
   # O dicionário é entrada do pipeline: quando ele muda, tudo que depende dele
   # fica desatualizado. É isso que o torna especificação, e não subproduto.
@@ -85,5 +122,17 @@ list(
   tar_target(arquivo_tabelas,    "dicionario/tabelas.csv",   format = "file"),
   tar_target(arquivo_parametros, "config/parametros.yml",    format = "file"),
 
-  alvos_fonte
+  alvos_fonte,
+  alvos_dimensao,
+  alvos_doc,
+
+  # A base larga é derivada e não versionada: 66 MB que se reconstroem em um
+  # comando. Ela continua existindo porque três scripts de análise e um artigo
+  # dependem dela, e quebrar isso agora não traria ganho nenhum.
+  tar_target(base_larga, {
+    b <- mape_montar_base_larga(flags = TRUE, deduplicar = TRUE)
+    mape_escrever_tabela(b, "base_larga", formatos = character(),
+                         validar = FALSE, camada = "derivado")
+    nrow(b)
+  })
 )

@@ -32,11 +32,42 @@ mape_dicionario <- function(qual = "variaveis", .recarregar = FALSE) {
 
 #' Linhas do dicionário de variáveis de uma tabela
 #'
-#' @param tabela Identificador da tabela.
+#' Pedir uma dimensão devolve as variáveis dela e as de todas as suas fontes,
+#' porque a dimensão é a união das fontes. Sem isso, fatiar uma fonte para fora
+#' de uma dimensão esvaziaria a validação da dimensão em silêncio: as variáveis
+#' continuariam no dicionário, mas com outro `tabela`, e a busca exata não as
+#' encontraria mais.
+#'
+#' @param tabela Identificador da tabela. `"09_educacao"` traz também
+#'   `"09_educacao/ideb"`; `"09_educacao/ideb"` traz só ela.
+#' @param incluir_fontes Se FALSE, casa apenas o slug exato.
 #' @return Data frame com as variáveis daquela tabela.
-mape_variaveis_de <- function(tabela) {
+mape_variaveis_de <- function(tabela, incluir_fontes = TRUE) {
   dic <- mape_dicionario("variaveis")
-  dic[!is.na(dic$tabela) & dic$tabela == tabela, , drop = FALSE]
+  tem <- !is.na(dic$tabela)
+  casa <- if (incluir_fontes && !grepl("/", tabela)) {
+    tem & (dic$tabela == tabela | startsWith(dic$tabela, paste0(tabela, "/")))
+  } else {
+    tem & dic$tabela == tabela
+  }
+  dic[casa, , drop = FALSE]
+}
+
+#' Slugs das tabelas de fonte de uma dimensão
+#'
+#' @param dimensao Slug da dimensão.
+#' @param apenas_publicadas Se TRUE, devolve só as que têm arquivo em disco.
+#' @return Vetor de slugs, possivelmente vazio.
+mape_fontes_de <- function(dimensao, apenas_publicadas = TRUE) {
+  tabs <- mape_dicionario("tabelas")
+  fontes <- tabs$slug_tabela[!is.na(tabs$dimensao) & tabs$dimensao == dimensao &
+                               grepl("/", tabs$slug_tabela)]
+  if (apenas_publicadas && length(fontes)) {
+    fontes <- fontes[vapply(fontes, function(s) {
+      file.exists(mape_caminho_tabela(s, "parquet", camada = "fonte"))
+    }, logical(1))]
+  }
+  sort(fontes)
 }
 
 #' A tabela tem entrada no dicionário?
@@ -117,6 +148,76 @@ mape_aplicar_tipos <- function(x, tabela) {
     )
   }
   x
+}
+
+#' Recalcula os campos que são fato sobre o arquivo, não intenção de quem
+#' escreve
+#'
+#' A seção 7.2 do plano separa campo **digitado** de campo **calculado**, e a
+#' razão é empírica: é exatamente nos que deveriam ser calculados que os números
+#' da documentação atual não fecham. A soma do campo `Total Variáveis` dá 533
+#' contra 451 reais, e o artigo declara 182.407 observações contra 180.285 — esse
+#' segundo número é a contagem antes da deduplicação, o que mostra que alguém
+#' contou na etapa errada e nunca mais reconferiu.
+#'
+#' Nenhum dos dois é descuido. São o resultado inevitável de um número que
+#' precisa ser reescrito à mão toda vez que o dado muda. Esta função elimina a
+#' classe inteira de erro: os campos que ela preenche não são editáveis, porque
+#' são medidos a cada execução.
+#'
+#' @param tabelas Slugs a medir. NULL usa todas as publicadas.
+#' @param gravar Se TRUE, reescreve dicionario/variaveis.csv.
+#' @return Invisivelmente, o data frame de variáveis atualizado.
+mape_recalcular_campos <- function(tabelas = NULL, gravar = TRUE) {
+  vars <- mape_dicionario("variaveis", .recarregar = TRUE)
+  pub <- mape_tabelas_publicadas()
+  if (is.null(tabelas)) tabelas <- pub$slug
+
+  calculados <- c("tipo_real", "pct_na", "n_distintos", "minimo", "maximo",
+                  "n_infinito")
+  for (cl in calculados) if (!cl %in% names(vars)) vars[[cl]] <- NA
+
+  n_tocadas <- 0
+  for (t in tabelas) {
+    camada <- pub$camada[match(t, pub$slug)]
+    if (is.na(camada)) next
+    x <- mape_ler_tabela(t, camada = camada)
+
+    for (nm in names(x)) {
+      j <- which(vars$nome_canonico == nm & !is.na(vars$tabela) &
+                   (vars$tabela == t | startsWith(t, paste0(vars$tabela, "/"))))
+      # Uma variável pode aparecer na fonte e na dimensão que a contém. Medir
+      # na fonte é o certo: é lá que ela é observada.
+      if (length(j) != 1) {
+        j <- which(vars$nome_canonico == nm)
+        if (length(j) != 1) next
+      }
+      v <- x[[nm]]
+      vars$tipo_real[j] <- class(v)[1]
+      vars$pct_na[j] <- round(100 * mean(is.na(v)), 4)
+      vars$n_distintos[j] <- length(unique(v[!is.na(v)]))
+      if (is.numeric(v) && any(!is.na(v))) {
+        finito <- v[is.finite(v)]
+        vars$minimo[j] <- if (length(finito)) min(finito) else NA_real_
+        vars$maximo[j] <- if (length(finito)) max(finito) else NA_real_
+        vars$n_infinito[j] <- sum(is.infinite(v))
+      } else {
+        vars$minimo[j] <- NA_real_
+        vars$maximo[j] <- NA_real_
+        vars$n_infinito[j] <- 0L
+      }
+      n_tocadas <- n_tocadas + 1
+    }
+  }
+
+  if (gravar) {
+    utils::write.csv(vars, mape_caminho("dicionario", "variaveis.csv"),
+                     row.names = FALSE, fileEncoding = "UTF-8", na = "")
+    .mape_cache_dic$dic_variaveis <- NULL
+  }
+  message("campos calculados atualizados em ", n_tocadas, " variável(is) de ",
+          length(tabelas), " tabela(s)")
+  invisible(vars)
 }
 
 #' Valida uma tabela contra o dicionário

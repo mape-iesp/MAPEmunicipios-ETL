@@ -1,6 +1,6 @@
 # Paridade — 14_corrupcao
 
-Gerado em 2026-07-26 00:58:03.
+Gerado em 2026-07-26 01:30:42.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 6. Diferenças não explicadas: 0.

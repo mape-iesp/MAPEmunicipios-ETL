@@ -1,6 +1,6 @@
 # QA — 12_habitacao
 
-Gerado em 2026-07-26 00:57:35.
+Gerado em 2026-07-26 01:47:21.
 
 ## Resumo
 
@@ -10,7 +10,5 @@ Gerado em 2026-07-26 00:57:35.
 
 ## Checagens
 
-| checagem | gravidade | descrição |
-|---|---|---|
-| faixa_anos | aviso | anos observados de 2007 a 2024, fora do painel declarado (1991 a 2023) |
+Nenhum problema. As doze checagens passaram.
 

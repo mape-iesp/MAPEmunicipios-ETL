@@ -91,6 +91,103 @@ mape_expandir_painel <- function(x, de = "ano_ref", mapa = NULL, para = NULL,
   expandido[order(expandido$id_municipio, expandido$ano), ]
 }
 
+#' Compacta um painel expandido de volta ao observado
+#'
+#' O caminho inverso de mape_expandir_painel(), e a metade que faltava para a
+#' decisão 3.3 do plano existir de fato. Sem ela, "guardar o observado" seria uma
+#' intenção: as tabelas migradas vieram do legado já expandidas, e a única forma
+#' de chegar ao observado é desfazer a replicação a partir da evidência que
+#' sobrou nelas.
+#'
+#' Há três evidências possíveis, em ordem de confiabilidade:
+#'
+#' `ano_ref` — a tabela carrega o ano da medição original. É o caso do IVS e do
+#' IDEB, em que uma coluna `ano_ref_*` atravessou o pipeline por acidente e hoje
+#' é a prova de qual linha é medição e qual é cópia. O critério é exato:
+#' fica a linha em que `ano == ano_ref`.
+#'
+#' `constante` — a tabela replica um retrato único sobre uma faixa de anos, sem
+#' registrar o ano de origem. É o caso do AdaptaBrasil, cujo retrato de 2015
+#' aparece de 2010 a 2020. A função confere que os valores são de fato idênticos
+#' em todos os anos antes de colapsar, e falha se não forem.
+#'
+#' `preenchido` — a tabela foi preenchida com zeros ou vazios em todo
+#' município-ano que a fonte não cobre. É o caso do MCMV e da tarifa zero, em que
+#' 88% e 99,8% das linhas dizem apenas "não houve". Fica o que a fonte registrou.
+#'
+#' @param x Data frame com o painel expandido.
+#' @param metodo "ano_ref", "constante" ou "preenchido".
+#' @param ano_ref Nome da coluna de ano de referência, quando `metodo` é
+#'   "ano_ref".
+#' @param cols Colunas de dado a considerar. Se NULL, todas menos as chaves.
+#' @param ano_medicao Ano da medição original, quando `metodo` é "constante".
+#' @param vazio Valores que contam como ausência, quando `metodo` é
+#'   "preenchido". Zero conta por padrão porque o zero-fill do legado é
+#'   indistinguível de um zero medido, e a fonte só registra ocorrências.
+#' @return Data frame com as observações, e o atributo `mape_compactacao`
+#'   descrevendo o que foi removido.
+mape_compactar_painel <- function(x, metodo = c("ano_ref", "constante", "preenchido"),
+                                  ano_ref = NULL, cols = NULL,
+                                  ano_medicao = NULL, vazio = c(0)) {
+  metodo <- match.arg(metodo)
+  stopifnot(is.data.frame(x))
+  chaves <- intersect(c("id_municipio", "ano"), names(x))
+  if (is.null(cols)) cols <- setdiff(names(x), c(chaves, ano_ref))
+  antes <- nrow(x)
+
+  if (metodo == "ano_ref") {
+    if (is.null(ano_ref) || !ano_ref %in% names(x)) {
+      stop("O método 'ano_ref' exige uma coluna de ano de referência presente ",
+           "em `x`. Recebi: ", deparse(ano_ref), call. = FALSE)
+    }
+    fica <- !is.na(x[[ano_ref]]) & x$ano == x[[ano_ref]]
+    y <- x[fica, , drop = FALSE]
+    # O ano de referência vira o ano, e a coluna redundante sai. Guardar as duas
+    # convidaria alguém a filtrar pela errada.
+    y[[ano_ref]] <- NULL
+
+  } else if (metodo == "constante") {
+    # Antes de colapsar, é preciso provar que dá para colapsar. Se o valor varia
+    # entre os anos, não é replicação e o método está errado para esta tabela.
+    varia <- vapply(cols, function(cl) {
+      por_mun <- tapply(x[[cl]], x$id_municipio, function(v) {
+        length(unique(v[!is.na(v)])) > 1
+      })
+      any(unlist(por_mun), na.rm = TRUE)
+    }, logical(1))
+    if (any(varia)) {
+      stop("O método 'constante' assume que o valor não muda ao longo dos anos, ",
+           "e ele muda em: ", paste(names(varia)[varia], collapse = ", "),
+           ".\nIsso não é replicação de um retrato único — use outro método.",
+           call. = FALSE)
+    }
+    tem <- rowSums(!is.na(x[, cols, drop = FALSE])) > 0
+    y <- x[tem, , drop = FALSE]
+    y <- y[!duplicated(y$id_municipio), , drop = FALSE]
+    if (!is.null(ano_medicao)) y$ano <- as.integer(ano_medicao)
+
+  } else {
+    nao_vazio <- function(v) {
+      if (is.numeric(v)) !is.na(v) & !(v %in% vazio) else !is.na(v) & nzchar(as.character(v))
+    }
+    tem <- rowSums(vapply(x[, cols, drop = FALSE], nao_vazio,
+                          logical(nrow(x)))) > 0
+    y <- x[tem, , drop = FALSE]
+  }
+
+  y <- y[do.call(order, y[, intersect(chaves, names(y)), drop = FALSE]), , drop = FALSE]
+  rownames(y) <- NULL
+  attr(y, "mape_compactacao") <- list(
+    metodo = metodo, linhas_antes = antes, linhas_depois = nrow(y),
+    reducao_pct = round(100 * (1 - nrow(y) / antes), 1)
+  )
+  fmt <- function(n) formatC(n, format = "d", big.mark = ".", decimal.mark = ",")
+  message(sprintf("compactado por '%s': %s -> %s linhas (-%.1f%%)",
+                  metodo, fmt(antes), fmt(nrow(y)),
+                  100 * (1 - nrow(y) / antes)))
+  y
+}
+
 #' Tabela de replicação censitária usada no legado
 #'
 #' Reproduz exatamente o mapeamento copiado em populacao.R:23-27 e

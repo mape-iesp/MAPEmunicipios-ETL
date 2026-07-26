@@ -1,6 +1,6 @@
 # Paridade — 05_sociedade
 
-Gerado em 2026-07-26 00:56:27.
+Gerado em 2026-07-26 01:29:10.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 8. Diferenças não explicadas: 0.

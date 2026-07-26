@@ -79,3 +79,8 @@ renv/staging/
 
 # Base larga: artefato DERIVADO, reconstruível com mape_montar_base_larga()
 dados/derivado/
+
+# Pasta de empacotamento do release. É uma cópia do que já está versionado em
+# dados/ e dicionario/, montada por tools/publicar_release.R para subir ao
+# GitHub. Versioná-la duplicaria 137 MB sem acrescentar informação.
+dist/

@@ -1,12 +1,13 @@
 # Paridade — 06_financas
 
-Gerado em 2026-07-26 00:56:45.
+Gerado em 2026-07-26 01:29:27.
 Referência: `base_municipios_brasileiros.RDa` (tag `dados-v1.0.0-legado`).
 
 Colunas comparadas: 37. Diferenças não explicadas: 0.
 
 | coluna | classe | descrição |
 |---|---|---|
+| `total_receitas` | b_renomeacao | renomeada para 'siconfi_receitas_totais_brl2023' |
 | `total_receitas_fundeb` | b_renomeacao | renomeada para 'siconfi_deducao_fundeb_brl2023' |
 | `total_transferencias_constitucionais` | b_renomeacao | renomeada para 'siconfi_deducao_transferencias_constitucionais_brl2023' |
 | `total_receitas_outras_deducoes` | b_renomeacao | renomeada para 'siconfi_deducao_outras_brl2023' |

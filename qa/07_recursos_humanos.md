@@ -1,6 +1,6 @@
 # QA — 07_recursos_humanos
 
-Gerado em 2026-07-26 00:56:45.
+Gerado em 2026-07-26 01:47:19.
 
 ## Resumo
 
