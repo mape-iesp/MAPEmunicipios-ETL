@@ -169,10 +169,14 @@ nacional por ano tem de permanecer **inalterada** — é redistribuição, não 
 por extenso) e ela duplica o bloco territorial cujo dono é `00_diretorios/municipios`. Não removi
 porque a § 8 proíbe remover coluna.
 
-**5. O comentário de `_targets.R:29` (achado 41).** *Recomendo trocar `error = "abridge"` por
-`"trim"`.* O comentário glosa `abridge` como "um alvo que falha não derruba os ramos
-independentes", que é a semântica de `trim`. Não corrigi porque a § 3 proíbe editar `_targets.R`
-à mão. A parte substantiva — código de saída — está em `tools/rodar_grafo.R`.
+**5. O comentário de `_targets.R:29` (achado 41).** ~~*Recomendo trocar `error = "abridge"` por
+`"trim"`.*~~ **RESOLVIDO na reverificação de 26/07/2026**, e por isso deixou de ser decisão sua: o
+`error =` passou a ser `"trim"`, que é a semântica que o comentário sempre descreveu. A proibição
+de editar `_targets.R` era da § 3 daquele prompt e não do projeto — e trocar uma constante de
+`tar_option_set()` não é editar os alvos, que continuam sendo gerados de `dicionario/tabelas.csv`.
+`tar_manifest()` segue devolvendo 14 alvos. A parte substantiva — código de saída — está em
+`tools/rodar_grafo.R`.
+
 
 **6. A camada de fonte de `11_transportes/tarifa_zero` (achado 33).** Decisão de desenho que
 precede o patch: ou a fonte guarda 106 linhas (uma por evento) e a expansão passa para a dimensão,

@@ -19,14 +19,20 @@ A citação recomendada de cada tabela está no campo `citacao_recomendada` de
 A compilação é nossa e vai sob CC BY 4.0. O **dado de base** é de terceiros, e a
 licença dele é a que vale para ele. Das 26 tabelas publicadas:
 
-- **15 vêm de dado público federal** (IBGE, INEP, DATASUS, SICONFI, TSE, MDS,
+- **19 vêm de dado público federal** (IBGE, INEP, DATASUS, SICONFI, TSE, MDS,
   MDHC, Anatel, MCTI, Ipea, Ministério das Cidades / Caixa). Uso livre com
   citação da fonte, nos termos da Lei de Acesso à Informação (Lei 12.527/2011) e
   do Decreto 8.777/2016. Redistribuir sob CC BY 4.0 é compatível.
 
-- **11 têm pendência de licença**, declarada tabela a tabela no campo `licenca`
-  de `dicionario/tabelas.csv`. Três são substantivas e **precisam ser resolvidas
+- **1 é compilação própria do MAPE** (`11_transportes/tarifas`, a partir de
+  decretos municipais, que são atos públicos), e vai sob CC BY 4.0.
+
+- **6 têm pendência de licença**, declarada tabela a tabela no campo `licenca`
+  de `dicionario/tabelas.csv`: `10_saude`, `11_transportes`,
+  `11_transportes/tarifa_zero`, `13_seguranca`, `14_corrupcao` e
+  `15_dados_historicos`. Três são substantivas e **precisam ser resolvidas
   antes de qualquer publicação formal**:
+
 
   1. **`13_seguranca` — a mais séria.** As colunas `fbsp_*` vêm do Anuário
      Brasileiro de Segurança Pública, do Fórum Brasileiro de Segurança Pública.
@@ -59,3 +65,12 @@ erro e bloqueia a publicação.
 *Criado em 26/07/2026, pela rodada de correção da auditoria (achado 45). Até
 então as 26 tabelas estavam sob `licenca = "a verificar"` e o release publicava
 todas como CC BY 4.0, sem que nada conferisse.*
+
+---
+
+*Errata de 26/07/2026 (reverificação, achado 45): a contagem-resumo acima dizia
+"15 vêm de dado público federal" e "11 têm pendência". Os dois números foram
+remedidos em `dicionario/tabelas.csv` e são 19, 1 e 6 — a versão anterior não
+separava a compilação própria do MAPE e contava como pendência quatro tabelas
+que já haviam sido resolvidas. As três pendências substantivas nomeadas
+acima não mudaram.*

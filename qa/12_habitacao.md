@@ -1,6 +1,6 @@
 # QA — 12_habitacao
 
-Gerado em 2026-07-26 20:52:32.
+Gerado em 2026-07-26 21:35:37.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:32.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -22,6 +22,9 @@ Checagens executadas: 19.
 | zero_inflacao | aviso | mcmv_valor_contratado_brl2023: 7 ano(s) com 99% ou mais de zeros exatos (2007, 2008, 2019, 2020, 2021, 2022, 2023), enquanto 8 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_valor_contratado_brl2023: DEFEITO ABERTO (auditoria 26/07/2026, achado 16): ESCALA ERRADA em parte das celulas. O maximo publicado atribui a um unico municipio-ano R$ 205,8 bilhoes nesta coluna, o que e fisicamente impossivel para contratos do MCMV. A assinatura (mediana de cerca de R$ 3 milhoes, com picos em 10x e 100x sobre ela) indica um gsub de separador decimal/milhar aplicado na ordem errada sobre texto, na conversao para numerico. A correcao exige a planilha original, que NAO esta no repositorio: fontes/12_habitacao/mcmv_fgts/ nao tem raw/, e versionar o bruto e pre-requisito de qualquer conserto. O dominio_valido foi preenchido — estava vazio, e por isso a checagem de dominio nao tinha o que testar — com um teto de R$ 5 bilhoes por municipio-ano. NAO agregue esta coluna sem inspecionar a cauda. |
 | zero_inflacao | aviso | mcmv_valor_desembolsado_brl2023: 8 ano(s) com 99% ou mais de zeros exatos (2007, 2008, 2019, 2020, 2021, 2022, 2023, 2024), enquanto 7 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_valor_desembolsado_brl2023: DEFEITO ABERTO (auditoria 26/07/2026, achado 16): ESCALA ERRADA em parte das celulas. O maximo publicado atribui a um unico municipio-ano R$ 350,8 bilhoes nesta coluna, o que e fisicamente impossivel para contratos do MCMV. A assinatura (mediana de cerca de R$ 3 milhoes, com picos em 10x e 100x sobre ela) indica um gsub de separador decimal/milhar aplicado na ordem errada sobre texto, na conversao para numerico. A correcao exige a planilha original, que NAO esta no repositorio: fontes/12_habitacao/mcmv_fgts/ nao tem raw/, e versionar o bruto e pre-requisito de qualquer conserto. O dominio_valido foi preenchido — estava vazio, e por isso a checagem de dominio nao tinha o que testar — com um teto de R$ 5 bilhoes por municipio-ano. NAO agregue esta coluna sem inspecionar a cauda. |
 | continuidade_painel | aviso | o último ano (2024) tem 142 linha(s), 2.5% da mediana dos anos anteriores (5.570). Série temporal calculada sobre a tabela quebra no último ponto. | O ultimo ano (2024) tem 142 linhas contra 5.570 dos anteriores: mesma assimetria de 11_transportes. O esqueleto vai ate 2023 e 2024 tem so os municipios com contrato MCMV registrado. Grupo 49. Ver tambem o grupo 15: 83.679 das 94.832 linhas desta tabela sao preenchimento e nao observacao. |
+| faixa_declarada | aviso | ano: 142 valor(es) fora da faixa calculada declarada [1991, 2023] (observado aqui: 2007 a 2024). Os campos calculados desta coluna são medidos em `02_populacao`, e não aqui — a faixa descreve a outra tabela. | problema da variável ano: Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd |
+| faixa_declarada | aviso | mcmv_unidades_contratadas_i: 83.679 valor(es) fora da faixa calculada declarada [1, 56896] (observado aqui: 0 a 56896). Os campos calculados desta coluna são medidos em `12_habitacao/mcmv_fgts`, e não aqui — a faixa descreve a outra tabela. | problema da variável mcmv_unidades_contratadas_i: Sigla 'uh' (unidades habitacionais) opaca, sem prefixo de fonte nem de programa (MCMV/FGTS) |
+| faixa_declarada | aviso | mcmv_valor_contratado_brl2023: 83.679 valor(es) fora da faixa calculada declarada [44789.5313190199, 205833188096.819] (observado aqui: 0 a 205833188096.819). Os campos calculados desta coluna são medidos em `12_habitacao/mcmv_fgts`, e não aqui — a faixa descreve a outra tabela. | problema da variável mcmv_valor_contratado_brl2023: DEFEITO ABERTO (auditoria 26/07/2026, achado 16): ESCALA ERRADA em parte das celulas. O maximo publicado atribui a um unico municipio-ano R$ 205,8 bilhoes nesta coluna, o que e fisicamente impossivel para contratos do MCMV. A assinatura (mediana de cerca de R$ 3 milhoes, com picos em 10x e 100x sobre ela) indica um gsub de separador decimal/milhar aplicado na ordem errada sobre texto, na conversao para numerico. A correcao exige a planilha original, que NAO esta no repositorio: fontes/12_habitacao/mcmv_fgts/ nao tem raw/, e versionar o bruto e pre-requisito de qualquer conserto. O dominio_valido foi preenchido — estava vazio, e por isso a checagem de dominio nao tinha o que testar — com um teto de R$ 5 bilhoes por municipio-ano. NAO agregue esta coluna sem inspecionar a cauda. |
 
 ## Defeitos declarados no dicionário
 

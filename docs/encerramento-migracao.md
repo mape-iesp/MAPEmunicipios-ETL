@@ -21,7 +21,8 @@ o que a migração descobriu que ninguém sabia.
 | Erros de qualidade | 2, ambos chave duplicada herdada da fonte |
 | Avisos de qualidade | 20, todos com justificativa registrada |
 | Testes | 82, nenhuma falha |
-| Pacotes no `renv.lock` | 147 |
+| Pacotes no `renv.lock` | 160 |
+
 
 A soma das dezesseis tabelas de dimensão em Parquet dá 127 MB, contra 431 MB da
 base larga em CSV. Nenhum arquivo isolado passa do limiar de 20 MB, e o hook de
@@ -187,3 +188,10 @@ em `motivo_revisao`.
 **Decidir sobre as duas chaves duplicadas.** Elas são o único bloqueio real que
 sobrou, e as duas exigem reprocessar a fonte — trabalho de extração, não de
 reestruturação.
+
+*Errata de 26/07/2026 (reverificação, achado 96): a célula "Pacotes no `renv.lock`"
+dizia 137, foi corrigida para 147 e agora diz **160**. 137 nunca foi verdade; 147 é
+o número de hoje, e este documento declara no cabeçalho que descreve o estado
+**naquele momento** — no commit que o escreveu (`35eff8e`), o lockfile tinha 160.
+Trocar um número errado pelo número de outra data não é datar um registro
+histórico.*

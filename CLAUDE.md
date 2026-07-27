@@ -256,9 +256,11 @@ Para mudar o que eles dizem, mude `dicionario/*.csv` ou o dado, e regere. **O cr
 
 ### Validação e paridade
 
-`mape_validar_tabela()` roda **19 checagens** e escreve `qa/<slug>.md`. A regra é executada, e não só declarada: erro impede a publicação, aviso exige justificativa registrada em `qa/justificativas.csv`, em `observacoes` (tabela) ou em `problema` (variável), e **aviso sem justificativa vira erro e bloqueia a gravação**. `mape_escrever_tabela()` chama a validação antes de gravar. Use `gravar = FALSE` para inspecionar sem escrever.
+`mape_validar_tabela()` roda até **19 checagens** por tabela (13 a 19, conforme o que a tabela tem) e escreve `qa/<slug>.md`.
+ A regra é executada, e não só declarada: erro impede a publicação, aviso exige justificativa registrada em `qa/justificativas.csv`, em `observacoes` (tabela) ou em `problema` (variável), e **aviso sem justificativa vira erro e bloqueia a gravação**. `mape_escrever_tabela()` chama a validação antes de gravar. Use `gravar = FALSE` para inspecionar sem escrever.
 
-A checagem 19, de **exclusividade do bloco territorial**, é a mais recente: nenhuma tabela além de `00_diretorios/municipios` deveria publicar nome de município ou de UF. Hoje ela acusa exatamente um caso, `sigla_uf_nome` em `04_economia`, com justificativa registrada.
+Duas checagens são novas. **Exclusividade do bloco territorial**: nenhuma tabela além de `00_diretorios/municipios` deveria publicar nome de município ou de UF — hoje acusa exatamente um caso, `sigla_uf_nome` em `04_economia`. E **faixa declarada**: confronta o valor publicado contra o `[minimo, maximo]` que o dicionário guarda, e distingue os dois motivos possíveis. Se a coluna é medida naquela tabela, o dicionário está velho e isso é **erro**; se é medida noutra — 110 variáveis têm os campos calculados medidos na FONTE —, é aviso, e o caso vivo é `flag_adota_tarifa_zero`, que declara `[1, 1]` porque na fonte só há quem adotou, enquanto a dimensão tem 183.236 zeros legítimos.
+
 
 `mape_paridade()` compara cada dimensão com a base do pipeline antigo, com as diferenças aceitáveis reivindicadas de antemão em `qa/paridade_esperada.csv`. Ela compara **o conjunto de chaves** (linha que só existe de um lado é achado), conta **valor→NA e NA→valor em separado**, e as **9 reivindicações nominais são todas alcançáveis** — eram 2 de 9. Um curinga `*` que não absorve diferença nenhuma emite aviso, e uma reivindicação de coluna que não existe dos dois lados é registrada como órfã. Precisa de `qa/referencia/base_municipios_brasileiros.RDa`, que não é versionado (Drive do MAPE); `gravar = FALSE` roda sem escrever.
 

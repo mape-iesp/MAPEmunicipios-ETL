@@ -158,12 +158,20 @@ Uma coluna que sumiu do dado é um indicador que mudou de definição, não um N
 Confira dicionario/deprecacao.csv: ela pode ter sido renomeada.
 ```
 
-O caso que justifica o catálogo é o PIB per capita. A base publicada tem essa
-coluna, e ela **não é reproduzível a partir dela**: o denominador veio de uma
+O caso que justifica o catálogo é o PIB per capita. O denominador veio de uma
 segunda extração da população, feita junto com o PIB e descartada logo depois de
-dividir. As duas séries são idênticas nas 127.786 linhas comparáveis, então o
-número bate — mas quem quisesse conferir não conseguiria. Agora o denominador é
-explícito, e `insumos = TRUE` devolve as duas colunas junto.
+dividir; agora ele é explícito, e `insumos = TRUE` devolve as duas colunas junto.
+
+> **Errata de 26/07/2026 (auditoria, achado 62).** Este parágrafo afirmava que a
+> coluna **não é reproduzível a partir da base publicada** e que "quem quisesse
+> conferir não conseguiria". As duas frases são **falsas**, e foram medidas:
+> `pib_brl2023 / populacao_residente_i` (de `02_populacao`) reproduz
+> `pib_per_capita_brl2023` em **127.786 de 127.786 linhas**, com desvio absoluto
+> máximo de 7,28e-12 e relativo de 2,17e-16 — a precisão da máquina. O
+> denominador não estar *dentro* de `04_economia` é decisão de dono único
+> (população pertence a `02_populacao`), e isso é coisa diferente de não ser
+> reproduzível.
+
 
 ---
 

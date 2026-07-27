@@ -191,14 +191,29 @@ tentar(9, "nenhum identificador GCP legado em arquivo versionado", {
   }
   versionados <- system2("git", c("-C", RAIZ, "ls-files"), stdout = TRUE)
   versionados <- versionados[!grepl("[.]local[.]md$", versionados)]
+  # Lê BYTE A BYTE, e não por linha. `readLines()` sobre arquivo binário emite
+  # warning e o tratador o convertia em character(), pulando o arquivo em
+  # silêncio — 52 dos arquivos versionados são .parquet, .gz ou .xlsx, e um
+  # portão que pula o que não sabe ler não é portão.
   achados <- character()
-  for (id in ids) {
-    for (arq in versionados) {
-      caminho <- file.path(RAIZ, arq)
-      if (!file.exists(caminho)) next
-      conteudo <- tryCatch(readLines(caminho, warn = FALSE, encoding = "UTF-8"),
-                           error = function(e) character(), warning = function(w) character())
-      if (any(grepl(id, conteudo, fixed = TRUE))) {
+  padroes <- lapply(ids, charToRaw)
+  contem <- function(bruto, padrao) {
+    n <- length(padrao)
+    if (!n || length(bruto) < n) return(FALSE)
+    inicio <- which(bruto == padrao[1])
+    for (i in inicio) {
+      if (i + n - 1L <= length(bruto) && all(bruto[i:(i + n - 1L)] == padrao)) return(TRUE)
+    }
+    FALSE
+  }
+  for (arq in versionados) {
+    caminho <- file.path(RAIZ, arq)
+    if (!file.exists(caminho)) next
+    bruto <- tryCatch(readBin(caminho, "raw", n = file.size(caminho)),
+                      error = function(e) raw())
+    if (!length(bruto)) next
+    for (k in seq_along(ids)) {
+      if (contem(bruto, padroes[[k]])) {
         achados <- c(achados, arq)
         break
       }
@@ -428,8 +443,49 @@ tentar(16, "nenhum documento gerado repete afirmacao que o dado desmente", {
 })
 
 # -- 17 ---------------------------------------------------------------------
-registrar(17, "este script existe, cobre os dezesseis acima e sai com codigo nao zero", TRUE,
-          "16 criterios verificados acima")
+# A reverificacao achou o dist/ uma geracao atras da arvore: os 26 qa/*.md
+# embarcados diziam "Checagens executadas: 18" contra 19, e nao levavam a
+# checagem de exclusividade territorial. Quem consome o release nao veria o
+# aviso. dist/ nao e versionado, entao este criterio so vale quando ele existe.
+tentar(17, "o release montado em dist/ nao esta atras da arvore", {
+  raiz_dist <- list.dirs(file.path(RAIZ, "dist"), recursive = FALSE)
+  if (!length(raiz_dist)) {
+    list(ok = TRUE, detalhe = "dist/ nao existe nesta copia: nada a conferir")
+  } else {
+    divergentes <- character(); conferidos <- 0L
+    for (d in raiz_dist) {
+      embarcados <- list.files(d, pattern = "[.](md|csv)$", recursive = TRUE, full.names = TRUE)
+      for (f in embarcados) {
+        rel <- sub(paste0("^", d, "/?"), "", f)
+        na_arvore <- file.path(RAIZ, rel)
+        if (!file.exists(na_arvore)) next
+        conferidos <- conferidos + 1L
+        sem_data <- function(p) paste(grep("^_?Gerado em ", readLines(p, warn = FALSE),
+                                           invert = TRUE, value = TRUE), collapse = "\n")
+        if (!identical(sem_data(f), sem_data(na_arvore))) {
+          divergentes <- c(divergentes, rel)
+        }
+      }
+      # E as somas do proprio bundle tem de fechar.
+      soma <- file.path(d, "SHA256SUMS.txt")
+      if (file.exists(soma)) {
+        r <- suppressWarnings(system2("shasum", c("-a", "256", "-c", "SHA256SUMS.txt"),
+                                      stdout = TRUE, stderr = TRUE))
+        falhas <- grep("FAILED", r, value = TRUE)
+        if (length(falhas)) divergentes <- c(divergentes, paste0(basename(d), ": SHA256SUMS nao fecha"))
+      }
+    }
+    list(ok = !length(divergentes),
+         detalhe = if (length(divergentes))
+           sprintf("%d artefato(s) do release atras da arvore: %s", length(divergentes),
+                   paste(utils::head(divergentes, 6), collapse = ", "))
+         else sprintf("%d artefato(s) embarcado(s) conferido(s), todos em dia", conferidos))
+  }
+})
+
+# -- 18 ---------------------------------------------------------------------
+registrar(18, "este script existe, cobre os dezessete acima e sai com codigo nao zero", TRUE,
+          "17 criterios verificados acima")
 
 # ---------------------------------------------------------------------------
 cat("\n", strrep("=", 78), "\n", sep = "")

@@ -83,5 +83,5 @@ x <- mape_ler("07_recursos_humanos")
 x <- mape_ler("07_recursos_humanos", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 21:35 por `mape_gerar_documentacao()`._
 

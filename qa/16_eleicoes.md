@@ -1,6 +1,6 @@
 # QA — 16_eleicoes
 
-Gerado em 2026-07-26 20:52:36.
+Gerado em 2026-07-26 21:35:41.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:36.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

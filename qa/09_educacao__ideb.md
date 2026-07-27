@@ -1,6 +1,6 @@
 # QA — 09_educacao/ideb
 
-Gerado em 2026-07-26 20:52:28.
+Gerado em 2026-07-26 21:35:33.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:28.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

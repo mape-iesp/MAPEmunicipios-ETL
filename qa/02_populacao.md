@@ -1,6 +1,6 @@
 # QA — 02_populacao
 
-Gerado em 2026-07-26 20:52:05.
+Gerado em 2026-07-26 21:35:08.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:05.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

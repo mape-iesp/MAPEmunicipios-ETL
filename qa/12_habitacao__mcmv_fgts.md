@@ -1,6 +1,6 @@
 # QA — 12_habitacao/mcmv_fgts
 
-Gerado em 2026-07-26 20:52:32.
+Gerado em 2026-07-26 21:35:37.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:32.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -21,6 +21,7 @@ Checagens executadas: 19.
 | zero_inflacao | aviso | mcmv_unidades_distratadas_em_20240930_i: 9 ano(s) com 99% ou mais de zeros exatos (2007, 2008, 2009, 2014, 2015, 2016, 2017, 2019, ...), enquanto 3 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_unidades_distratadas_em_20240930_i: Mesmo problema de estoque-vs-fluxo |
 | zero_inflacao | aviso | mcmv_valor_desembolsado_brl2023: 1 ano(s) com 99% ou mais de zeros exatos (2024), enquanto 13 ano(s) têm dado. Ano inteiro zerado costuma ser vazio publicado como zero, e o valor certo para 'não medido' é NA. | problema da variável mcmv_valor_desembolsado_brl2023: DEFEITO ABERTO (auditoria 26/07/2026, achado 16): ESCALA ERRADA em parte das celulas. O maximo publicado atribui a um unico municipio-ano R$ 350,8 bilhoes nesta coluna, o que e fisicamente impossivel para contratos do MCMV. A assinatura (mediana de cerca de R$ 3 milhoes, com picos em 10x e 100x sobre ela) indica um gsub de separador decimal/milhar aplicado na ordem errada sobre texto, na conversao para numerico. A correcao exige a planilha original, que NAO esta no repositorio: fontes/12_habitacao/mcmv_fgts/ nao tem raw/, e versionar o bruto e pre-requisito de qualquer conserto. O dominio_valido foi preenchido — estava vazio, e por isso a checagem de dominio nao tinha o que testar — com um teto de R$ 5 bilhoes por municipio-ano. NAO agregue esta coluna sem inspecionar a cauda. |
 | continuidade_painel | aviso | o último ano (2024) tem 142 linha(s), 21.8% da mediana dos anos anteriores (652). Série temporal calculada sobre a tabela quebra no último ponto. | A fonte registra ocorrencias, nao um painel: 2024 tem 142 municipios com contrato porque foram esses que tiveram contrato no ano parcial. Grupo 49. |
+| faixa_declarada | aviso | ano: 142 valor(es) fora da faixa calculada declarada [1991, 2023] (observado aqui: 2007 a 2024). Os campos calculados desta coluna são medidos em `02_populacao`, e não aqui — a faixa descreve a outra tabela. | problema da variável ano: Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd |
 
 ## Defeitos declarados no dicionário
 

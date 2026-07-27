@@ -1,6 +1,6 @@
 # QA — 01_assistencia_social_dh/cadunico
 
-Gerado em 2026-07-26 20:52:04.
+Gerado em 2026-07-26 21:35:07.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:04.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

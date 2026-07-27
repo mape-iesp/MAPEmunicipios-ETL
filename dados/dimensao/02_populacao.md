@@ -78,5 +78,5 @@ x <- mape_ler("02_populacao")
 x <- mape_ler("02_populacao", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 20:38 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 21:34 por `mape_gerar_documentacao()`._
 

@@ -1,6 +1,6 @@
 # QA — 14_corrupcao
 
-Gerado em 2026-07-26 20:52:34.
+Gerado em 2026-07-26 21:35:39.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:34.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

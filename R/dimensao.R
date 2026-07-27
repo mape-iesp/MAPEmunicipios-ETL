@@ -436,9 +436,21 @@ mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
     } else character(0)
     for (cl in setdiff(nominais, visitadas)) {
       motivo_r <- esperadas$motivo[esperadas$coluna == cl][1]
-      if (cl %in% names(antiga)) {
+      # O nome canônico correspondente, quando existe: uma coluna só está
+      # "ausente da tabela publicada" se o destino do renomeio também não
+      # estiver lá. Sem esta segunda condição, uma reivindicação sobre coluna
+      # presente nos DOIS lados e sem diferença nenhuma cairia aqui e seria
+      # impressa como ausente — afirmação falsa, e do tipo que este mesmo
+      # achado existe para eliminar.
+      cl_novo <- if (cl %in% names(mapa)) mapa[[cl]] else cl
+      if (cl %in% names(antiga) && !cl_novo %in% names(nova)) {
         reg(cl, "a_correcao_reivindicada",
             paste0("presente na referência e ausente da tabela publicada: ", motivo_r))
+      } else if (cl %in% names(antiga)) {
+        reg(cl, "c_nao_explicada",
+            paste0("reivindicação inerte em qa/paridade_esperada.csv: '", cl,
+                   "' existe nos dois lados e não produziu diferença nenhuma, ",
+                   "então esta linha não dispensa nada. Apague-a."))
       } else {
         reg(cl, "c_nao_explicada",
             paste0("reivindicação órfã em qa/paridade_esperada.csv: '", cl,

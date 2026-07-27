@@ -1,6 +1,6 @@
 # QA — 10_saude
 
-Gerado em 2026-07-26 20:52:31.
+Gerado em 2026-07-26 21:35:36.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:31.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|

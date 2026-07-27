@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifa_zero
 
-Gerado em 2026-07-26 20:52:31.
+Gerado em 2026-07-26 21:35:36.
 
 ## Resumo
 
@@ -10,13 +10,14 @@ Gerado em 2026-07-26 20:52:31.
 
 ## Checagens
 
-Checagens executadas: 18.
+Checagens executadas: 19.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
 | cobertura_municipios | aviso | a tabela cobre apenas 1.9% dos municípios do diretório | A tabela cobre 106 dos 5.570 municipios (1,9%) porque so 106 municipios brasileiros ja adotaram tarifa zero no transporte publico. A fonte registra ocorrencias, e a ausencia de linha significa que o municipio nunca adotou a politica. Cobertura baixa e o fato medido. |
 | schema | informativo | (tabela): 2 de 2 coluna(s) numérica(s) sem `dominio_valido` declarado (100%): a checagem de faixa não olhou essas. | — sem justificativa — |
 | licenca | aviso | licenca = 'Levantamento do Observatorio da Tarifa Zero. A VERIFICAR: o Observatorio publica o levantamento abertamente, mas nao declara licenca formal.': a tabela não declara sob que licença é publicada, e o release a distribui como CC BY 4.0. | O Observatorio da Tarifa Zero publica o levantamento abertamente, mas nao declara licenca formal em lugar nenhum do site. Uso academico com citacao e defensavel; redistribuicao sob CC BY 4.0 exige confirmacao. Grupo 45. |
+| faixa_declarada | aviso | ano: 4 valor(es) fora da faixa calculada declarada [1991, 2023] (observado aqui: 1992 a 2024). Os campos calculados desta coluna são medidos em `02_populacao`, e não aqui — a faixa descreve a outra tabela. | problema da variável ano: Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd |
 
 ## Defeitos declarados no dicionário
 

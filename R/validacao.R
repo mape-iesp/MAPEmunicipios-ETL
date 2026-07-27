@@ -679,6 +679,44 @@ mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
     }
   }
 
+  # -- 20. Faixa calculada declarada contra a publicada ----------------------
+  # Achado 55. `minimo`, `maximo` e `pct_na` do dicionário são medidos na tabela
+  # declarada em `tabela`, que para 110 variáveis é a FONTE. Quando a mesma
+  # coluna sai também na dimensão, os campos guardados descrevem a outra tabela
+  # — `flag_adota_tarifa_zero` declara `minimo = maximo = 1` e a dimensão tem
+  # 183.236 zeros. A documentação já traz a nota; aqui a divergência passa a ser
+  # MEDIDA, que era a metade que faltava.
+  if (mape_tabela_no_dicionario(tabela)) {
+    rodou("faixa_declarada")
+    vars_t <- mape_dicionario("variaveis")
+    for (cl in intersect(names(x), vars_t$nome_canonico)) {
+      lin <- vars_t[vars_t$nome_canonico == cl, , drop = FALSE]
+      if (nrow(lin) != 1) next
+      v <- x[[cl]]
+      if (!is.numeric(v) || all(is.na(v))) next
+      lo <- suppressWarnings(as.numeric(lin$minimo[1]))
+      hi <- suppressWarnings(as.numeric(lin$maximo[1]))
+      if (is.na(lo) || is.na(hi)) next
+      # Tolerância relativa: `minimo` e `maximo` passam por um CSV e voltam com
+      # os últimos dígitos comidos, então o próprio valor extremo cai marginal-
+      # mente fora da faixa que ele define. Sem isto a checagem acusaria "1
+      # valor fora" em toda coluna contínua, que é ruído e não achado.
+      tol_lo <- 1e-9 * max(1, abs(lo))
+      tol_hi <- 1e-9 * max(1, abs(hi))
+      fora <- sum(!is.na(v) & (v < lo - tol_lo | v > hi + tol_hi))
+      if (!fora) next
+      medida_aqui <- identical(as.character(lin$tabela[1]), tabela)
+      reg("faixa_declarada", if (medida_aqui) "erro" else "aviso",
+          paste0(cl, ": ", format(fora, big.mark = "."), " valor(es) fora da faixa ",
+                 "calculada declarada [", lo, ", ", hi, "] (observado aqui: ",
+                 min(v, na.rm = TRUE), " a ", max(v, na.rm = TRUE), "). ",
+                 if (medida_aqui)
+                   "O dicionário diz medir esta tabela, então os campos calculados estão velhos: rode Rscript tools/recalcular_dicionario.R."
+                 else paste0("Os campos calculados desta coluna são medidos em `",
+                             lin$tabela[1], "`, e não aqui — a faixa descreve a outra tabela.")))
+    }
+  }
+
   rodou("sentinelas")
   sent <- mape_detectar_sentinelas(x)
   if (nrow(sent)) {

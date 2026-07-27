@@ -1,6 +1,6 @@
 # QA — 08_energia_internet
 
-Gerado em 2026-07-26 20:52:26.
+Gerado em 2026-07-26 21:35:31.
 
 ## Resumo
 
@@ -10,7 +10,7 @@ Gerado em 2026-07-26 20:52:26.
 
 ## Checagens
 
-Checagens executadas: 19.
+Checagens executadas: 20.
 
 | checagem | gravidade | descrição | justificativa |
 |---|---|---|---|
@@ -18,6 +18,7 @@ Checagens executadas: 19.
 | invariancia_temporal | aviso | lpt_domicilios_atendidos_acumulado_i: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável lpt_domicilios_atendidos_acumulado_i: Faixa de anos embutida no nome da coluna |
 | invariancia_temporal | aviso | censo_cobertura_eletricidade_2000_pct: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável censo_cobertura_eletricidade_2000_pct: O ano fica no nome porque a coluna é um retrato censitário replicado no painel, e não uma série. |
 | invariancia_temporal | aviso | censo_cobertura_eletricidade_2010_pct: idêntica em 100% dos municípios entre os anos medidos, enquanto as colunas irmãs variam. Provavelmente é uma medição só, replicada — e a variação entre os anos é sempre zero por construção. | problema da variável censo_cobertura_eletricidade_2010_pct: O ano fica no nome porque a coluna é um retrato censitário replicado no painel, e não uma série. |
+| faixa_declarada | aviso | ano: 5.570 valor(es) fora da faixa calculada declarada [1991, 2023] (observado aqui: 2004 a 2024). Os campos calculados desta coluna são medidos em `02_populacao`, e não aqui — a faixa descreve a outra tabela. | problema da variável ano: Chave do painel com cinco tipos diferentes entre dimensoes (numeric, character, integer, integer64) e coercao manual em cada join do municipalityBR.qmd |
 
 ## Defeitos declarados no dicionário
 
