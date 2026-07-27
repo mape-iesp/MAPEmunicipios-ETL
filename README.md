@@ -30,6 +30,7 @@ Este README é para quem vai **dar manutenção** ao ETL.
 - [As tabelas com defeito declarado](#as-tabelas-com-defeito-declarado)
 - [Publicar um release](#publicar-um-release)
 - [Armadilhas que já custaram caro](#armadilhas-que-já-custaram-caro)
+- [A auditoria, a correção e a reverificação](#a-auditoria-a-correção-e-a-reverificação)
 - [O que ainda está aberto](#o-que-ainda-está-aberto)
 
 ---
@@ -51,9 +52,23 @@ megabytes, e commitar um caminho de dentro da árvore legada.
 Para conferir que está tudo de pé:
 
 ```bash
-Rscript -e 'testthat::test_dir("tests/testthat")'   # 154 testes
+Rscript -e 'testthat::test_dir("tests/testthat")'   # 14 arquivos, 564 expectativas
 Rscript -e 'targets::tar_visnetwork()'              # desenha o grafo
 ```
+
+Hoje: `FAIL 0 | PASS 564`. A suíte era de **154 expectativas em 6 arquivos** até a
+rodada de correção da auditoria (`auditoria/BASELINE.md`); quatro dos arquivos de
+hoje são novos, e cada um nasceu de um defeito que passava despercebido:
+
+| arquivo | o que passou a ser testado |
+|---|---|
+| `test-paridade.R` | a própria paridade: conjunto de chaves, curinga que não absorve nada, reivindicação órfã e inerte, e que as reivindicações versionadas são todas alcançáveis |
+| `test-base-larga.R` | o esqueleto do painel, a exclusão declarada de `15_dados_historicos` e a parada por chave duplicada |
+| `test-validacao-checagens.R` | as checagens novas, uma a uma, com caso positivo e negativo |
+| `test-hook-pre-commit.R` | o hook exercitado de verdade, num repositório descartável: limiar lido do YAML, caminho do legado, acento e arquivo apagado depois do `git add` |
+
+*(Errata de 26/07/2026: este bloco e a árvore abaixo diziam "154 testes". Eram
+154 expectativas, e não 154 testes, e o número está velho desde então.)*
 
 Para olhar um dado:
 
@@ -63,7 +78,31 @@ for (f in list.files("R", pattern = "[.]R$", full.names = TRUE)) source(f, encod
 mape_tabelas_publicadas()             # as 26 tabelas
 mape_ler("saude")                     # uma dimensão
 mape_ler("educacao/ideb")             # uma fonte
-mape_cobertura("14_corrupcao")        # quanto do painel ela cobre, por ano
+mape_cobertura("14_corrupcao")        # duas medidas de cobertura, por ano
+```
+
+**`mape_cobertura()` devolve seis colunas**, e não uma: `tabela`, `ano`,
+`municipios`, `municipios_substantivos`, `cobertura_pct` e
+`cobertura_substantiva_pct`. As duas últimas medem coisas diferentes — a
+primeira é "tem algum valor não vazio aqui", a segunda é "tem algum valor
+**informativo** aqui", isto é, não zerado pelo preenchimento do esqueleto do
+painel. A distinção é o que separa cobertura de preenchimento.
+
+O critério mudou junto (achado 21). `flag_*` e `ano_ref_*` não contam mais como
+dado só por estarem preenchidos, **com uma exceção medida: um `flag_` com valor
+diferente de zero conta como observação nas duas medidas.** Um flag ligado diz
+que o evento ocorreu naquele município-ano, o que é medição; um flag em zero é
+esqueleto. `ano_ref_` fica fora sempre — numa tabela de carry-forward ele vem
+preenchido em toda linha, e contá-lo ressuscitaria o 100% falso.
+
+O efeito é grande onde importa. `11_transportes` reportava cobertura de 100%;
+hoje reporta **133 municípios e 2,4%** nas duas medidas — que é o número de
+municípios com tarifa zero de fato observada:
+
+```r
+mape_cobertura("11_transportes", por_ano = FALSE)
+#>          tabela ano municipios municipios_substantivos cobertura_pct cobertura_substantiva_pct
+#> 1 11_transportes  NA        133                     133           2.4                       2.4
 ```
 
 **Você não precisa de credencial do Google Cloud para nada disso.** Ela só é
@@ -114,7 +153,7 @@ dados/dimensao/            tabelas de dimensão, idem
 dados/derivado/            base larga (não versionada)
 qa/                        relatórios de qualidade e de paridade
 tools/                     migração, hooks, empacotamento de release
-tests/testthat/            154 testes
+tests/testthat/            14 arquivos, 564 expectativas
 plano/                     o raciocínio por trás de cada decisão
 docs/                      o registro do que foi feito e por quê
 pendencias/                fontes que não migraram, com diagnóstico
@@ -272,6 +311,32 @@ os edite: sua edição será sobrescrita, e é bom que seja. Foi exatamente nos
 campos que deveriam ser calculados que os números da documentação antiga não
 fechavam — a soma de `Total Variáveis` dava 533 contra 451 reais.
 
+**Cada campo calculado é medido numa tabela só: a que a linha declara no campo
+`tabela`.** E essa tabela, para **110 das 432 variáveis** (medido em 26/07/2026),
+é a **fonte**, não a dimensão — a variável é observada na fonte e a dimensão a
+recebe expandida ao painel. Quando a mesma coluna sai nas duas, os campos
+guardados descrevem a outra, e a diferença não é pequena:
+
+| | na fonte `11_transportes/tarifa_zero` | na dimensão `11_transportes` |
+|---|---:|---:|
+| linhas | 578 | 183.814 |
+| `ano_ref_inicio_tarifa_zero` vazia em | **81,7%** | **99,94%** |
+
+As duas medidas estão certas e falam de coisas diferentes: a fonte guarda o
+observado e a dimensão o painel expandido. Duas consequências práticas, ambas do
+achado 55:
+
+- A coluna `vazios` dos `.md` gerados passou a ser medida **na tabela que aquele
+  documento descreve**, e não copiada do dicionário. Antes, o `.md` da dimensão
+  afirmava dela um número medido na fonte.
+- Cada `.md` gerado traz uma nota nomeando as colunas cujos campos calculados
+  vêm de outra tabela, com o nome dela entre parênteses. É a nota que impede ler
+  `minimo = maximo = 1` de `flag_adota_tarifa_zero` como se valesse na dimensão,
+  onde há 183.236 zeros legítimos.
+
+A checagem `faixa_declarada` mede essa divergência, e é a segunda metade da
+correção — ver a seção de validação.
+
 Se você mudar o nome de uma variável, registre a troca em `deprecacao.csv`. Nome
 que some sem rastro é nome que volta como pergunta seis meses depois — e é o
 `deprecacao.csv` que permite `mape_derivadas()` dizer "essa coluna foi renomeada"
@@ -283,13 +348,87 @@ em vez de devolver `NA` em silêncio.
 
 ### As checagens de qualidade
 
-`mape_validar_tabela()` roda um conjunto de checagens sobre cada tabela publicada — o relatório em `qa/<slug>.md` imprime **quantas de fato rodaram**, porque duas delas dependem de o diretório de municípios poder ser lido. A regra
-geral: **erro impede a publicação, aviso exige justificativa registrada** no campo
-`observacoes` da tabela ou `problema` da variável. Aviso sem justificativa vira
-erro — sem isso, aviso vira paisagem.
+`mape_validar_tabela()` roda **20 checagens nomeadas** sobre cada tabela
+publicada, e nem todas rodam em toda tabela: uma tabela sem coluna `ano` não tem
+o que conferir em continuidade de painel, e duas dependem de o diretório de
+municípios poder ser lido. Por isso o relatório em `qa/<slug>.md` imprime
+**quantas de fato rodaram** — hoje, entre 11 e 20, conforme a tabela. Dizer "as
+doze checagens passaram" numa tabela onde cinco rodaram foi um defeito real
+(achado 31); o número agora é contado, não digitado.
 
-Estado atual, sobre as 26 tabelas: **0 erros e 120 avisos, todos com justificativa registrada** (medido em 26/07/2026 com `Rscript tools/validar_tudo.R`). Os avisos são muitos porque as checagens novas da rodada de correção — zero-inflação, quebra de nível, invariância temporal, continuidade do painel, cobertura temporal, licença e proveniência — olham coisas que ninguém olhava. Os dois erros que antes bloqueavam
-chaves duplicadas herdadas das fontes e estão descritos na seção de armadilhas.
+Para conferir a lista, medindo em vez de acreditar — e note que `rodou()` recebe
+mais de um nome por chamada, então contar as chamadas subestima:
+
+```bash
+grep -o 'rodou("[a-z_", ]*)' R/validacao.R | grep -o '"[a-z_]*"' | sort -u   # 20 nomes
+```
+
+São estes: `chave_unica`, `chave_sem_na`, `dominio_chave`,
+`cobertura_municipios`, `tipos`, `dominio_valor`, `sufixo_escala`, `faixa_anos`,
+`nomes_colunas`, `descricao_repetida`, `zero_inflacao`, `quebra_de_nivel`,
+`licenca`, `invariancia_temporal`, `continuidade_painel`, `cobertura_temporal`,
+`exclusividade_territorial`, `faixa_declarada`, `sentinelas` e
+`valores_infinitos`. `proveniencia` aparece como rótulo de achado no relatório,
+mas divide o portão com `licenca` e por isso não entra na conta.
+
+Duas checagens são as mais recentes, e não estavam descritas aqui:
+
+- **`exclusividade_territorial`** — nenhuma tabela além de
+  `00_diretorios/municipios` deveria publicar nome de município ou de UF. A regra
+  estava em cinco documentos e em código nenhum. O critério é o **nome** da
+  coluna, não a descrição, porque é o nome que diz quem é o dono do dado. Hoje
+  ela acusa exatamente um caso em toda a árvore: `sigla_uf_nome`, em
+  `04_economia`, cuja remoção muda o schema publicado e por isso é decisão do
+  responsável pela dimensão.
+- **`faixa_declarada`** — confronta o valor publicado contra o
+  `[minimo, maximo]` que o dicionário guarda, e distingue os dois motivos
+  possíveis de divergência. Se a coluna é **medida naquela tabela**, os campos
+  calculados estão velhos e isso é **erro**, com a correção nomeada na mensagem
+  (`Rscript tools/recalcular_dicionario.R`). Se é medida **noutra** — o caso das
+  110 variáveis da seção do dicionário —, é **aviso**, porque a faixa descreve
+  legitimamente a outra tabela.
+
+### A regra de gravidade, e onde a justificativa mora
+
+**Erro impede a publicação. Aviso exige justificativa registrada. E aviso sem
+justificativa vira erro**, e aí bloqueia a gravação como qualquer outro erro. Não
+é retórica: é a última coisa que `mape_validar_tabela()` faz antes de gravar o
+relatório. Sem isso, aviso vira paisagem — foi o que a auditoria encontrou.
+
+A justificativa é procurada em **três lugares, nesta ordem** (veja
+`mape_aplicar_justificativas()`, em `R/validacao.R`):
+
+1. **`qa/justificativas.csv`** — o primeiro lugar consultado, e o que o README
+   não citava. Colunas `slug_tabela`, `checagem`, `coluna`, `justificativa`; hoje
+   com 57 linhas. O casamento é por `slug_tabela` + `checagem`, e mais `coluna`
+   quando ela está preenchida: **a coluna do achado sai do prefixo `"<coluna>: "`
+   da descrição**. `coluna` vazia, ausente ou `*` vale para todo achado daquela
+   checagem naquela tabela.
+2. **O campo `problema` da variável nomeada**, em `dicionario/variaveis.csv` —
+   só alcança o achado que nomeia uma coluna, pelo mesmo prefixo.
+3. **`qa/erros_aceitos.csv`** (`slug_tabela`, `checagem`, `justificativa`) — o
+   análogo de `qa/paridade_esperada.csv` para erro: um erro reivindicado ali é
+   **rebaixado a aviso justificado** e deixa de bloquear. É o que mantém
+   publicáveis as duas tabelas de chave duplicada intencional.
+
+Duas consequências que já custaram tempo. **O campo `observacoes` da tabela não
+conta como justificativa de aviso**, de propósito (achado 38): texto livre no
+nível da tabela não prova que *aquele* aviso foi justificado. Ele continua
+valendo como contexto e é impresso no relatório. E **toda checagem nova tem de
+começar a descrição pelo nome da coluna**, quando houver — sem o prefixo a
+justificativa não casa, o aviso vira erro e a publicação para. A gravidade
+`informativo` é a única isenta: ela mede cobertura e não afirma defeito.
+
+Estado atual, sobre as 26 tabelas: **0 erros e 132 avisos, todos com
+justificativa registrada** (medido em 26/07/2026 com
+`Rscript tools/validar_tudo.R --seco`, que mede sem gravar). Os avisos são muitos
+porque as checagens novas da rodada de correção — zero-inflação, quebra de nível,
+invariância temporal, continuidade do painel, cobertura temporal, descrição
+repetida entre tabelas, licença, proveniência, exclusividade territorial e faixa
+declarada — olham coisas que ninguém olhava. Eram 25 avisos antes da rodada, e
+**os 25 não tinham justificativa nenhuma**. Os dois erros que antes bloqueavam são
+as chaves duplicadas herdadas das fontes, hoje reivindicadas em
+`qa/erros_aceitos.csv` e descritas na seção de armadilhas.
 
 ### O teste de paridade
 
@@ -301,15 +440,52 @@ O que o torna confiável é o mecanismo: as diferenças aceitáveis são
 **reivindicadas antes de rodar**, em `qa/paridade_esperada.csv`. Um teste em que
 se pode justificar qualquer diferença depois de ver o resultado não testa nada.
 
+**O que ele compara mudou, e mudou porque a versão anterior deixava passar coisa
+demais.** Quatro acréscimos, todos da rodada de correção:
+
+- **O conjunto de chaves** (achado 67). O `merge` era inner, então linha que só
+  existia de um lado sumia da comparação junto com o relatório — foram 33.291
+  linhas publicadas que nunca haviam sido confrontadas com coisa alguma. As duas
+  direções agora aparecem na linha `(conjunto de chaves)`, que é um **valor
+  especial da coluna `coluna`** em `qa/paridade_esperada.csv`. Só assim ela é
+  dispensável: o curinga `*` é reivindicação sobre diferença de **valor** e não
+  justifica diferença de **linha**.
+- **Ausência contada nos dois sentidos** (achado 24). A comparação exigia valor
+  dos dois lados, então uma coluna que virou `NA` inteira passava como "sem
+  diferença". Agora `valor -> NA` e `NA -> valor` são contados **em separado**,
+  porque significam coisas diferentes: o primeiro é perda, o segundo é
+  fabricação.
+- **Curinga inerte emite aviso** (achado 66). Uma linha `coluna = "*"` que não
+  absorve diferença nenhuma dispensa tudo e não dispensa nada — e parece
+  cobertura, que é pior que dispensa nenhuma. O curinga dava imunidade a 52,5%
+  das colunas comparadas, e cinco das seis linhas com `*` não absorviam nada.
+- **Reivindicação órfã e reivindicação inerte viram diferença não explicada**
+  (achado 40). Coluna reivindicada que não existe em nenhum dos dois lados é
+  **órfã**; coluna presente nos dois lados e sem diferença nenhuma é **inerte**.
+  As duas caem em `c_nao_explicada`, com a mensagem mandando apagar a linha.
+
+**A consequência prática é a que interessa a quem dá manutenção: manter uma
+reivindicação "por segurança" agora quebra o critério.** Antes, uma linha a mais
+em `qa/paridade_esperada.csv` era inofensiva e passava por zelo. Hoje ela é um
+achado — só sobrevive a reivindicação que de fato dispensa uma diferença medida.
+A regra de reivindicar antes de rodar continua valendo; o que deixou de valer é
+guardar a reivindicação depois que ela para de dispensar alguma coisa. Quando uma
+correção elimina a diferença, apague a linha que a explicava.
+
 ```bash
 Rscript -e '
   for (f in list.files("R", pattern="[.]R$", full.names=TRUE)) source(f, encoding="UTF-8")
   for (d in sub("[.]parquet$","", list.files("dados/dimensao", pattern="[.]parquet$")))
-    mape_paridade(d)
+    mape_paridade(d)                       # gravar = FALSE só mede, sem tocar em qa/
 '
 ```
 
-Resultado atual: **zero diferenças não explicadas**.
+Resultado atual, medido em 26/07/2026 sobre as **16 dimensões**: **zero
+diferenças não explicadas** — e agora com o conjunto de chaves comparado, a
+ausência contada nos dois sentidos e toda reivindicação alcançável. Cada
+relatório `qa/paridade_<dim>.md` imprime o **sha256 da referência que de fato foi
+lida** (achado 68): antes ele afirmava a proveniência sem conferir nada, e diria
+o mesmo se o arquivo fosse outro.
 
 A referência vive em `qa/referencia/base_municipios_brasileiros.RDa` e **não é
 versionada** — são 56 MB, acima do limiar. Ela está no Drive compartilhado do
@@ -538,15 +714,69 @@ domínio `[0,100]` declarado — de modo que a validação avisa a cada execuç�
 
 ---
 
+## A auditoria, a correção e a reverificação
+
+Em 26/07/2026 uma auditoria independente — treze auditores de escopo exclusivo,
+em `auditoria/A1.md`–`A13.md` — levantou 122 achados brutos, agrupados em **105
+grupos de defeito**, sete deles críticos. Os 105 foram trabalhados na mesma data.
+O placar, medido em `auditoria/CORRECOES.csv` e não copiado de prosa nenhuma:
+**80 corrigidos, 19 mitigados e 6 não confirmados**, sendo que dos sete críticos
+2 foram corrigidos e 5 mitigados. Noventa e nove dos 105 têm teste ou checagem
+nova associada.
+
+**O que faltava dizer aqui: os 105 foram então reverificados três vezes**, também
+em 26/07/2026, por verificadores adversariais instruídos a *derrubar* as
+alegações e a remedir contra a árvore em vez de acreditar no ledger. A primeira
+rodada achou 5 grupos que não se sustentavam e 23 parciais; a segunda, sobre
+esses 28, achou 6 ainda parciais; a terceira, sobre esses 6, achou 2 — e os dois
+eram portões recém-escritos que nasceram quebrados e passavam sempre. É dessa
+sequência que vêm os critérios 13 a 17 de `tools/verificar_fechamento.R`.
+
+A lição vale para quem for corrigir a próxima coisa: **quase todo "parcial" era
+código corrigido com o artefato publicado esquecido.** O `.md` gerado é o que o
+consumidor lê, e corrigir só o dicionário deixa a correção no lugar errado. Um
+critério que não olha o artefato não prova nada.
+
+```bash
+Rscript tools/verificar_fechamento.R   # confere se a rodada continua fechada; sai != 0 se não
+```
+
+Onde ler: **[`auditoria/RELATORIO-FINAL.md`](auditoria/RELATORIO-FINAL.md)** é o
+ponto de partida, com o antes e o depois lado a lado, o que ficou aberto e o que
+depende de decisão. `auditoria/CORRECOES.csv` é o ledger, uma linha por grupo.
+`auditoria/CONSOLIDADO.md` é a evidência e é **imutável**: os números dele foram
+medidos *antes* das correções, e várias das reproduções já não reproduzem — que é
+o resultado desejado. Não repita número do consolidado como se fosse o estado
+atual; para o estado atual, meça.
+
+---
+
 ## O que ainda está aberto
 
 Registrado com honestidade, porque saber o que falta vale mais que parecer
-pronto.
+pronto. **Nenhum item aqui é pendência de auditoria**: os 105 grupos foram
+trabalhados e fechados em 26/07/2026 — ver a seção anterior e
+[`auditoria/RELATORIO-FINAL.md`](auditoria/RELATORIO-FINAL.md). O que sobrou é
+trabalho de fundo.
 
-**A primeira reextração nunca aconteceu.** Os scripts `extrair_*.R` estão
-escritos e nunca foram executados. A primeira execução de cada um é o primeiro
-teste real do procedimento de atualização, e é onde vão aparecer as diferenças
-entre o que a fonte publicava em 2024 e o que ela publica agora.
+**O caminho de reconstrução não existe para 15 tabelas.** Elas vieram dos
+scripts de migração, que liam da árvore legada, e reescrever os produtores é o
+pré-requisito de qualquer reprocessamento. `00_diretorios/municipios` saiu dessa
+lista (achado 9): o bruto voltou do histórico do git para `raw/`, com sha256 no
+manifesto, e `tratar_municipios()` reproduz o Parquet publicado com
+`all.equal == TRUE`.
+
+**A primeira reextração nunca aconteceu.** Existe **um** `extrair_*.R`
+(`fontes/00_diretorios/municipios/`), e ele nunca rodou — o README antigo dizia
+que os scripts estavam todos escritos. A única extração de verdade desta árvore
+foi a do PIB do IBGE, em 26/07/2026, e é um cache pontual, não um `extrair_*.R`.
+A primeira execução de verdade é o primeiro teste real do procedimento de
+atualização, e é onde vão aparecer as diferenças entre o que a fonte publicava em
+2024 e o que ela publica agora.
+
+**Sete das dez fontes não têm `tratar_*.R`** e por isso não estão no grafo:
+adaptabrasil, atlas_ivs, censup, ideb, tarifa_zero, tarifas e mcmv_fgts. Os
+Parquet delas vieram de `tools/migracao/fatiar_fontes.R`.
 
 **Seis fontes não migraram**, cada uma com diagnóstico em `pendencias/`: SIA,
 SINAN e SIM da Saúde (consultam o BigQuery e terminam sem gravar saída),
@@ -556,13 +786,31 @@ nenhum script referencia), MCMV subsidiado (byte a byte idêntico ao do FGTS) e
 MUNIC 2023 de direitos humanos (quebra em `library(labelled)`). Nenhuma delas
 contribui com coluna alguma para a base publicada.
 
-**Três licenças precisam de verificação** antes de qualquer publicação formal:
-IEPS Data, Anuário do FBSP e o pacote de replicação de Kustov & Pardelli, que não
-tem sequer DOI registrado. Até lá as tabelas ficam com
-`licenca = "a verificar"`.
+**Seis tabelas ainda declaram `licenca = "A VERIFICAR"`** — eram as 26, e a
+checagem `licenca` acusa as seis que restam (medido em 26/07/2026 sobre
+`dicionario/tabelas.csv`): `10_saude`, `11_transportes`,
+`11_transportes/tarifa_zero`, `13_seguranca`, `14_corrupcao` e
+`15_dados_historicos`. Três casos são substantivos: IEPS Data, Anuário do FBSP —
+cujo `CC BY-NC-ND` é **incompatível** com a redistribuição sob CC BY 4.0 que o
+release faz — e o pacote de replicação de Kustov & Pardelli, que não tem sequer
+DOI registrado. Resolva a de `13_seguranca` antes de publicar o release.
+
+**Dezenove grupos continuam `mitigado`**: o defeito está no dado, declarado no
+dicionário e detectável por checagem automática, mas a correção de fundo depende
+de decisão do responsável pela dimensão ou de insumo que não está aqui. Os três
+que precisam de insumo são a escala de `12_habitacao` (falta a planilha
+original), os zeros anteriores à instalação do município (falta `ano_instalacao`
+no diretório) e o SICONFI bruto de `06_financas`. As decisões pendentes estão na
+§ 5 de `auditoria/RELATORIO-FINAL.md`. **Antes de usar uma dimensão em análise,
+leia o campo `observacoes` dela em `dicionario/tabelas.csv`** — os mais
+consequentes são `04_economia`, `06_financas` e `13_seguranca`.
 
 **As duas chaves duplicadas exigem reprocessar a fonte**, o que é trabalho de
-extração e não de reestruturação. São o único bloqueio real que sobrou.
+extração e não de reestruturação. Continuam declaradas e reivindicadas em
+`qa/erros_aceitos.csv`.
+
+**O release v1.0.0 está montado em `dist/` e não foi publicado.** O comando está
+no fim de `tools/publicar_release.R`.
 
 ---
 

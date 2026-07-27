@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ETL em R que constrói o **MAPEmunicipios**: um painel dos 5.570 municípios brasileiros, de 1989 a 2024, em 17 eixos temáticos, 26 tabelas publicadas e 432 variáveis documentadas.
 
-A migração do legado terminou e as 26 tabelas estão publicadas em `dados/`. Em 26/07/2026 uma auditoria independente levantou **105 grupos de defeito**, sete deles críticos, e **os 105 foram trabalhados na mesma data**: 78 corrigidos, 19 mitigados (marcados e detectáveis, mas a correção de fundo depende do responsável ou de insumo que não está aqui) e 8 confirmados como não reproduzidos.
+A migração do legado terminou e as 26 tabelas estão publicadas em `dados/`. Em 26/07/2026 uma auditoria independente levantou **105 grupos de defeito**, sete deles críticos, e os 105 foram trabalhados e depois reverificados na mesma data. O placar, medido em `auditoria/CORRECOES.csv`: **80 corrigidos, 19 mitigados** (marcados e detectáveis, mas a correção de fundo depende do responsável ou de insumo que não está aqui) e **6 confirmados como não reproduzidos**.
 
-**Os 105 foram então REVERIFICADOS**, também em 26/07/2026, por sete verificadores adversariais que reexecutaram cada reprodução contra a árvore. Setenta e sete se sustentaram integralmente; **cinco não se sustentavam** (26, 34, 55, 66 e 91) e **23 estavam parciais**. Os 28 foram fechados nessa segunda rodada, e é dela que vêm as checagens 13 a 17 de `verificar_fechamento.R`. A lição, que vale para o próximo: **quase todo parcial era código corrigido com o artefato publicado esquecido** — o `.md` gerado é o que o consumidor lê, e corrigir só o dicionário deixa a correção no lugar errado.
+
+**Os 105 foram então REVERIFICADOS TRÊS VEZES**, também em 26/07/2026, por verificadores adversariais que reexecutaram cada reprodução contra a árvore em vez de acreditar no ledger. A primeira rodada: 77 se sustentaram, **cinco não se sustentavam** (26, 34, 55, 66 e 91) e 23 estavam parciais. A segunda, sobre esses 28: seis ainda parciais. A terceira, sobre esses seis: dois — e os dois eram **portões recém-escritos que nasceram quebrados e passavam sempre**. Daí vêm os critérios 13 a 17 de `verificar_fechamento.R`.
+ A lição, que vale para o próximo: **quase todo parcial era código corrigido com o artefato publicado esquecido** — o `.md` gerado é o que o consumidor lê, e corrigir só o dicionário deixa a correção no lugar errado.
 
 **O ponto de partida é `auditoria/RELATORIO-FINAL.md`**, que diz o que mudou, o que ficou aberto e o que depende de decisão. `auditoria/CORRECOES.csv` é o ledger, com uma linha por grupo. `Rscript tools/verificar_fechamento.R` confere mecanicamente se a rodada está fechada e sai com código diferente de zero se não estiver.
 
@@ -146,7 +148,8 @@ mape_derivadas("taxa_homicidios_p100k")    # indicador com o denominador visíve
 mape_montar_base_larga(flags = TRUE, deduplicar = TRUE)
 ```
 
-As duas ressalvas da auditoria foram corrigidas. `mape_cobertura()` deixou de contar `flag_*` e `ano_ref_*` como dado e passou a devolver **duas** medidas — `cobertura_pct` e `cobertura_substantiva_pct` (achado 21). E `mape_ler()` **avisa** quando a tabela pedida tem defeito declarado no dicionário, listando os primeiros e apontando para o `qa/` dela (achado 32).
+As duas ressalvas da auditoria foram corrigidas. `mape_cobertura()` passou a devolver **duas** medidas — `cobertura_pct` e `cobertura_substantiva_pct` (achado 21) — e o critério dela é o **valor**, não o prefixo: `ano_ref_*` e `flag_*` em zero são preenchimento e não contam; **`flag_*` ligado conta**, porque é observação de que o evento ocorreu. A primeira correção do achado 21 excluía `flag_` inteiro e trocava um erro pelo outro: `11_transportes` caía para 27 municípios quando 133 têm dado.
+ E `mape_ler()` **avisa** quando a tabela pedida tem defeito declarado no dicionário, listando os primeiros e apontando para o `qa/` dela (achado 32).
 
 Mesmo assim: **antes de responder pergunta substantiva sobre uma dimensão, leia o campo `observacoes` dela em `dicionario/tabelas.csv`.** Dezenove grupos ficaram como `mitigado`, o que quer dizer marcados e detectáveis, mas com o defeito ainda no dado. Os mais consequentes estão em `04_economia` (a série de PIB tem um fator de bloco), `06_financas` (receita inflada em uma ordem de grandeza, e duas colunas quase todas zero) e `13_seguranca` (70 códigos não municipais, agora marcados por `flag_codigo_nao_municipal`).
 
@@ -185,7 +188,13 @@ auditoria/                 RELATORIO-FINAL.md e CORRECOES.csv primeiro; A1–A13
 tools/                     validar_tudo.R, verificar_fechamento.R, rodar_grafo.R,
                            recalcular_dicionario.R, sweep_mutacao.R, atualizar_ipca.R,
                            migração, hooks, publicar_release.R
-tests/testthat/            14 arquivos
+tests/testthat/            14 arquivos; os que travam as correções desta rodada são
+                           test-paridade.R, test-base-larga.R,
+                           test-validacao-checagens.R e test-hook-pre-commit.R.
+                           setup.R traz os auxiliares de fixture (raiz_de_teste(),
+                           gravar_fixture(), limpar_caches_mape()) — use-os: teste
+                           que grava fora de raiz descartável suja a árvore
+
 docs/ plano/ pendencias/   documentação
 qa/referencia/             base do pipeline antigo, p/ paridade (não versionada)
 ```
@@ -198,7 +207,17 @@ Nenhuma delas deve ser reescrita dentro de um script — foi a prática oposta q
 
 ### A camada `R/`
 
-Uma responsabilidade por arquivo; `tar_source("R")` carrega tudo. **26 das 62 funções `mape_*` podem virar `function(...) NULL` sem quebrar nenhum teste** (achado 26), incluindo `mape_deflacionar()` e `mape_marcar_nominal()` — então não conte com a suíte para pegar uma regressão aqui.
+Uma responsabilidade por arquivo; `tar_source("R")` carrega tudo. São **79 funções `mape_*`**.
+
+O achado 26 mediu que 26 delas podiam virar `function(...) NULL` sem quebrar teste nenhum. As que ele nomeou foram cobertas e **hoje morrem sob mutação** — medido, 0 de 6 sobrevivem entre `mape_montar_base_larga`, `mape_paridade`, `mape_esqueleto_painel`, `mape_sha256`, `mape_descricoes_repetidas` e `mape_colunas_invariantes`. **O número geral não foi remedido**: a varredura das 79 roda a suíte inteira uma vez por função e leva horas. Antes de confiar na suíte para pegar regressão numa função específica, meça aquela função:
+
+```bash
+Rscript tools/sweep_mutacao.R mape_deflacionar        # uma, em segundos
+Rscript tools/sweep_mutacao.R                          # as 79, em horas
+```
+
+O script grava `R/zzz_mutacao_temporaria.R` enquanto roda e o remove no fim; se você o interromper, apague-o à mão.
+
 
 | arquivo | o que resolve |
 |---|---|
@@ -236,7 +255,14 @@ Isto é o desenho pretendido, e a parte dele que a validação de fato prova é 
 
 Ele é **lido pelo código** para renomear colunas, validar tipos e domínios, e gerar a documentação. Não é subproduto — é entrada do grafo (`arquivo_dicionario`), então mexer nele deixa a documentação desatualizada e `tar_outdated()` diz isso.
 
-Campos **calculados** (`tipo_real`, `pct_na`, `n_distintos`, `minimo`, `maximo`, `n_infinito`) são reescritos por `mape_recalcular_campos()` a cada execução. Editá-los não adianta. Dois cuidados: `minimo`/`maximo` das colunas `integer64` do PIB são padrão de bits, não valores (`dicionario.R:201-202`), e 83 colunas publicadas não têm linha na documentação da tabela a que pertencem.
+Campos **calculados** (`tipo_real`, `pct_na`, `n_distintos`, `minimo`, `maximo`, `n_infinito`, `pct_zero`, `janela_efetiva`) são reescritos por `mape_recalcular_campos()` a cada execução, e o comando é `Rscript tools/recalcular_dicionario.R`. Editá-los não adianta.
+
+**O cuidado que mais custa tempo**: eles são medidos na tabela declarada no campo `tabela`, que para **110 variáveis é a FONTE e não a dimensão**. A mesma coluna tem estatística diferente nas duas — `ano_ref_inicio_tarifa_zero` é 81,7% vazia na fonte e 99,9% na dimensão —, e o dicionário só guarda uma. Por isso a coluna `vazios` dos `.md` gerados passou a ser medida na tabela que o documento descreve, com nota nomeando as colunas cujos campos vêm de outra (achado 55); e por isso a checagem `faixa_declarada` trata divergência como aviso, e não erro, quando a medição vem de outra tabela.
+
+Outro: 83 colunas publicadas não têm linha na documentação da tabela a que pertencem.
+
+O campo `escala` tem vocabulário de **12 valores**, e nenhum código o lê — é especificação, não entrada: `contagem`, `brl`, `0-100`, `indice`, `categorica`, `taxa`, `0-1`, `fisica`, `identificador`, `binaria`, `razao`, `ano`. Sufixo de taxa (`_p100k`, `_p1k`, `_p100dom`) é `taxa` e **não** `0-100`: uma taxa por 100 mil não tem teto, e declará-la limitada foi defeito real (achado 101).
+
 
 Toda renomeação vai para `dicionario/deprecacao.csv`. Os **203 renomeios resolvem numa coluna publicada**, seguindo a cadeia quando o nome mudou duas vezes — eram 7 destinos mortos, e o critério 15 de `verificar_fechamento.R` confere isso a cada execução.
 
@@ -257,13 +283,16 @@ Para mudar o que eles dizem, mude `dicionario/*.csv` ou o dado, e regere. **O cr
 
 ### Validação e paridade
 
-`mape_validar_tabela()` roda até **19 checagens** por tabela (13 a 19, conforme o que a tabela tem) e escreve `qa/<slug>.md`.
- A regra é executada, e não só declarada: erro impede a publicação, aviso exige justificativa registrada em `qa/justificativas.csv`, em `observacoes` (tabela) ou em `problema` (variável), e **aviso sem justificativa vira erro e bloqueia a gravação**. `mape_escrever_tabela()` chama a validação antes de gravar. Use `gravar = FALSE` para inspecionar sem escrever.
+`mape_validar_tabela()` roda até **20 checagens** por tabela (11 a 20, conforme o que a tabela tem)
+ e escreve `qa/<slug>.md`.
+ A regra é executada, e não só declarada: erro impede a publicação, aviso exige justificativa, e **aviso sem justificativa vira erro e bloqueia a gravação**. A justificativa é procurada em três lugares, nesta ordem: **`qa/justificativas.csv`** (casando `slug_tabela` + `checagem` + `coluna`, e a coluna sai do prefixo `"<coluna>: "` da descrição do achado), o campo **`problema`** da variável nomeada, e **`qa/erros_aceitos.csv`** para erro reivindicado. Por isso toda checagem nova deve começar a descrição pelo nome da coluna: sem esse prefixo a justificativa não casa e o aviso vira erro.
+ `mape_escrever_tabela()` chama a validação antes de gravar. Use `gravar = FALSE` para inspecionar sem escrever.
 
 Duas checagens são novas. **Exclusividade do bloco territorial**: nenhuma tabela além de `00_diretorios/municipios` deveria publicar nome de município ou de UF — hoje acusa exatamente um caso, `sigla_uf_nome` em `04_economia`. E **faixa declarada**: confronta o valor publicado contra o `[minimo, maximo]` que o dicionário guarda, e distingue os dois motivos possíveis. Se a coluna é medida naquela tabela, o dicionário está velho e isso é **erro**; se é medida noutra — 110 variáveis têm os campos calculados medidos na FONTE —, é aviso, e o caso vivo é `flag_adota_tarifa_zero`, que declara `[1, 1]` porque na fonte só há quem adotou, enquanto a dimensão tem 183.236 zeros legítimos.
 
 
-`mape_paridade()` compara cada dimensão com a base do pipeline antigo, com as diferenças aceitáveis reivindicadas de antemão em `qa/paridade_esperada.csv`. Ela compara **o conjunto de chaves** (linha que só existe de um lado é achado), conta **valor→NA e NA→valor em separado**, e as **9 reivindicações nominais são todas alcançáveis** — eram 2 de 9. Um curinga `*` que não absorve diferença nenhuma emite aviso, e uma reivindicação de coluna que não existe dos dois lados é registrada como órfã. Precisa de `qa/referencia/base_municipios_brasileiros.RDa`, que não é versionado (Drive do MAPE); `gravar = FALSE` roda sem escrever.
+`mape_paridade()` compara cada dimensão com a base do pipeline antigo, com as diferenças aceitáveis reivindicadas de antemão em `qa/paridade_esperada.csv`. Ela compara **o conjunto de chaves** (linha que só existe de um lado é achado), conta **valor→NA e NA→valor em separado**, e as **9 reivindicações nominais são todas alcançáveis** — eram 2 de 9. Um curinga `*` que não absorve diferença nenhuma emite aviso; uma reivindicação de coluna que não existe dos dois lados é registrada como **órfã**; e uma de coluna presente nos dois lados que não absorve diferença nenhuma, como **inerte**. As duas últimas contam como `c_nao_explicada` — ou seja, **manter reivindicação "por segurança" agora quebra o critério**: quando a diferença que ela explicava some, a linha tem de sair do CSV.
+ Precisa de `qa/referencia/base_municipios_brasileiros.RDa`, que não é versionado (Drive do MAPE); `gravar = FALSE` roda sem escrever.
 
 ## Armadilhas conhecidas
 
@@ -286,7 +315,8 @@ Do dado publicado — o que mais importa não repetir como se estivesse resolvid
 - **Cinco das oito colunas `ieps_cobertura_vacinal_*` duplicam o SI-PNI** (coincidem com `min(pni_*, 100)` em 92,8% a 94,6% das linhas). As outras três — rotavírus, meningococo C e pneumocócica — **não têm par `pni_` e são a única medição dessas vacinas no painel**. A declaração valia para as oito e era falsa nessas três.
 - **A série de PIB de `04_economia` tem três quebras de nível** (2001, 2004, 2011) que nenhum deflator explica, e `06_financas` tem colunas de receita infladas em uma ordem de grandeza e zeradas em 99% das linhas de alguns anos. Não use essas duas dimensões em análise sem ler os achados 1–5.
 - **Códigos não municipais publicados**: 352 linhas de 70 códigos em `13_seguranca` inflam a soma nacional de homicídios em até 10,3%, e os 30 pseudo-códigos do Rio deixam a série municipal de 1996–1998 **96,1%** subestimada. Filtre por `flag_codigo_nao_municipal == 0` antes de qualquer agregado municipal.
-- **O hook de `pre-commit` barra arquivo acima de 20 MB e caminho de `mape_municipios/`.** Instale-o (`bash tools/hooks/instalar.sh`). Ele deixa passar caminho com acento e arquivo removido da árvore depois do `git add`; `--no-verify` contorna, e quase nunca é o certo.
+- **O hook de `pre-commit` barra arquivo acima de 20 MB e caminho de `mape_municipios/`.** Instale-o (`bash tools/hooks/instalar.sh`) — o hook do seu clone não se atualiza sozinho quando o do repositório muda. O limiar sai de `config/parametros.yml`, e caminho com acento e arquivo removido da árvore depois do `git add` **passaram a ser barrados** (achados 61 e 84, com teste em `tests/testthat/test-hook-pre-commit.R`). `--no-verify` contorna, e quase nunca é o certo.
+
 - **Dado bruto do CadÚnico (10,6 MiB) está no histórico público do git**, apesar da promessa de que `**/raw/` nunca é versionado. Exceção decidida e registrada em `plano/migracao-etl/03-versionamento-qa.md`; é agregado municipal público, sem PII.
 - **O identificador do projeto GCP está em três commits do histórico remoto.** Os detalhes redigidos e o roteiro de remediação ficam em `auditoria/VAZAMENTO-GCP.local.md`, que não é versionado — não copie o conteúdo dele para arquivo que vá para o git.
 

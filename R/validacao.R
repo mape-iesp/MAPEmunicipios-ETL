@@ -291,6 +291,42 @@ mape_descricoes_repetidas <- function(tabela) {
 
 #' Roda todas as checagens sobre uma tabela
 #'
+#' São **20 checagens numeradas**, e nem todas rodam em toda tabela — uma sem
+#' coluna `ano` não tem o que conferir em continuidade de painel. O relatório
+#' imprime quantas de fato rodaram, e esse número (13 a 20) é calculado, não
+#' escrito à mão: dizer "as doze checagens passaram" numa tabela onde só cinco
+#' rodaram foi um defeito real (achado 31).
+#'
+#' | nº | checagem | o que olha |
+#' |---|---|---|
+#' | 1 | `chave_unica` | chave primária duplicada |
+#' | 3 | `dominio_chave` | `id_municipio` que não existe no diretório |
+#' | 4, 9, 10 | `schema` | tipo, domínio de valor e coerência sufixo/escala |
+#' | 5 | `faixa_anos` | ano fora da janela do painel |
+#' | 7 | `nomes_colunas` | nome que viola a convenção |
+#' | 8 | `sentinelas` | `"NaoDisponivel"` e afins não convertidos |
+#' | 12 | `descricao_repetida` | duas variáveis com a mesma descrição |
+#' | 13 | `zero_inflacao` | ano com 99%+ de zeros exatos ao lado de ano com dado |
+#' | 14 | `quebra_de_nivel` | salto de nível em série monetária |
+#' | 15 | `licenca`, `proveniencia` | licença não declarada, fonte sem manifesto |
+#' | 16 | `invariancia_temporal` | coluna idêntica ao longo do tempo |
+#' | 17 | `continuidade_painel` | buraco de município-ano |
+#' | 18 | `cobertura_temporal` | janela declarada contra a observada |
+#' | 19 | `exclusividade_territorial` | bloco territorial fora do diretório |
+#' | 20 | `faixa_declarada` | publicado fora do `[minimo, maximo]` do dicionário |
+#'
+#' **A regra de gravidade é executada, e não só declarada** — foi o contrário
+#' disso que a auditoria encontrou. `erro` bloqueia a publicação; `aviso` exige
+#' justificativa registrada; e **aviso sem justificativa VIRA erro** e bloqueia.
+#' A justificativa é procurada em três lugares, nesta ordem: `qa/justificativas.csv`
+#' (casando por `slug_tabela` + `checagem` + `coluna`, e a coluna sai do prefixo
+#' `"<coluna>: "` da descrição), o campo `problema` da variável nomeada, e
+#' `qa/erros_aceitos.csv` para erro reivindicado. Gravidade `informativo` não
+#' exige justificativa: ela mede cobertura e não afirma defeito.
+#'
+#' Por isso **toda checagem nova deve começar a descrição pelo nome da coluna**,
+#' quando houver: sem esse prefixo a justificativa não casa, e o aviso vira erro.
+#'
 #' @param x Data frame.
 #' @param tabela Identificador da tabela.
 #' @param chaves Chave primária. Se NULL, lê do dicionário de tabelas.
@@ -299,7 +335,15 @@ mape_descricoes_repetidas <- function(tabela) {
 #' @param erro Se TRUE, falha ao encontrar problema bloqueante.
 #' @param gravar Se TRUE, escreve qa/<slug>.md. Passe FALSE para validar sem
 #'   sujar a árvore versionada (achado 59).
-#' @return Invisivelmente, um data frame com uma linha por problema.
+#' @return Invisivelmente, um data frame com uma linha por problema, com as
+#'   colunas `tabela`, `checagem`, `gravidade`, `descricao`, `justificada` e
+#'   `justificativa`.
+#' @examples
+#' \dontrun{
+#' r <- mape_validar_tabela(mape_ler_tabela("04_economia", camada = "dimensao"),
+#'                          "04_economia", gravar = FALSE)
+#' subset(r, gravidade == "erro")
+#' }
 mape_validar_tabela <- function(x, tabela, chaves = NULL, diretorio = NULL,
                                 erro = TRUE, gravar = TRUE) {
   achados <- list()

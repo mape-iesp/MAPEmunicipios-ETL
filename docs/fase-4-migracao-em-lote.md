@@ -1,5 +1,9 @@
 # Fases 4 a 6 — Migração das dimensões restantes
 
+
+> **Retrato do momento das fases 4 a 6, encerradas em 26/07/2026.** O "estado" logo abaixo é o daquele ponto da migração: treze dimensões migradas e três pendentes, quando hoje as dezesseis estão publicadas. "Zero erros de qualidade" e "zero diferenças não explicadas" também são medidas daquele momento, com a bateria de checagens e o teste de paridade como estavam então — a auditoria de 26/07/2026 reexaminou os dois. Os números não foram atualizados de propósito: um registro de fase vale como registro, e datá-lo é mais honesto do que reescrevê-lo. Para o estado atual, veja `auditoria/RELATORIO-FINAL.md` e `CLAUDE.md`.
+
+
 Estado: **treze dimensões migradas e validadas**, com zero erros de qualidade e
 zero diferenças não explicadas no teste de paridade. Três dimensões continuam
 pendentes, pelos motivos descritos ao final.

@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
-# Verifica mecanicamente os treze criterios de "pronto" da rodada de correcao da
-# auditoria (auditoria/prompt-correcao.md, secao 12).
+# Verifica mecanicamente os DEZOITO criterios de "pronto" da rodada de correcao
+# da auditoria. Os doze primeiros vem de auditoria/prompt-correcao.md, secao 12;
+# os criterios 13 a 17 nasceram das tres reverificacoes adversariais de
+# 26/07/2026, um por defeito que os doze deixaram passar.
 #
 #   Rscript tools/verificar_fechamento.R
 #
@@ -9,7 +11,27 @@
 # relatorio, o que e coerente com a regra de ouro da propria rodada: afirmacao
 # sem checagem e defeito.
 #
-# O criterio 13 e este arquivo existir e cobrir os doze primeiros.
+# Por que os cinco ultimos existem, e o que cada um teria pego:
+#
+#   13  a documentacao gerada esta em dia com o dicionario  — o padrao dominante
+#       dos parciais foi corrigir o dicionario e deixar o .md publicado com o
+#       texto velho; o .md e o que o consumidor le.
+#   14  a paridade nao tem diferenca nao explicada nem reivindicacao morta, e
+#       nenhum relatorio e mais velho que qa/paridade_esperada.csv — havia
+#       relatorio gravado 29 segundos ANTES das reivindicacoes que ele exibia.
+#   15  todo renomeio de deprecacao.csv resolve numa coluna publicada, seguindo
+#       a cadeia quando o nome mudou duas vezes.
+#   16  quatro afirmacoes ja falsificadas nao podem voltar aos documentos.
+#   17  o release montado em dist/ nao pode estar atras da arvore, e o
+#       SHA256SUMS tem de fechar.
+#
+# E uma licao sobre este arquivo, que vale para quem for acrescentar criterio:
+# DOIS destes criterios nasceram quebrados e passavam sempre. O 17 rodava o
+# shasum no diretorio errado, e o 12 conferia PRESENCA do numero certo em vez de
+# AUSENCIA de contradicao, de modo que um numero errado ao lado ficava invisivel.
+# Criterio novo tem de ser testado com o defeito plantado, ou e so decoracao.
+#
+# O criterio 18 e este arquivo existir e cobrir os dezessete primeiros.
 
 suppressMessages({
   library(arrow)

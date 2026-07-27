@@ -4,16 +4,33 @@
 # este repositório e o pacote MAPEmunicipios: o ETL escreve aqui, o pacote lê
 # daqui, e nada mais atravessa a fronteira.
 #
-# O release leva três coisas, e a terceira é a que faz diferença:
+# O que o release leva, medido em dist/v1.0.0 em 26/07/2026 — 116 arquivos e
+# 138,1 MB, dos quais 137,3 MB são as tabelas e 0,6 MB é todo o resto:
 #
-#   - uma tabela por arquivo, em Parquet e em csv.gz;
-#   - o dicionário inteiro, para que o pacote saiba tipo, unidade e domínio de
-#     cada coluna sem precisar embutir uma cópia que envelhece;
-#   - um SHA256SUMS.txt e um manifesto em JSON com contagens medidas.
+#   - as 26 tabelas, uma por arquivo, em Parquet e em csv.gz (52 arquivos);
+#   - o dicionário inteiro: as cinco planilhas (`variaveis`, `tabelas`,
+#     `dimensoes`, `proveniencia`, `deprecacao`) e o `README.md` gerado, para
+#     que o pacote saiba tipo, unidade e domínio de cada coluna sem precisar
+#     embutir uma cópia que envelhece;
+#   - a documentação gerada, 52 arquivos .md soltos, com o caminho preservado —
+#     16 `dados/dimensao/<slug>.md`, 10 `fontes/<dim>/<fonte>/README.md` e 26
+#     `qa/<slug>.md`, um por tabela publicada;
+#   - um `documentacao.tar.gz` de 71 KB com esses 52 mais o
+#     `dicionario/README.md`, 53 ao todo. Release do GitHub não tem pastas, e
+#     cada anexo é um arquivo solto: subir os dez `fontes/*/*/README.md` sem o
+#     tarball os achataria num só nome. É o tarball que vai como anexo;
+#   - `LICENSE-DADOS`, `INVENTARIO.csv`, `NOTA-DO-RELEASE.md`, `SHA256SUMS.txt`
+#     e um `manifesto.json` com as contagens medidas na hora.
 #
 # Sem o dicionário junto, uma variável nova só apareceria para quem usa o pacote
 # depois de uma nova versão do pacote. Com ele, aparece no dia seguinte à
 # publicação do release.
+#
+# E sem a documentação gerada junto (achado 32), o release levava a especificação
+# e nenhum relatório: os 26 links relativos do `dicionario/README.md` embarcado
+# apontavam todos para arquivo ausente, e a seção "Defeitos declarados no
+# dicionário" de `qa/<slug>.md` — que é onde os defeitos conhecidos ficam
+# reunidos por tabela — não saía do repositório.
 #
 # Rodar com:
 #   Rscript tools/publicar_release.R              # monta em dist/

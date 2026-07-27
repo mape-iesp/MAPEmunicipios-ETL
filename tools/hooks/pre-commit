@@ -74,7 +74,7 @@ for arquivo in "${arquivos[@]}"; do
   if [ "$bytes" -gt "$LIMIAR_BYTES" ]; then
     mb=$((bytes / 1024 / 1024))
     echo "ERRO: $arquivo tem ${mb} MB, acima do limiar de ${LIMIAR_MB} MB."
-    echo "      Ver plano/03-versionamento-qa.md, seção 10.2."
+    echo "      Ver plano/migracao-etl/03-versionamento-qa.md, seção 10.2."
     echo "      Arquivos grandes vão para release do GitHub, não para o git."
     erros=$((erros + 1))
   fi

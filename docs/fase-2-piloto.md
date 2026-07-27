@@ -1,5 +1,9 @@
 # Fase 2 — A dimensão-piloto
 
+
+> **Retrato do momento da fase 2, encerrada em 26/07/2026.** Este documento narra o piloto, e o "estado" que ele descreve é o daquele ponto da migração — duas tabelas publicadas contra as 26 de hoje, e um teste de paridade que a auditoria da mesma data reexaminou. Os números não foram atualizados de propósito: um registro de fase vale como registro, e datá-lo é mais honesto do que reescrevê-lo. Para o estado atual, veja `auditoria/RELATORIO-FINAL.md` e `CLAUDE.md`.
+
+
 Migração da Assistência Social e Direitos Humanos, escolhida como piloto porque
 tem três fontes com métodos de obtenção diferentes, uma fonte que não roda, e a
 fonte cuja origem precisou ser reconstruída. Ela exercita o desenho sem ser

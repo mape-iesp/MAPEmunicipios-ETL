@@ -1,6 +1,6 @@
 # QA — 05_sociedade
 
-Gerado em 2026-07-26 22:10:40.
+Gerado em 2026-07-26 23:00:51.
 
 ## Resumo
 

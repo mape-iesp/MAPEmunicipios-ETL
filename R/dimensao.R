@@ -211,12 +211,50 @@ mape_montar_base_larga <- function(dimensoes = NULL, anos = NULL, flags = FALSE,
 #' reextrair. Com o dado de entrada congelado, só o código muda, e toda
 #' diferença é atribuível a ele.
 #'
+#' O que ela compara, e que a versão anterior não comparava:
+#'
+#' - **O conjunto de chaves** (achado 67). O `merge` é inner, então linha que só
+#'   existe de um lado sumia da comparação junto com o relatório. A linha
+#'   `(conjunto de chaves)` reporta as duas direções.
+#' - **Ausência como diferença** (achado 24). `valor -> NA` e `NA -> valor` são
+#'   contados em separado, porque significam coisas diferentes: o primeiro é
+#'   perda, o segundo é fabricação.
+#'
+#' E o que ela recusa a dispensar:
+#'
+#' - Um curinga `coluna = "*"` é reivindicação sobre diferença de **valor**, e
+#'   não justifica diferença de **chave** — para dispensar a linha de chaves é
+#'   preciso reivindicá-la pelo nome, `(conjunto de chaves)`.
+#' - Curinga que não absorve diferença nenhuma emite aviso: dispensa inerte
+#'   parece cobertura e não é (achado 66).
+#' - Reivindicação nominal de coluna que não existe dos dois lados é registrada
+#'   como **órfã**, e de coluna presente nos dois lados sem diferença nenhuma
+#'   como **inerte** — as duas viram `c_nao_explicada` (achado 40).
+#'
 #' @param dimensao Slug da dimensão.
-#' @param referencia Caminho do .RDa da base publicada.
+#' @param referencia Caminho do .RDa da base publicada. Se `NULL`, procura em
+#'   `qa/referencia/` e, por compatibilidade, na árvore legada.
 #' @param esperadas Data frame com as diferenças reivindicadas a priori, com as
 #'   colunas `coluna` e `motivo`. Reivindicar depois de ver o resultado
-#'   invalidaria o teste.
-#' @return Invisivelmente, o relatório de diferenças.
+#'   invalidaria o teste. Dois valores de `coluna` são especiais: `"*"`, o
+#'   curinga, e `"(conjunto de chaves)"`. Se `NULL`, lê de
+#'   `qa/paridade_esperada.csv`.
+#' @param chave Colunas da chave. Se `NULL`, usa `id_municipio` + `ano`, ou só
+#'   `id_municipio` numa tabela transversal como `15_dados_historicos`.
+#' @param gravar Se `TRUE` (o padrão), escreve `qa/paridade_<dimensao>.md`. Use
+#'   `FALSE` para inspecionar sem tocar na árvore versionada — é o que a suíte
+#'   faz, pelo mesmo motivo que `mape_validar_tabela()` tem o freio (achados 59
+#'   e 87).
+#' @return Invisivelmente, o relatório de diferenças: um data frame com
+#'   `dimensao`, `coluna`, `classe` e `descricao`. As classes são
+#'   `a_correcao_reivindicada`, `b_renomeacao` e `c_nao_explicada`; só a
+#'   terceira é problema.
+#' @examples
+#' \dontrun{
+#' mape_paridade("02_populacao")                  # grava o relatório
+#' r <- mape_paridade("02_populacao", gravar = FALSE)
+#' subset(r, classe == "c_nao_explicada")
+#' }
 mape_paridade <- function(dimensao, referencia = NULL, esperadas = NULL,
                           chave = NULL, gravar = TRUE) {
   if (is.null(referencia)) {

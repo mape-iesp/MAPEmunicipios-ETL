@@ -1,5 +1,9 @@
 # Fechamento do ETL
 
+
+> **Retrato de 26/07/2026, no fecho do ETL.** Os números abaixo descrevem o estado *naquele momento*, e vários deles já não valem — a auditoria independente da mesma data levantou 105 grupos de defeito, e a rodada de correção mudou o repositório. Onde a auditoria falsificou uma afirmação deste documento, a errata está marcada **no corpo**, no ponto em que a afirmação aparece; não há errata no fim, e ler só o começo do documento não basta. Para o estado atual, veja `auditoria/RELATORIO-FINAL.md` e `CLAUDE.md`; para o estado no fim da migração, `docs/encerramento-migracao.md`. Este documento fica como registro datado, e não como referência corrente.
+
+
 Este documento cobre a etapa que fechou a distância entre "a migração acabou" e
 "o ETL está pronto". A migração terminou em 26 de julho de 2026 com as dezesseis
 dimensões publicadas e zero diferenças não explicadas no teste de paridade — e

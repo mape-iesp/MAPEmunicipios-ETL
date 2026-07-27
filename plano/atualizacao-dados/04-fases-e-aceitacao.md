@@ -59,9 +59,17 @@ Não reescreva o que existe (§ 0.6). Escreva o que a fase 1 provou que falta. C
 - `retry`/`timeout`/`user-agent` em `mape_baixar()`, se algum portal exigir;
 - helper de API no molde de `tools/atualizar_ipca.R`, se houver endpoint.
 
-Tudo em `R/`, com teste em `tests/testthat/`. **A suíte tem hoje 413 expectativas e FAIL 0; ela não
-pode regredir.** E lembre que 26 das 62 funções `mape_*` podem virar `function(...) NULL` sem quebrar
-nenhum teste — a suíte não é rede de segurança suficiente, escreva o teste do que você mexer.
+Tudo em `R/`, com teste em `tests/testthat/`. **A suíte tem hoje 564 expectativas e FAIL 0, em 15
+arquivos; ela não pode regredir.** O número era 413 antes da rodada de correção da auditoria, e a
+frase seguinte era "26 das 62 funções `mape_*` podem virar `function(...) NULL` sem quebrar nenhum
+teste": o achado 26 foi **fechado**, e `Rscript tools/sweep_mutacao.R` sobre as seis funções que
+motivaram o achado — `mape_deflacionar`, `mape_marcar_nominal`, `mape_montar_base_larga`,
+`mape_paridade`, `mape_esqueleto_painel` e `mape_sha256` — devolve hoje **0 de 6 sobreviventes**.
+
+São **79** funções `mape_*` em `R/`, e o sweep completo custa cerca de vinte segundos por função —
+rode-o sobre o que você mexer, não sobre tudo. Isso não transforma a suíte em rede de segurança:
+ela cobre o que alguém se lembrou de cobrir, e o sweep mede a suíte, não o código. Escreva o teste
+do que você mexer.
 
 ## Fase 3 — Extração, uma fonte por vez
 
@@ -161,7 +169,7 @@ responsável**, e **quanto custou** (bytes escaneados, de `qa/custo_bigquery.csv
 |---|---|---|
 | 1 | as 26 tabelas continuam validando sem erro | `Rscript tools/validar_tudo.R` |
 | 2 | nenhuma perdeu linha, coluna, chave ou município sem autorização | comparação com a fase 0 + `qa/perdas_autorizadas.csv` |
-| 3 | a suíte não regrediu (≥ 413, FAIL 0) | `test_dir("tests/testthat")` |
+| 3 | a suíte não regrediu (≥ 564 expectativas, FAIL 0) | `test_dir("tests/testthat")` |
 | 4 | toda fonte tocada tem manifesto completo e proveniência registrada | `MANIFESTO.yml` + `dicionario/proveniencia.csv` |
 | 5 | nenhuma consulta rodou sem dry-run e sem registro de custo | `qa/custo_bigquery.csv` |
 | 6 | nenhum ano literal em script de extração | leitura dos `extrair_*.R` |

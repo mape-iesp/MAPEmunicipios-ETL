@@ -5,7 +5,10 @@ Escrito em 26/07/2026, **antes** da primeira correção, a partir dos 105 grupos
 da rodada de correção.
 
 A seção 7 (veredito sobre as sete afirmações centrais) é atualizada ao final da rodada, com o
-estado pós-correção ao lado do estado inicial.
+estado pós-correção ao lado do estado inicial. **Foi:** a coluna "depois" está preenchida, e foi
+reconferida por medição em 26/07/2026, depois das três reverificações adversariais — ver a nota no
+alto da § 7. A seção 2, subseção "Os não confirmados", também recebeu errata: dois dos oito eram
+defeito real.
 
 ---
 
@@ -176,13 +179,52 @@ viram `NA` no csv.gz (19); `id_municipio` volta como `integer` em qualquer `read
 **Raiz:** dispersa; são promessas locais em roxygen, scaffold e hook que não têm implementação
 correspondente. Não compartilham raiz técnica, mas compartilham a patologia da rodada.
 
-### Os 8 não confirmados
+### Os não confirmados: eram 8, são 6
 
-**Grupos:** 65, 74, 75, 82, 88, 91, 93, 94. Nenhuma correção de defeito é devida. Confirmo a
+**Grupos:** 74, 75, 82, 88, 93, 94. Nenhuma correção de defeito é devida nestes seis. Confirmo a
 conclusão do verificador em cada um e registro no ledger. Vale destacar o **88**, porque ele
 contradiz uma instrução da rodada: o verificador mediu que o identificador GCP está em **3**
 commits (não 6 — o 6 era artefato de um ref remoto obsoleto) e **recomenda explicitamente não
 reescrever o histórico**. Isso é tratado na § 6.
+
+> **Errata de 26/07/2026.** Esta seção se intitulava "Os 8 não confirmados" e listava
+> `65, 74, 75, 82, 88, 91, 93, 94`, afirmando que "nenhuma correção é devida". **Dois dos oito
+> eram defeito real**, e as três reverificações adversariais os devolveram para a coluna de
+> corrigido. O placar do ledger é hoje **80 corrigido, 19 mitigado, 6 não confirmado**
+> (`CORRECOES.csv`, contado). Registro por que cada um mudou de veredito, porque é a parte mais
+> instrutiva do episódio: nos **dois** casos o argumento que derrubara o achado era verdadeiro e
+> respondia à pergunta errada.
+>
+> **Grupo 91 — `mape_registrar_proveniencia()` grava o identificador do projeto GCP num CSV
+> versionado.** *Reaberto na 1ª reverificação (`7c97b59`), corrigido no mesmo commit.* A
+> justificativa do "não confirmado" era que `dicionario/proveniencia.csv` **não existia**. Era
+> verdade quando o ledger foi escrito — e deixou de ser **por obra da própria rodada de correção**:
+> o arquivo entrou em `a73c3df`, foi rastreado pelo git, não era coberto pelo `.gitignore`, trazia
+> o identificador do projeto na coluna `detalhe` (escrito por `R/bigquery.R:202`) e foi empurrado
+> para `origin/main` num repositório público, além de montado em `dist/`. O erro de método é
+> nomeável: **verificou-se o estado de partida, não o estado de chegada.** Num repositório que a
+> própria rodada está mudando, "não existe" é uma medida com prazo de validade. O critério 9
+> tampouco pegou, porque extraía do dossiê só os quatro identificadores **legados**, listados no
+> formato `` - `id` ``; o **oficial** aparece lá só em prosa. Hoje confere cinco, e a varredura de
+> todos os arquivos rastreados não acha nenhum dos cinco.
+>
+> **Grupo 65 — o `SHA256SUMS.txt` do release não cobre a `NOTA-DO-RELEASE.md`.** *Reclassificado
+> em `047b10a`, depois da 3ª reverificação.* A justificativa do "não confirmado" era que a nota vai
+> como `--notes-file` e vira corpo da página do release, não *asset* baixável, e portanto não
+> precisaria de soma. O argumento é defensável — e responde a uma pergunta que ninguém fez. A
+> observação factual do auditor era **verdadeira**: em `9165623` o bloco que grava o
+> `SHA256SUMS.txt` estava na linha 147 de `tools/publicar_release.R` e a `NOTA-DO-RELEASE.md` só
+> era escrita na 210. O bundle tinha **61 somas para 62 arquivos**, e o único de fora era
+> justamente o único documento lido por gente. Não estava coberta **por ordem de execução**, e não
+> por decisão: as somas eram calculadas antes de o arquivo existir. Um defeito de ordem que só não
+> aparecia porque o arquivo afetado tinha uma defesa independente — e defesa independente não é o
+> mesmo que cobertura. Hoje o bloco de somas roda no fim, e o bundle fecha em **115 de 115**
+> (`cd dist/v1.0.0 && shasum -a 256 -c SHA256SUMS.txt`), com a nota entre eles.
+>
+> O que os dois têm em comum, e que vale para qualquer ledger de auditoria: **"não confirmado" é um
+> veredito com data.** Ele afirma alguma coisa sobre a árvore num instante, e a rodada de correção
+> é exatamente o que move a árvore. Reverificar os não confirmados no fim custou pouco e devolveu
+> dois defeitos reais, um deles um segredo publicado.
 
 ---
 
@@ -285,7 +327,24 @@ responsável ("marcar, não remover").
 ## 7. Veredito sobre as sete afirmações centrais do projeto
 
 Coluna "antes" medida em 26/07/2026 sobre o commit `0526316`. Coluna "depois" preenchida ao final
-da rodada.
+da rodada e **reconferida por medição em 26/07/2026, depois das três reverificações adversariais**
+— nenhuma das sete afirmações mudou de veredito nessa reconferência. O que foi medido de novo, e
+com que comando:
+
+| o que a coluna "depois" afirma | como foi reconferido | resultado |
+|---|---|---|
+| o contrato de chave de `config/parametros.yml` passou a ser LIDO (1) | `grep -n 'mape_param("chaves")' R/dicionario.R` | `R/dicionario.R:470` lê `chaves:` e confronta `tipo` e `digitos` — o contrato declara `id_municipio` character/7, `id_municipio_6` character/6, `ano` integer |
+| a validação confronta o dicionário com o Parquet, com regra de gravidade executada (3) | `Rscript tools/validar_tudo.R --seco` | 0 erros, **132** avisos, **0 sem justificativa** |
+| onze dos quinze tokens de sufixo ganharam prova (2) | `grep -nE '_pct\|_prop\|_razao\|_p100k' R/dicionario.R` | `_pct`, `_prop`, `_razao`, `_i`, `_p100k`, `_p1k`, `_p100dom`, `_km`, `_km2`, `_idx`, `flag_` — **11**; ficam de fora `_brl_nominal`, `_brl2023`, `_cat` e `ano_ref_` |
+| os campos calculados param e avisam quando o casamento é ambíguo (4) | `mape_recalcular_campos("02_populacao", gravar = FALSE)` | avisa nomeando `02_populacao/id_municipio`, e não escreve na linha de outra tabela |
+| a paridade não tem diferença não explicada (6) | critério 14 de `verificar_fechamento.R` | **16** relatórios, **0** não explicadas, todos com sha256 |
+| nenhum relatório diz mais "as doze checagens passaram" (7) | `grep -rl 'doze checagens' qa/ dados/` | **0 ocorrências**; os 26 `qa/*.md` imprimem a contagem executada (14, 19 ou 20, conforme a tabela) e trazem seção "Defeitos declarados" |
+| a camada de fonte continua não guardando o observado, e agora declara (5) | `dicionario/tabelas.csv` campo `observacoes`; `fontes/01_assistencia_social_dh/cadunico/MANIFESTO.yml` | continua **falsa** nos dois lugares, e os dois estão declarados: `tarifa_zero` traz "DEFEITO ABERTO ... já vem EXPANDIDA: 81,7% das suas linhas são carry-forward", e o manifesto do CadÚnico abre com `derivado: true` |
+
+O número de checagens em `mape_validar_tabela()` foi de **10 para 20** entre `0526316` e hoje
+(`grep -oE 'reg\("[a-z_]+"' R/validacao.R | sort -u | wc -l`), e as duas últimas —
+`exclusividade_territorial` e `faixa_declarada` — nasceram nas reverificações, depois de esta
+tabela ter sido escrita pela primeira vez.
 
 | # | afirmação | antes | depois |
 |---:|---|---|---|

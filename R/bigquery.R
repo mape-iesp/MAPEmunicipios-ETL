@@ -298,9 +298,25 @@ mape_registrar_proveniencia <- function(fonte, metodo, detalhe = NA_character_,
 #' versionado é o MANIFESTO.yml com o sha256. Sessenta e quatro bytes dão a
 #' mesma garantia que versionar 194 MB de planilhas da MUNIC.
 #'
+#' Além de `arquivo_local`, `url`, `sha256` e `nota`, ela lê dois campos que
+#' existem para o caso da fonte **derivada** (achado 46):
+#'
+#' - `derivado` (lógico) — o que está em `raw/` não é o bruto da origem, e sim
+#'   uma saída já transformada;
+#' - `passos_ja_aplicados` (texto) — quais transformações já foram aplicadas, e
+#'   portanto quais terão de ser repetidas por quem rebaixar o arquivo da URL.
+#'
+#' Os dois só aparecem na mensagem de erro do bruto ausente, e é ali que fazem
+#' falta: no CadÚnico a origem entrega a série **mensal** com código de 6
+#' dígitos, e o que estava em `raw/` é o snapshot de dezembro já com 7. Quem
+#' baixasse da URL e seguisse em frente produziria outra tabela em silêncio.
+#'
 #' @param fonte Caminho da pasta da fonte, relativo a fontes/.
 #' @param arquivo Nome do arquivo em raw/. Se NULL, usa o do manifesto.
-#' @return Invisivelmente, TRUE. Falha se o checksum divergir.
+#' @return O **caminho** do arquivo bruto verificado, e não `TRUE`: assim o
+#'   script de tratamento escreve `origem <- mape_verificar_raw(FONTE, "x.csv")`
+#'   sem remontar a convenção de onde o bruto vive. Falha se o manifesto não
+#'   existir, se o bruto estiver ausente ou se o checksum divergir.
 mape_verificar_raw <- function(fonte, arquivo = NULL) {
   manifesto_path <- mape_caminho("fontes", fonte, "MANIFESTO.yml")
   if (!file.exists(manifesto_path)) {

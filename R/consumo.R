@@ -330,15 +330,41 @@ mape_juntar <- function(tabelas, by = c("id_municipio", "ano"), tipo = "full",
 #'
 #' A diferença que importa: aquelas colunas eram atribuídas na etapa de junção e
 #' portanto diziam "esta dimensão foi juntada", não "esta dimensão tem dado
-#' aqui". Esta função conta presença real de valor não vazio.
+#' aqui". Esta conta presença real de valor.
+#'
+#' **O critério é o VALOR da célula, não o prefixo do nome** (achado 21). Um
+#' `flag_*` **diferente de zero** é observação — ele afirma que o evento ocorreu
+#' naquele município-ano — e conta nas duas medidas. Um `flag_*` em zero é
+#' preenchimento do painel e não conta. `ano_ref_*` nunca conta, porque numa
+#' tabela de carry-forward ele vem preenchido em toda linha e ressuscitaria o
+#' 100% falso que este achado corrigiu.
+#'
+#' A diferença entre as três leituras é grande, e `11_transportes` é o caso que
+#' fixou a regra — medido com `mape_cobertura("11_transportes", por_ano = FALSE)`:
+#'
+#' - contando `flag_*` e `ano_ref_*` como dado, 5.570 municípios (100%): falso;
+#' - descartando o `flag_*` inteiro, 27 municípios: também falso, porque joga
+#'   fora as 578 linhas com `flag_adota_tarifa_zero == 1`, que vêm íntegras da
+#'   fonte;
+#' - pela regra do valor, **133 municípios, 2,4%** nas duas medidas — que é o
+#'   número honesto.
 #'
 #' @param tabelas Slugs a medir. NULL usa todas as publicadas.
-#' @param por_ano Se FALSE, agrega a cobertura da tabela inteira.
-#' @return Data frame com tabela, ano, municípios cobertos e percentual.
+#' @param por_ano Se FALSE, agrega a cobertura da tabela inteira e devolve `ano`
+#'   como `NA`.
+#' @return Data frame com **seis** colunas: `tabela`, `ano`,
+#'   `municipios` (têm pelo menos um valor não vazio),
+#'   `municipios_substantivos` (têm pelo menos um valor não vazio e **informativo**
+#'   — zero numérico não conta), `cobertura_pct` e `cobertura_substantiva_pct`,
+#'   as duas sobre os 5.570 municípios do diretório. As duas medidas vêm lado a
+#'   lado porque a diferença entre elas é a informação que faltava: onde a
+#'   segunda despenca em relação à primeira, a tabela publica zero de
+#'   preenchimento como se fosse medição.
 #' @examples
 #' \dontrun{
 #' cob <- mape_cobertura()
 #' subset(cob, tabela == "14_corrupcao")
+#' mape_cobertura("11_transportes", por_ano = FALSE)
 #' }
 mape_cobertura <- function(tabelas = NULL, por_ano = TRUE) {
   disponiveis <- mape_tabelas_publicadas()

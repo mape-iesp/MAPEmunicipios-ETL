@@ -12,6 +12,19 @@
 
 #' Gera a documentação publicada de uma tabela
 #'
+#' A coluna `vazios` da tabela de variáveis é **medida na tabela que este
+#' documento descreve**, e não copiada do campo `pct_na` do dicionário (achado
+#' 55). Os campos calculados do dicionário são medidos na tabela declarada em
+#' `variaveis$tabela`, que para **110 das 432** variáveis é a *fonte*, e não a
+#' dimensão — imprimi-los aqui fazia o documento da dimensão afirmar dela uma
+#' medida da fonte.
+#'
+#' O exemplo que motivou a mudança: `ano_ref_inicio_tarifa_zero` é **81,7%**
+#' vazia em `11_transportes/tarifa_zero` (578 linhas, o observado) e **99,9%**
+#' vazia em `11_transportes` (183.814 linhas, o painel expandido). O documento
+#' da dimensão trazia 81,7%. Onde os campos guardados vierem de outra tabela, o
+#' `.md` passa a dizer de qual, numa nota logo abaixo da tabela de variáveis.
+#'
 #' @param tabela Slug da tabela.
 #' @param destino Caminho do arquivo. NULL usa a convenção
 #'   `fontes/<dimensao>/<fonte>/README.md` para fonte e
