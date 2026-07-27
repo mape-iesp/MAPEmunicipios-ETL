@@ -1,6 +1,6 @@
 # QA — 02_populacao
 
-Gerado em 2026-07-26 21:35:08.
+Gerado em 2026-07-26 22:10:20.
 
 ## Resumo
 

@@ -101,7 +101,7 @@ A auditoria falsificou boa parte das estatísticas que circulavam aqui, e a roda
 | os `extrair_*.R` estão escritos | existe **um** (`fontes/00_diretorios/municipios/`), e ele nunca rodou. A primeira extração de verdade desta árvore foi a do PIB, em 26/07/2026, e ela é um cache pontual e não um `extrair_*.R` |
 | 16 tabelas não têm caminho de reconstrução | continua verdade para **15**: `00_diretorios/municipios` voltou a ser reconstruível (achado 9), e reproduz o publicado com `all.equal == TRUE`. As outras 15 dependem de reescrever os produtores |
 
-Os números correntes, todos medidos: **26** tabelas publicadas, **432** variáveis no dicionário, **147** pacotes no lockfile, **413** expectativas na suíte, **0 erros e 120 avisos** de validação — todos com justificativa registrada.
+Os números correntes, todos medidos: **26** tabelas publicadas, **432** variáveis no dicionário, **147** pacotes no lockfile, **564** expectativas na suíte, **0 erros e 132 avisos** de validação — todos com justificativa registrada.
 
 A regra prática não mudou, e é a lição central da auditoria: **número que aparece em prosa é afirmação a verificar, não fato.** Meça no Parquet. `Rscript tools/validar_tudo.R` e `Rscript tools/verificar_fechamento.R` medem por você.
 
@@ -228,7 +228,8 @@ Isto é o desenho pretendido, e a parte dele que a validação de fato prova é 
 - **Códigos de 6 dígitos** viram 7 por `left_join` com o diretório em `id_municipio_6`.
 - **`ano` só existe como chave.** Qualquer outro ano é `ano_ref_<fonte>`.
 - **Sufixo obrigatório**, de vocabulário fechado: `_i`, `_pct`, `_prop`, `_razao`, `_p100k`, `_p1k`, `_p100dom`, `_brl_nominal`, `_brl2023`, `_km`, `_km2`, `_idx`, `_cat`, mais os prefixos `flag_` e `ano_ref_`.
-- **Prefixo de fonte obrigatório** quando duas fontes medem o mesmo conceito: `pni_` contra `ieps_` na cobertura vacinal, `sim_` contra `fbsp_` na morte violenta. (`ieps_` não é independente de `pni_`: é a mesma medida truncada em 100.)
+- **Prefixo de fonte obrigatório** quando duas fontes medem o mesmo conceito: `pni_` contra `ieps_` na cobertura vacinal, `sim_` contra `fbsp_` na morte violenta. (Cuidado com a generalização: das oito colunas `ieps_cobertura_vacinal_*`, **cinco** são a mesma medida do `pni_` truncada em 100, e **três** — rotavírus, meningococo C e pneumocócica — não têm par `pni_` nenhum e são a única medição dessas vacinas no painel.)
+
 - **A numeração das dimensões é só de acréscimo.** Nunca renumere: o número entra em caminho de arquivo, nome de tabela publicada, URL de release e documentação, e renumerar quebra tudo isso em silêncio.
 
 ### O dicionário é a especificação

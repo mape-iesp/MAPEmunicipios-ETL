@@ -63,5 +63,5 @@ x <- mape_ler("11_transportes/tarifas")
 x <- mape_ler("11_transportes/tarifas", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 21:35 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 22:10 por `mape_gerar_documentacao()`._
 

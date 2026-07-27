@@ -273,15 +273,37 @@ tentar(12, "CLAUDE.md descreve o estado atual: numeros conferidos por medicao", 
   n_exp <- sum(r$passed)
 
   problemas <- character()
-  # Cada numero que o CLAUDE.md cita tem de bater com a medicao.
-  if (!grepl(paste0("\\*\\*", lock, "\\*\\* pacotes|", lock, " pacotes"), txt))
-    problemas <- c(problemas, paste("pacotes:", lock))
-  if (!grepl(paste0(n_var, " variáveis"), txt))
-    problemas <- c(problemas, paste("variaveis:", n_var))
-  if (!grepl(paste0(n_tab, " tabelas"), txt))
-    problemas <- c(problemas, paste("tabelas:", n_tab))
-  if (!grepl(paste0(n_exp, " expectativas"), txt))
-    problemas <- c(problemas, paste("expectativas:", n_exp))
+  # Este criterio conferia PRESENCA: bastava o numero certo aparecer em algum
+  # lugar do arquivo para o numero errado ao lado ficar invisivel. Foi assim que
+  # "413 expectativas" sobreviveu na linha 104 enquanto a linha 70 ja dizia 564,
+  # com o portao passando. Agora confere AUSENCIA DE CONTRADICAO: nenhum OUTRO
+  # numero pode aparecer no mesmo contexto.
+  exigir <- function(rotulo, valor, padrao) {
+    ocorrencias <- unlist(regmatches(txt, gregexpr(padrao, txt, perl = TRUE)))
+    numeros <- unique(gsub("[^0-9]", "", ocorrencias))
+    numeros <- numeros[nzchar(numeros)]
+    if (!length(numeros)) {
+      problemas <<- c(problemas, paste0(rotulo, ": nao citado (esperava ", valor, ")"))
+    } else if (!all(numeros == as.character(valor))) {
+      problemas <<- c(problemas, sprintf("%s: o arquivo diz %s e a medicao da %s",
+                                         rotulo, paste(setdiff(numeros, as.character(valor)),
+                                                       collapse = "/"), valor))
+    }
+  }
+  # Os padroes sao ancorados no CONTEXTO, e nao no substantivo solto: o
+  # CLAUDE.md fala legitimamente de "110 variaveis" (as que tem campo calculado
+  # medido na fonte) e de "15 tabelas" (as sem caminho de reconstrucao), que sao
+  # outras medidas e nao contradicao.
+  exigir("pacotes",      lock,  "\\*{0,2}[0-9]+\\*{0,2} pacotes no lockfile")
+  exigir("variaveis",    n_var, "\\*{0,2}[0-9]+\\*{0,2} vari[áa]veis (documentadas|no dicion[áa]rio)")
+  exigir("tabelas",      n_tab, "\\*{0,2}[0-9]+\\*{0,2} tabelas publicadas")
+  exigir("expectativas", n_exp, "\\*{0,2}[0-9]+\\*{0,2} expectativas")
+  # Contradicao interna sobre validacao: o numero de avisos tem de ser um so.
+  avisos <- unique(unlist(regmatches(txt, gregexpr("[0-9]+ avisos", txt))))
+  if (length(avisos) > 1) {
+    problemas <- c(problemas, paste("avisos citados de formas diferentes:",
+                                    paste(avisos, collapse = ", ")))
+  }
   # E nao pode continuar afirmando que nenhum achado foi corrigido.
   if (grepl("nenhum foi corrigido", txt, fixed = TRUE))
     problemas <- c(problemas, "ainda diz 'nenhum foi corrigido'")
@@ -453,26 +475,51 @@ tentar(17, "o release montado em dist/ nao esta atras da arvore", {
     list(ok = TRUE, detalhe = "dist/ nao existe nesta copia: nada a conferir")
   } else {
     divergentes <- character(); conferidos <- 0L
+    sem_data <- function(p) paste(grep("^_?Gerado em ", readLines(p, warn = FALSE),
+                                       invert = TRUE, value = TRUE), collapse = "\n")
+    # O bundle achata `dados/dimensao/x.parquet` em `dados/x.parquet` e
+    # `dados/fonte/<dim>/y.parquet` em `dados/y.parquet`. Comparar pelo caminho
+    # literal fazia `file.exists()` dar FALSE e o laco pular os 52 arquivos de
+    # dado em silencio — o payload do release nunca era conferido.
+    localizar <- function(rel) {
+      direto <- file.path(RAIZ, rel)
+      if (file.exists(direto)) return(direto)
+      if (!grepl("^dados/", rel)) return(NA_character_)
+      cand <- list.files(file.path(RAIZ, "dados"), pattern = paste0("^", basename(rel), "$"),
+                         recursive = TRUE, full.names = TRUE)
+      if (length(cand) == 1L) cand else NA_character_
+    }
     for (d in raiz_dist) {
-      embarcados <- list.files(d, pattern = "[.](md|csv)$", recursive = TRUE, full.names = TRUE)
+      embarcados <- list.files(d, recursive = TRUE, full.names = TRUE)
+      embarcados <- embarcados[!grepl("(SHA256SUMS[.]txt|documentacao[.]tar[.]gz)$", embarcados)]
       for (f in embarcados) {
         rel <- sub(paste0("^", d, "/?"), "", f)
-        na_arvore <- file.path(RAIZ, rel)
-        if (!file.exists(na_arvore)) next
+        na_arvore <- localizar(rel)
+        if (is.na(na_arvore)) next
         conferidos <- conferidos + 1L
-        sem_data <- function(p) paste(grep("^_?Gerado em ", readLines(p, warn = FALSE),
-                                           invert = TRUE, value = TRUE), collapse = "\n")
-        if (!identical(sem_data(f), sem_data(na_arvore))) {
-          divergentes <- c(divergentes, rel)
+        igual <- if (grepl("[.](md|csv)$", f)) {
+          identical(sem_data(f), sem_data(na_arvore))
+        } else {
+          # Dado e binario: compara por hash, e nao por linha.
+          identical(digest::digest(f, algo = "sha256", file = TRUE),
+                    digest::digest(na_arvore, algo = "sha256", file = TRUE))
         }
+        if (!igual) divergentes <- c(divergentes, rel)
       }
-      # E as somas do proprio bundle tem de fechar.
-      soma <- file.path(d, "SHA256SUMS.txt")
-      if (file.exists(soma)) {
+      # E as somas do proprio bundle tem de fechar. `system2` roda no diretorio
+      # do processo R, e nao em `d` — sem o setwd o shasum nao achava o arquivo,
+      # devolvia "No such file or directory", zero linhas FAILED, e o criterio
+      # passava sempre. Era metade do portao morta.
+      if (file.exists(file.path(d, "SHA256SUMS.txt"))) {
+        antes <- setwd(d)
         r <- suppressWarnings(system2("shasum", c("-a", "256", "-c", "SHA256SUMS.txt"),
                                       stdout = TRUE, stderr = TRUE))
-        falhas <- grep("FAILED", r, value = TRUE)
-        if (length(falhas)) divergentes <- c(divergentes, paste0(basename(d), ": SHA256SUMS nao fecha"))
+        setwd(antes)
+        falhas <- grep("FAILED|No such file", r, value = TRUE)
+        if (length(falhas)) {
+          divergentes <- c(divergentes, sprintf("%s: SHA256SUMS nao fecha (%d linha[s])",
+                                                basename(d), length(falhas)))
+        }
       }
     }
     list(ok = !length(divergentes),

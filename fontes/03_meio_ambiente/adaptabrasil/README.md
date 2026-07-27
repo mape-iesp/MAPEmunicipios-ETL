@@ -75,5 +75,5 @@ x <- mape_ler("03_meio_ambiente/adaptabrasil")
 x <- mape_ler("03_meio_ambiente/adaptabrasil", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 21:34 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 22:10 por `mape_gerar_documentacao()`._
 

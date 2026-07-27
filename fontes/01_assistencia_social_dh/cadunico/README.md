@@ -63,5 +63,5 @@ x <- mape_ler("01_assistencia_social_dh/cadunico")
 x <- mape_ler("01_assistencia_social_dh/cadunico", territorio = TRUE)   # com nome do município e UF
 ```
 
-_Gerado em 2026-07-26 21:34 por `mape_gerar_documentacao()`._
+_Gerado em 2026-07-26 22:10 por `mape_gerar_documentacao()`._
 

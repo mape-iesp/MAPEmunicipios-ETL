@@ -1,6 +1,6 @@
 # QA — 11_transportes/tarifa_zero
 
-Gerado em 2026-07-26 21:35:36.
+Gerado em 2026-07-26 22:10:49.
 
 ## Resumo
 
