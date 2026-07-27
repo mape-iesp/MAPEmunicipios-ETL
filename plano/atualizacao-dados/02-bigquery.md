@@ -40,7 +40,7 @@ repositório**; tudo que não estiver atestado passa pela descoberta da § 2.1 a
 
 | dimensão / fonte | identificador | atestado em |
 |---|---|---|
-| `00_diretorios/municipios` | `basedosdados.br_bd_diretorios_brasil.municipio` | ✅ `extrair_municipios.R:57` — **roda** |
+| `00_diretorios/municipios` | `basedosdados.br_bd_diretorios_brasil.municipio` | ✅ `extrair_municipios.R:57` — escrito, **nunca executado** |
 | `04_economia` | `basedosdados.br_ibge_pib.municipio` | ✅ consulta executada em 26/07/2026, 3,77 MiB |
 | `02_populacao` | `basedosdados.br_ibge_populacao.municipio` | ⚠️ citado em `migracao-etl/02-...md` § 8.5, nunca executado |
 | `06_financas` | `br_me_siconfi.municipio_receitas_orcamentarias` | ⚠️ citado no diagnóstico; **e é a consulta de 18,5 M linhas** |
@@ -58,7 +58,10 @@ repositório**; tudo que não estiver atestado passa pela descoberta da § 2.1 a
 
 ## 2.3 O molde de uma extração
 
-`fontes/00_diretorios/municipios/R/extrair_municipios.R` é o único exemplo que roda, e é o molde.
+`fontes/00_diretorios/municipios/R/extrair_municipios.R` é o único `extrair_*.R` que existe, e é o molde do formato — não da execução. Ele nunca rodou, e
+chama `mape_query()` + `arrow::write_parquet()` direto, sem escrever manifesto. Copie a estrutura,
+não a chamada: o critério 2 da § 2.6 exige `sha256`, `sql_hash` e `data_download`, e quem escreve
+esses três é `mape_baixar_cache()`.
 O que copiar dele:
 
 ```r
@@ -100,29 +103,43 @@ Três armadilhas medidas, todas já pagas uma vez:
 
 **Primeiro `00_diretorios/municipios`**, sempre. Ele é a espinha dorsal: dono exclusivo do bloco
 territorial e origem de toda conversão de 6 para 7 dígitos. Se o diretório mudar (município novo,
-código novo), tudo a jusante muda. É também a extração mais barata e a única já testada.
+código novo), tudo a jusante muda. É também a extração mais barata, e a única com script escrito — que nunca foi executado nem
+testado: `qa/custo_bigquery.csv` só registra as duas consultas do PIB, de 26/07/2026.
 
 Depois, por ordem de retorno sobre risco:
 
 | ordem | fonte | por quê |
 |---:|---|---|
-| 1 | `00_diretorios/municipios` | dependência de todo o resto; já roda |
+| 1 | `00_diretorios/municipios` | dependência de todo o resto; script escrito, falta a primeira execução |
 | 2 | `04_economia` (PIB) | consulta já escrita e medida; **mas resolva o achado 1 antes** — a série publicada tem fator de bloco (3× em 2002-03, 2× em 2004-10), e reextrair sem decidir sobrescreve o defeito com outro |
-| 3 | `09_educacao/ideb` | bienal, pequena, e destrava `dim_09_educacao`, que hoje falha de propósito |
+| 3 | `09_educacao/ideb` | bienal, pequena; `dim_09_educacao` falha de propósito (a consolidação dá 60.672 linhas contra 111.388 e perde `ano_ref_ideb`), mas quem destrava isso é o `tratar_ideb.R`, não a reextração |
 | 4 | `09_educacao/censup` | idem; cuidado com as colunas de alto volume |
-| 5 | `02_populacao` | destrava denominador de toda taxa `_p100k` e `_p1k` |
+| 5 | `02_populacao` | destrava denominador de toda taxa `_p100k` e `_p1k` — **e é o insumo do achado 28**: a população de nove municípios está fabricada por extrapolação linear entre 2013 e 2021 |
 | 6 | `16_eleicoes` | 2024 está faltando e é a lacuna mais visível |
 | 7 | `05_sociedade` (IVS) | censitária; decidir o que fazer com o Censo 2022 |
-| 8 | `13_seguranca` (SIM) | **cara**: dimensione com dry-run e agregue no servidor |
+| 8 | `13_seguranca` (SIM) | **cara**: dimensione com dry-run e agregue no servidor — **e é o insumo do achado 47** |
 | 9 | `10_saude`, `08_energia_internet`, `03_meio_ambiente`, `11_transportes` | múltiplas fontes por dimensão |
-| 10 | `06_financas` (SICONFI) | **a mais cara de todas** e com três achados de dado abertos (3, 4, 5) |
+| 10 | `06_financas` (SICONFI) | **a mais cara de todas** e com três achados `mitigado` no ledger (3, 4, 5) — marcados e detectáveis, com o defeito ainda no dado |
+
+**Duas dessas linhas subiram de importância em 27/07/2026**, e a razão não é custo nem dependência:
+`02_populacao` (5) e `13_seguranca` (8) são o insumo que falta para fechar os achados 28 e 47, dois
+dos sete grupos que o `RELATORIO-FINAL.md` § 4 declara bloqueados por falta de dado que não está no
+repositório. Ver [`00-inventario-de-fontes.md`](00-inventario-de-fontes.md) § 0.7. Se a rodada
+precisar ser encurtada, corte por baixo — mas não corte essas duas.
+
+Uma tarefa que não é reextração e cabe aqui, porque é a mesma consulta: **acrescentar
+`ano_instalacao` a `00_diretorios/municipios`**. A informação é do IBGE, e a guarda
+`incluir_flag_instalado` de `R/painel.R` já existe e é **código morto por falta desse campo** — é o
+achado 29, e ele fecha com uma coluna a mais no `SELECT` da extração do diretório.
 
 ## 2.5 O SICONFI merece parágrafo próprio
 
 É a consulta que o legado usava para baixar 18,5 milhões de linhas, e a dimensão que ela alimenta
-tem três classes de defeito ainda abertas: receita inflada em uma ordem de grandeza, vazio publicado
-como zero, e buraco de 2018-2021. O relatório da auditoria é explícito: corrigir *"exige reescrever
-a agregação sobre o dado de origem"*.
+tem três classes de defeito `mitigado` no ledger: receita inflada em uma ordem de grandeza (achado 3),
+vazio publicado como zero (4) e buraco de 2018-2021 (5). O relatório da auditoria separa as duas
+coisas: *"Duas das três classes de defeito de `06_financas` — receita inflada em uma ordem de
+grandeza e vazio publicado como zero em 2018-2021 — exigem reescrever a agregação sobre o dado de
+origem"*. A terceira, o achado 4, é decisão de valor e não falta de insumo (§ 5, item 8).
 
 Ou seja: **`06_financas` não é uma atualização, é uma reconstrução.** Trate-a como fonte nova, com
 dry-run antes de cada passo, agregação no servidor, e comparação contra o publicado coluna a coluna

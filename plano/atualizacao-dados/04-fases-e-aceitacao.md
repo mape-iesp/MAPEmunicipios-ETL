@@ -1,6 +1,6 @@
 # 4. As fases, a ordem e os critérios de aceitação
 
-Sete fases. A ordem não é sugestão: cada uma produz o insumo da seguinte, e duas delas existem
+Oito fases, contando a 0. A ordem não é sugestão: cada uma produz o insumo da seguinte, e duas delas existem
 justamente para impedir que a pressa destrua dado publicado.
 
 A regra que atravessa todas: **nada é declarado pronto sem medição.** Este repositório já teve uma
@@ -59,8 +59,8 @@ Não reescreva o que existe (§ 0.6). Escreva o que a fase 1 provou que falta. C
 - `retry`/`timeout`/`user-agent` em `mape_baixar()`, se algum portal exigir;
 - helper de API no molde de `tools/atualizar_ipca.R`, se houver endpoint.
 
-Tudo em `R/`, com teste em `tests/testthat/`. **A suíte tem hoje 564 expectativas e FAIL 0, em 15
-arquivos; ela não pode regredir.** O número era 413 antes da rodada de correção da auditoria, e a
+Tudo em `R/`, com teste em `tests/testthat/`. **A suíte tem hoje 564 expectativas e FAIL 0, em 14
+arquivos; ela não pode regredir.** O número era 154, em 6 arquivos, antes da rodada de correção da auditoria e 413 ao fim dela — a primeira das três reverificações de 26/07/2026 o levou a 564, e a
 frase seguinte era "26 das 62 funções `mape_*` podem virar `function(...) NULL` sem quebrar nenhum
 teste": o achado 26 foi **fechado**, e `Rscript tools/sweep_mutacao.R` sobre as seis funções que
 motivaram o achado — `mape_deflacionar`, `mape_marcar_nominal`, `mape_montar_base_larga`,
@@ -120,9 +120,10 @@ Lembre da assimetria que causa isso: `mape_consolidar_dimensao()` junta fontes c
 expande o painel**. As dimensões publicadas vieram da migração já expandidas. Reconstruir uma
 dimensão significa consolidar **e** expandir, com `mape_expandir_painel()` marcando o que replicou.
 
-Duas armadilhas medidas na expansão: ela quebra em tabela que já tenha coluna `ano`
-(`painel.R:82-86`), e `metodo = "replicar"` faz produto cartesiano quando há mais de um ano medido,
-gerando chave duplicada sem aviso.
+Uma armadilha e uma guarda, na expansão: ela quebra em tabela que já tenha coluna `ano`
+(`painel.R:70-76`), e `metodo = "replicar"` para com erro quando o mesmo município tem mais de um
+ano medido (`painel.R:84-95`) — o produto cartesiano que gerava chave duplicada em silêncio foi
+barrado no achado 58.
 
 ## Fase 6 — Fechamento
 
@@ -139,8 +140,33 @@ E a comparação contra a fase 0: nenhuma tabela perdeu linha, coluna, chave ou 
 autorização registrada; toda tabela que ganhou anos ganhou os anos esperados; todo aviso novo de
 validação tem justificativa.
 
-**A documentação gerada é regerada, não editada.** `dicionario/README.md`, `dados/dimensao/*.md`,
-`qa/*.md` e os `README.md` de fonte saem de `tar_make(documentacao)`.
+**A documentação gerada é regerada, não editada — e não sai toda do mesmo comando.**
+`dicionario/README.md`, `dados/dimensao/*.md` e os `README.md` de fonte saem de
+`tar_make(documentacao)`; `qa/<slug>.md` sai de `mape_validar_tabela()`, que é o que
+`Rscript tools/validar_tudo.R` roda; `qa/paridade_<dim>.md` sai de `mape_paridade()`.
+
+### Regenerar não é acabamento. É onde a rodada passada falhou
+
+Isto vale mais do que parece, e o preço já foi pago. Depois de os treze critérios de fechamento
+passarem, a auditoria reverificou os 105 grupos **três vezes**. A primeira derrubou cinco que
+estavam dados por corrigidos, e o diagnóstico foi o mesmo em quase todos os 23 parciais:
+
+> **o código era corrigido, o `.md` publicado continuava com o texto velho, e o critério media o
+> código.** Um critério que não olha não prova.
+
+Foi por isso que `tools/verificar_fechamento.R` passou de 13 para **18 critérios** — os 13 a 17
+nasceram dessas reverificações, e existem porque nenhum dos anteriores olhava o **artefato**. Dois
+deles, aliás, nasceram quebrados e passavam sempre.
+
+Para esta rodada, três consequências práticas:
+
+- **O artefato é o que o consumidor lê.** Corrigir o dicionário e esquecer o `.md` gerado deixa a
+  correção no lugar errado. Regere e **confira o `git diff` do gerado**, não só o do código.
+- **Ao acrescentar critério ao verificador, faça-o falhar de propósito uma vez** antes de confiar
+  nele. Um portão que nunca foi visto reprovando não é um portão.
+- **`git status --porcelain` limpo é critério, não formalidade.** `validar_tudo.R` reescreve os 26
+  `qa/*.md` com carimbo de hora novo — na linha de base a única diferença deve ser essa; qualquer
+  outra é dado ou documentação que mudou sem você saber.
 
 ## Fase 7 — Release, e só depois de duas decisões
 
@@ -149,8 +175,10 @@ release com dado atualizado, duas coisas precisam estar resolvidas, e nenhuma é
 
 1. **A licença de `13_seguranca`.** O Anuário do FBSP sai, em algumas edições, sob CC BY-NC-ND, e o
    release redistribui como CC BY 4.0. É incompatibilidade, não formalidade.
-2. **A série de PIB de `04_economia`.** O fator de bloco (3× em 2002-03, 2× em 2004-10) foi
-   confirmado contra a origem. Publicar antes de decidir distribui um defeito crítico conhecido.
+2. **A série de PIB de `04_economia`.** O fator de bloco é 4× em 1999-2000, 3× em 2001-03, 2× em
+   2004-10 e 1× de 2011 em diante, medido por divisibilidade no Parquet publicado; contra a
+   origem, que só começa em 2002, a razão é exatamente 3,0000 em 2002-03 e 2,0000 em 2004-10.
+   Publicar antes de decidir distribui um defeito crítico conhecido.
 
 ## O registro da rodada
 

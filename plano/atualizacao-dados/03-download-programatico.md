@@ -1,6 +1,6 @@
 # 3. As fontes de download manual: como cada uma vira código
 
-Nove fontes publicadas dependem hoje de alguém baixar um arquivo à mão. Cinco delas não têm nem o
+Sete fontes publicadas dependem hoje de alguém baixar um arquivo à mão. Cinco delas não têm nem o
 arquivo: o manifesto existe, `arquivo_local` e `sha256` estão em branco, e o bruto original nunca
 esteve neste repositório.
 
@@ -21,6 +21,14 @@ fonte vai exigir:
 - **Não tem *retry*, *timeout* nem *user-agent*.** Usa `utils::download.file()`. Portais do governo
   caem; a extração precisa falhar alto, não pela metade.
 - **Não faz POST nem sessão.** Portal que exige formulário está fora do alcance dele.
+- **Não preenche `baixado_por`, e recarimba `data_download` a cada chamada.** O `baixado_por` que a
+  § 3.3 exige não é escrito por nenhum caminho de código: a única menção a ele em código é o literal
+  `baixado_por: ~` que o scaffold grava (`R/ingestao.R:254`), e os oito manifestos que têm o campo
+  estão todos em `~`. E `mape_registrar_manifesto()` grava `Sys.Date()` em `data_download` sem
+  condição (`R/ingestao.R:96`), enquanto `mape_baixar()` a chama fora do `if` (`R/ingestao.R:57-60`)
+  — inclusive quando o arquivo já existe e nada foi baixado. Rodar a função duas vezes envelhece a
+  procedência sem avisar. Quem quiser que esses dois campos signifiquem alguma coisa preenche à mão,
+  ou conserta a função.
 
 Se a extensão for necessária, ela vai em `R/ingestao.R`, ao lado de `mape_baixar()`, com teste — e
 não copiada dentro de um `extrair_*.R`.
@@ -40,7 +48,10 @@ todo o freio e todo o registro que isso traz.
 
 ### `12_habitacao/mcmv_fgts` — prioridade alta, porque destrava um achado
 
-- URL registrada: `https://www.gov.br/cidades/pt-br/acesso-a-informacao/dados-abertos`
+- URLs registradas, e elas divergem: o `MANIFESTO.yml` traz
+  `https://www.gov.br/cidades/pt-br/acesso-a-informacao/dados-abertos`, e o campo `link` de
+  `dicionario/tabelas.csv` traz `https://www.gov.br/cidades/pt-br/assuntos/habitacao`. Conferir as
+  duas contra a rede e reconciliar é parte da tarefa.
 - Alvo: **degrau 3** (HTTP em portal de dados abertos), degrau 2 se houver API.
 - Por que é prioritária: o **achado 16** está aberto por falta desta planilha.
   `mcmv_valor_contratado_brl2023` atribui R$ 205,8 bilhões a um município-ano, e a assinatura é de um
@@ -79,8 +90,12 @@ todo o freio e todo o registro que isso traz.
 ### `03_meio_ambiente/adaptabrasil`
 
 - URL registrada: `https://adaptabrasil.mcti.gov.br/`; o manifesto declara `automatizavel: sim`.
-- Alvo: **degrau 2**. Verificar se o portal expõe API — o campo `automatizavel: sim` sugere que
-  alguém já avaliou que sim, mas nada no repositório registra o endpoint.
+- Alvo: **degrau 2**. Verificar se o portal expõe API — mas não leia o `automatizavel: sim` como
+  avaliação técnica. O manifesto foi criado em 26/07/2026 pela rodada de correção (achados 89 e 90),
+  e a nota dele diz o que ele registra: "a ORIGEM e a LICENCA". O plano da migração avaliou esta
+  fonte no sentido oposto: `plano/migracao-etl/02-documentacao-e-atualizacao.md:277-278` a classifica
+  como `nao` porque o portal exige seleção manual de filtros, e `04-migracao-riscos.md:274`
+  desaconselha explicitamente o raspador. Nada no repositório registra endpoint.
 - Natureza: retrato único de 2015, replicado de 2010 a 2020 na dimensão sem marcador de linha. Se a
   extração passar a trazer edições novas, **a expansão precisa marcar o que replicou** — a guarda
   existe em `R/painel.R` e é `mape_expandir_painel()` quem a aciona.
@@ -107,8 +122,10 @@ dizer que a atualização é humana.
 
 ### `07_recursos_humanos` (MUNIC) — a maior das manuais
 
-Doze arquivos `.xlsx`, um por edição, 194 MB, hoje sem URL, sem código de download, sem data e sem
-checksum. Faltam as edições de **2010, 2016 e 2022**.
+Doze arquivos `.xlsx`, um por edição, 194 MB — na árvore legada, que saiu do repositório em
+26/07/2026. Nesta árvore não há nenhum deles: `07_recursos_humanos` não tem pasta de fonte, nem
+`raw/`, nem manifesto, nem URL, nem código de download, nem checksum. Faltam ainda as edições de
+**2010, 2016 e 2022**.
 
 - Alvo: **degrau 3**. O IBGE publica a MUNIC em servidor de arquivos com caminho previsível por
   edição — confirmar o padrão e escrever o laço.

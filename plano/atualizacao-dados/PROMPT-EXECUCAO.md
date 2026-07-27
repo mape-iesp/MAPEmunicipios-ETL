@@ -25,7 +25,10 @@ Duas frases resumem o alvo:
 3. `plano/atualizacao-dados/01-arquitetura-da-atualizacao.md` — as regras da atualização.
 4. `plano/atualizacao-dados/02-bigquery.md` e `03-download-programatico.md` — o plano por fonte.
 5. `plano/atualizacao-dados/04-fases-e-aceitacao.md` — a ordem e os critérios.
-6. `auditoria/RELATORIO-FINAL.md` §§ 4 e 5 — o que ficou aberto e o que depende de decisão.
+6. `auditoria/RELATORIO-FINAL.md` §§ 4 e 5 — o que ficou aberto e o que depende de decisão. A § 4
+   lista sete grupos travados por falta de insumo, e **seis deles são insumo que esta rodada
+   entrega**: o cruzamento está em `00-inventario-de-fontes.md` § 0.7, e é o que deve reger a sua
+   ordem de prioridade.
 
 `plano/atualizacao-dados/FONTES.csv` é o inventário legível por código; é ele que você mantém
 atualizado ao longo da rodada.
@@ -112,8 +115,11 @@ Siga `04-fases-e-aceitacao.md`. O esqueleto:
 # FASE 0 — linha de base. Se isto não sair com código 0, pare e resolva antes.
 Rscript tools/verificar_fechamento.R
 Rscript -e 'testthat::test_dir("tests/testthat")'
-Rscript tools/validar_tudo.R
-git status --porcelain
+git status --porcelain                            # tem de estar vazio AQUI
+Rscript tools/validar_tudo.R                      # reescreve os 26 qa/*.md; na linha de base a
+                                                  # única diferença é o carimbo de hora — confira
+                                                  # com `git diff qa/` e desfaça com
+                                                  # `git checkout -- qa/`
 ```
 
 Depois: **fase 1 (descoberta, com fanout de subagentes)** → fase 2 (infraestrutura que faltar) →
@@ -126,8 +132,10 @@ com o resto.
 
 ## Onde você para e pergunta
 
-Não decida sozinho nestes pontos. Todos estão registrados em `auditoria/RELATORIO-FINAL.md` § 5 como
-decisão do responsável:
+Não decida sozinho nestes pontos. Os itens 2 e 3 são os itens 1 e 2 da § 5 de
+`auditoria/RELATORIO-FINAL.md`, e o item 4 é a regra que ela aplica caso a caso (itens 3, 7 e 8). Os
+outros quatro não estão no relatório: são decisão registrada neste plano —
+`01-arquitetura-da-atualizacao.md` §§ 1.3, 1.7 e 1.8, e a fase 3 de `04-fases-e-aceitacao.md`:
 
 1. **Ampliar `anos_painel`.** Muda as 26 tabelas de uma vez.
 2. **A série de PIB de `04_economia`** (achado 1). Reextrair sem decidir o que fazer com o fator de
@@ -157,7 +165,20 @@ decisão do responsável:
 Este repositório passou por uma auditoria de 105 grupos de defeito, e a causa-raiz da maioria não foi
 código errado: foi **afirmação escrita como se fosse fato medido**. Cobertura declarada que não
 batia com a observada, licença "a verificar" que virou release, extração que nunca rodou descrita no
-presente do indicativo.
+presente do indicativo. Este próprio plano trazia essa última: dizia que
+`extrair_municipios.R` "roda", quando ele nunca foi executado.
+
+Depois disso os 105 foram **reverificados três vezes**, e cada rodada derrubou coisa que a anterior
+dera por fechada — cinco grupos na primeira, seis na segunda, dois na terceira, e os dois últimos
+eram portões recém-escritos que **nasceram quebrados e passavam sempre**. O diagnóstico comum:
+*o código era corrigido, o `.md` publicado continuava com o texto velho, e o critério media o
+código.* Foi daí que saíram os critérios 13 a 17 de `tools/verificar_fechamento.R`, que hoje tem 18.
+
+As três lições, na ordem em que vão te atingir:
+
+1. **Meça antes de repetir**, inclusive o que este plano afirma.
+2. **Regere o artefato**, não só o código e o dicionário — o `.md` é o que o consumidor lê.
+3. **Faça seu portão reprovar uma vez** antes de confiar nele.
 
 Se você não conseguir atualizar uma fonte, **escreva que não conseguiu, com o que tentou**. Um item
 honestamente bloqueado vale mais que um item declarado pronto que a próxima pessoa vai descobrir que

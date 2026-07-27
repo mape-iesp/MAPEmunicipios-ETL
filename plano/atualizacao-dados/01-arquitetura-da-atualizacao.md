@@ -131,16 +131,24 @@ escaneou **3,77 MiB** e custou **US$ 0,00** — 0,006% do teto por consulta.
 O bruto não é versionado; o sha256 dele é. São 64 bytes dando a mesma garantia que versionar 194 MB
 de planilhas da MUNIC. `mape_verificar_raw()` confere antes de processar e falha se divergir.
 
-**Um cuidado ao rodar extrações, e ele já é concreto.** `R/bigquery.R:202` monta
-`detalhe = paste0("projeto=", billing, "; bytes=", ...)`, ou seja, **o identificador do projeto GCP
-entra num arquivo versionado a cada consulta**, e o repositório é público. As duas linhas de
-`proveniencia.csv` tiveram esse identificador removido à mão em 26/07/2026 — mas a linha 202 não
-mudou, então **a próxima extração o escreve de volta**.
+**Um cuidado que já foi tratado, e vale saber por quê.** `R/bigquery.R` montava
+`detalhe = paste0("projeto=", billing, "; bytes=", ...)`: o identificador do projeto GCP entrava
+num arquivo versionado a cada consulta, num repositório público. Não entra mais. Hoje a **linha 202
+é o comentário que registra a decisão** — quem paga a consulta não é proveniência do dado; isso é o
+hash e o número de linhas — e a **linha 207 grava só `detalhe = paste0("bytes=", ...)`**. As duas
+linhas de bigquery em `dicionario/proveniencia.csv` continuaram com o identificador depois disso, e
+foram limpas na reverificação adversarial de 26/07/2026 (achado 91), junto com a cópia em
+`dist/v1.0.0/`; hoje trazem `bytes=3952258` e mais nada.
 
-Decida antes de rodar em lote, e as opções são três: parar de gravar o projeto no `detalhe`, gravar
-um rótulo em vez do identificador, ou aceitar que ele fique. A auditoria já tratou os quatro
-identificadores legados (achados 88 e 72) e o critério 9 de `tools/verificar_fechamento.R` confere
-**só aqueles quatro** — o identificador corrente não está sob nenhuma checagem.
+A decisão já foi tomada, e é a primeira das três que estavam em aberto: **não gravar o projeto no
+`detalhe`**. Quem paga a consulta não é proveniência do dado — proveniência é o hash e o número de
+linhas. E o critério 9 de `tools/verificar_fechamento.R` deixou de conferir só os quatro
+identificadores legados: ele extrai **cinco** de `auditoria/VAZAMENTO-GCP.local.md` — os quatro que
+a nota lista em item, entre crases, mais o oficial, que aparece lá só em prosa, na forma
+`MAPE_GCP_BILLING=<id>` — e varre byte a byte todo arquivo rastreado pelo git, inclusive os 52
+binários (26 Parquet e 26 `csv.gz`) que uma leitura por linha pulava em silêncio. Foi o achado 91
+que reabriu isso e o fechou; o 88 (o identificador no histórico remoto) e o 72 (o bruto do CadÚnico
+no histórico) concluem o oposto, que não vale reescrever o histórico.
 
 ## 1.7 O que "atualizar" significa muda com a granularidade
 
@@ -175,7 +183,8 @@ fixado podem divergir; confira os dois.
 
 ## 1.9 Licença antes de publicar, sempre
 
-`tools/publicar_release.R:54` barra o release quando há erro de validação não reivindicado. Mas a
+`tools/publicar_release.R` barra o release quando há erro de validação não reivindicado — o portão
+vai das linhas 47 a 78, e o `stop()` está na 71. Mas a
 licença é decisão humana, e há uma **incompatibilidade conhecida**: o Anuário do FBSP sai, em algumas
 edições, sob **CC BY-NC-ND**, e o release redistribui tudo como CC BY 4.0. `NC` proíbe uso comercial
 e `ND` proíbe obra derivada — e uma tabela derivada é uma obra derivada.
